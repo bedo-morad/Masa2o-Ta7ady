@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: ta7ady-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ta7ady
+    username: username
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  servlet:
+    multipart:
+      max-file-size: 50MB
+springdoc:
+  default-produces-media-type: application/json
+application:
+  file:
+    uploads:
+      media-output-path: ./upload

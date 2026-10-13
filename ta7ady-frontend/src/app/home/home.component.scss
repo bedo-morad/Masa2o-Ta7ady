@@ -1,0 +1,119 @@
+.home {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 3rem;
+}
+
+.hero {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    font-size: 2.6rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+}
+
+.play-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 1.6rem 1rem;
+  text-decoration: none;
+  color: var(--pitch-ink);
+  font-size: 1.4rem;
+  font-weight: 900;
+  min-height: 110px;
+  transition: transform 0.15s ease-out, border-color 0.15s ease-out;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--pitch-accent);
+    transform: translateY(-2px);
+    color: var(--pitch-ink);
+  }
+
+  &:active {
+    transform: none;
+  }
+}
+
+.themes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background: var(--pitch-surface);
+    border: 1px solid var(--pitch-line);
+    border-radius: 999px;
+    color: var(--pitch-ink);
+    padding: 0.6rem 0.4rem;
+    font-weight: 800;
+    min-height: 48px;
+
+    &.active {
+      border-color: var(--pitch-accent);
+    }
+  }
+
+  .dot {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    flex: none;
+
+    &.night {
+      background: #2bb673;
+    }
+
+    &.lapis {
+      background: #e8a42c;
+    }
+
+    &.sand {
+      background: #d9a441;
+    }
+  }
+}
+
+.manage-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px dashed var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.9rem;
+  color: var(--pitch-ink-dim);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+@media (max-width: 420px) {
+  .play-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-btn {
+    transition: none;
+  }
+}

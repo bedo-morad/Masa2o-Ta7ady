@@ -1,0 +1,29 @@
+<div class="home">
+  <header class="hero">
+    <h1>مسائو تحدي</h1>
+  </header>
+
+  <nav class="play-grid" aria-label="التحديات">
+    <a routerLink="/password" class="play-btn">الباسورد</a>
+    <a routerLink="/acting" class="play-btn">التمثيل</a>
+    <a routerLink="/ihbid" class="play-btn">اهبد صح</a>
+    <a routerLink="/offside" class="play-btn">أوفسايد</a>
+  </nav>
+
+  <div class="themes" role="group" aria-label="المظهر">
+    <button type="button" [class.active]="theme() === 'night'" (click)="setTheme('night')">
+      <span class="dot night"></span> ليلي
+    </button>
+    <button type="button" [class.active]="theme() === 'lapis'" (click)="setTheme('lapis')">
+      <span class="dot lapis"></span> لازورد
+    </button>
+    <button type="button" [class.active]="theme() === 'sand'" (click)="setTheme('sand')">
+      <span class="dot sand"></span> رملي
+    </button>
+  </div>
+
+  <a routerLink="/manage" class="manage-link">
+    <i class="fa-solid fa-database"></i>
+    إدارة الأسئلة
+  </a>
+</div>

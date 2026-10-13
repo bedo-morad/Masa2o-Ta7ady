@@ -1,0 +1,88 @@
+<div class="manage">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+  </div>
+
+  <h2>إدارة الأسئلة</h2>
+  <p class="hint">تظهر الإضافات فورًا في اللعب. أسماء اللاعبين مشتركة بين الباسورد والتمثيل.</p>
+
+  <div class="pools" role="tablist">
+    <button type="button" [class.active]="pool() === 'players'" (click)="select('players')">
+      <i class="fa-solid fa-users"></i> أسماء اللاعبين
+      <span class="sub">باسورد + تمثيل</span>
+    </button>
+    <button type="button" [class.active]="pool() === 'ihbid'" (click)="select('ihbid')">
+      <i class="fa-solid fa-bullseye"></i> اهبد صح
+    </button>
+    <button type="button" [class.active]="pool() === 'offside'" (click)="select('offside')">
+      <i class="fa-solid fa-flag"></i> أوفسايد
+    </button>
+  </div>
+
+  @if (pool() === 'players') {
+    <form class="add" (ngSubmit)="addPlayer()">
+      <input [(ngModel)]="newPlayer" name="np" placeholder="اسم لاعب جديد (3 أحرف على الأقل)" />
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
+    </form>
+  }
+  @if (pool() === 'ihbid') {
+    <form class="add column" (ngSubmit)="addIhbid()">
+      <input [(ngModel)]="newQuestion" name="nq" placeholder="السؤال" />
+      <input [(ngModel)]="newAnswer" name="na" placeholder="الجواب (رقم أو تاريخ)" />
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة سؤال</button>
+    </form>
+  }
+  @if (pool() === 'offside') {
+    <form class="add" (ngSubmit)="addOffside()">
+      <input [(ngModel)]="newRule" name="nr" placeholder="قاعدة جديدة — مثال: لاعب إيطالي" />
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
+    </form>
+  }
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+
+  <div class="count tabular-nums">المجموع: {{ totalElements() }}</div>
+
+  <ul class="rows">
+    @if (pool() === 'players') {
+      @for (p of playerRows(); track p.id) {
+        <li>
+          <span>{{ p.playerName }}</span>
+          <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </li>
+      }
+    }
+    @if (pool() === 'ihbid') {
+      @for (q of ihbidRows(); track q.id) {
+        <li class="wide">
+          <span><strong>{{ q.questionText }}</strong> — {{ q.answerText }}</span>
+          <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </li>
+      }
+    }
+    @if (pool() === 'offside') {
+      @for (r of offsideRows(); track r.id) {
+        <li>
+          <span>{{ r.ruleText }}</span>
+          <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </li>
+      }
+    }
+  </ul>
+
+  @if (totalPages() > 1) {
+    <div class="pager">
+      <button type="button" (click)="prev()" [disabled]="page() === 0">السابق</button>
+      <span class="tabular-nums">{{ page() + 1 }} / {{ totalPages() }}</span>
+      <button type="button" (click)="next()" [disabled]="page() + 1 >= totalPages()">التالي</button>
+    </div>
+  }
+</div>

@@ -1,0 +1,61 @@
+<div class="challenge">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
+  </div>
+
+  <h2>اهبد صح</h2>
+
+  <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
+
+  <app-timer [defaultSeconds]="30" label="مؤقت الكتابة" />
+
+  <div class="draw-row">
+    <label for="ih-count">عدد الأسئلة</label>
+    <select id="ih-count" [(ngModel)]="count">
+      <option [ngValue]="5">5</option>
+      <option [ngValue]="10">10</option>
+      <option [ngValue]="15">15</option>
+      <option [ngValue]="20">20</option>
+    </select>
+    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
+      <i class="fa-solid fa-shuffle"></i> سحب جديد
+    </button>
+  </div>
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+
+  <ol class="qlist">
+    @for (q of rows(); track q.id; let i = $index) {
+      <li class="qitem">
+        <div class="qtext"><span class="qnum tabular-nums">{{ i + 1 }}</span> {{ q.questionText }}</div>
+        <div class="qactions">
+          @if (revealed().has(q.id)) {
+            <div class="answer">
+              <span class="value">{{ q.answerText }}</span>
+              <button type="button" class="mini" (click)="toggle(q.id)">
+                <i class="fa-solid fa-eye-slash"></i> إخفاء
+              </button>
+            </div>
+          } @else {
+            <button type="button" class="mini ghost" (click)="toggle(q.id)">
+              <i class="fa-solid fa-eye"></i> إظهار الجواب للحكم
+            </button>
+          }
+          <button
+            type="button"
+            class="mini reroll"
+            (click)="rerollOne(i)"
+            [disabled]="rerolling() !== null"
+            aria-label="تبديل هذا السؤال"
+            title="تبديل"
+          >
+            <i class="fa-solid fa-dice"></i>
+          </button>
+        </div>
+      </li>
+    }
+  </ol>
+</div>

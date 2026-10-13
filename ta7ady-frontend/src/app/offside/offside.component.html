@@ -1,0 +1,48 @@
+<div class="challenge">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
+  </div>
+
+  <h2>أوفسايد</h2>
+
+  <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
+
+  <app-timer [defaultSeconds]="10" label="مؤقت الكتابة" />
+
+  <div class="draw-row">
+    <label for="of-count">عدد القواعد</label>
+    <select id="of-count" [(ngModel)]="count">
+      <option [ngValue]="5">5</option>
+      <option [ngValue]="10">10</option>
+      <option [ngValue]="15">15</option>
+      <option [ngValue]="20">20</option>
+    </select>
+    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
+      <i class="fa-solid fa-shuffle"></i> سحب جديد
+    </button>
+  </div>
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+
+  <ol class="rlist">
+    @for (r of rows(); track r.id; let i = $index) {
+      <li class="ritem">
+        <span class="rnum tabular-nums">{{ i + 1 }}</span>
+        <span class="rtext">{{ r.ruleText }}</span>
+        <button
+          type="button"
+          class="reroll"
+          (click)="rerollOne(i)"
+          [disabled]="rerolling() !== null"
+          aria-label="تبديل هذه القاعدة"
+          title="تبديل"
+        >
+          <i class="fa-solid fa-dice"></i>
+        </button>
+      </li>
+    }
+  </ol>
+</div>

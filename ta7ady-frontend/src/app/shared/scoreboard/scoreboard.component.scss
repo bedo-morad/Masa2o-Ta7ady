@@ -1,0 +1,63 @@
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.team {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.75rem;
+}
+
+.team-name {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--pitch-line);
+  color: var(--pitch-ink);
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 0.25rem 0.1rem;
+  margin-bottom: 0.5rem;
+
+  &::placeholder {
+    color: var(--pitch-ink-dim);
+  }
+
+  &:focus {
+    outline: none;
+    border-bottom-color: var(--pitch-accent);
+  }
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.score {
+  font-size: 2.2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--pitch-gold);
+}
+
+.sbtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-size: 1.1rem;
+
+  &.plus {
+    background: var(--pitch-accent-deep);
+    border-color: var(--pitch-accent-deep);
+    color: #fff;
+  }
+}

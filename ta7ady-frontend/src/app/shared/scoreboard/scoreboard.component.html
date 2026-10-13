@@ -1,0 +1,36 @@
+<div class="scoreboard">
+  <div class="team team-a">
+    <input
+      class="team-name"
+      [(ngModel)]="teamA"
+      placeholder="الفريق الأول"
+      aria-label="اسم الفريق الأول"
+    />
+    <div class="score-row">
+      <button type="button" class="sbtn plus" (click)="bumpA(1)" aria-label="إضافة نقطة">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+      <div class="score tabular-nums">{{ scoreA() }}</div>
+      <button type="button" class="sbtn minus" (click)="bumpA(-1)" aria-label="إنقاص نقطة">
+        <i class="fa-solid fa-minus"></i>
+      </button>
+    </div>
+  </div>
+  <div class="team team-b">
+    <input
+      class="team-name"
+      [(ngModel)]="teamB"
+      placeholder="الفريق الثاني"
+      aria-label="اسم الفريق الثاني"
+    />
+    <div class="score-row">
+      <button type="button" class="sbtn plus" (click)="bumpB(1)" aria-label="إضافة نقطة">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+      <div class="score tabular-nums">{{ scoreB() }}</div>
+      <button type="button" class="sbtn minus" (click)="bumpB(-1)" aria-label="إنقاص نقطة">
+        <i class="fa-solid fa-minus"></i>
+      </button>
+    </div>
+  </div>
+</div>

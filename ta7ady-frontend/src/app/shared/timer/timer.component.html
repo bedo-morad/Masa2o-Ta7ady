@@ -1,0 +1,22 @@
+<div class="timer" [class.is-running]="running()" [class.is-expired]="expired()">
+  @if (label()) {
+    <div class="timer-label">{{ label() }}</div>
+  }
+  <div class="timer-row">
+    <div class="timer-digits tabular-nums">{{ remaining() }}<span class="unit">ث</span></div>
+    <div class="timer-controls">
+      <button
+        type="button"
+        class="tbtn go"
+        (click)="toggle()"
+        [attr.aria-label]="running() ? 'إيقاف مؤقت' : 'تشغيل'"
+      >
+        <i class="fa-solid" [class.fa-pause]="running()" [class.fa-play]="!running()"></i>
+      </button>
+      <button type="button" class="tbtn reset" (click)="reset()" aria-label="تصفير المؤقت">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+    </div>
+  </div>
+  <div class="timer-bar" aria-hidden="true"><span [style.transform]="'scaleX(' + fraction() + ')'"></span></div>
+</div>

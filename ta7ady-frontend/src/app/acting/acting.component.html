@@ -8,8 +8,8 @@
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-  <app-timer [defaultSeconds]="45" label="مؤقت التمثيل" />
-  <app-timer [defaultSeconds]="10" label="مؤقت السرقة" />
+  <app-timer timerKey="acting" [defaultSeconds]="45" label="مؤقت التمثيل" />
+  <app-timer timerKey="actingSteal" [defaultSeconds]="10" label="مؤقت السرقة" />
 
   <div class="draw-row">
     <label for="ac-count">عدد البطاقات</label>

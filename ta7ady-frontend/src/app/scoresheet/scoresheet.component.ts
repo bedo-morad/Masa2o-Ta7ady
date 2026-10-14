@@ -1,10 +1,11 @@
-import { Component, effect, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { API_BASE, ScoresheetMatch } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
+import { SettingsService } from '../shared/settings/settings.service';
 import {
   AssignedTeam,
   AuditEntry,
@@ -52,6 +53,7 @@ function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
   styleUrl: './scoresheet.component.scss',
 })
 export class ScoresheetComponent {
+  private settings = inject(SettingsService);
   readonly teamA = signal('');
   readonly teamB = signal('');
   readonly scoreA = signal(0);
@@ -176,20 +178,80 @@ export class ScoresheetComponent {
 
   // Per-match mistake tracker (display only, referee enforces): 4 named slots
   // (2 per side); 3 mistakes eliminates that player. Keyed per match id,
-  // cleared when the match leaves the run.
+  // cleared when the match leaves the run. Defaults pair each side's team
+  // name with its persisted settings player ("<team> - <player>"); empty
+  // settings fall back to the generic numbered defaults.
+  private playerSuffix(player: string | undefined, fallback: string): string {
+    const name = (player ?? '').trim();
+    return name ? ` - ${name}` : ` ${fallback}`;
+  }
+
+  private defaultSlotNames(a: string, b: string): string[] {
+    const pa = this.settings.playersA();
+    const pb = this.settings.playersB();
+    return [
+      `${a}${this.playerSuffix(pa[0], '١')}`,
+      `${a}${this.playerSuffix(pa[1], '٢')}`,
+      `${b}${this.playerSuffix(pb[0], '١')}`,
+      `${b}${this.playerSuffix(pb[1], '٢')}`,
+    ];
+  }
+
   slotsOf(match: ScoresheetMatch): StrikeSlot[] {
     const existing = this.strikes()[match.id];
     if (existing) return existing;
     const a = this.teamA() || match.teamA || 'الفريق الأول';
     const b = this.teamB() || match.teamB || 'الفريق الثاني';
-    const fresh: StrikeSlot[] = [
-      { name: `${a} ١`, mistakes: 0 },
-      { name: `${a} ٢`, mistakes: 0 },
-      { name: `${b} ١`, mistakes: 0 },
-      { name: `${b} ٢`, mistakes: 0 },
-    ];
+    const fresh: StrikeSlot[] = this.defaultSlotNames(a, b).map((name) => ({
+      name,
+      mistakes: 0,
+    }));
     this.strikes.update((ss) => ({ ...ss, [match.id]: fresh }));
     return fresh;
+  }
+
+  /** Swap team NAMES only (values + placeholders follow via the signals;
+   * strike slots still carrying their defaults are rebuilt, custom names
+   * stay). Scores, assignments and audit are untouched. */
+  swapTeams(): void {
+    const oldA = this.teamA();
+    const oldB = this.teamB();
+    if (!oldA && !oldB) return;
+    this.teamA.set(oldB);
+    this.teamB.set(oldA);
+    const byId = new Map(this.matches().map((m) => [m.id, m]));
+    const next: Record<number, StrikeSlot[]> = {};
+    for (const [key, slots] of Object.entries(this.strikes())) {
+      const id = Number(key);
+      const m = byId.get(id);
+      const after = this.defaultSlotNames(
+        oldB || m?.teamA || 'الفريق الأول',
+        oldA || m?.teamB || 'الفريق الثاني',
+      );
+      const beforeVariants = [
+        this.defaultSlotNames(
+          oldA || m?.teamA || 'الفريق الأول',
+          oldB || m?.teamB || 'الفريق الثاني',
+        ),
+      ];
+      if (m) {
+        beforeVariants.push(
+          this.defaultSlotNames(m.teamA || 'الفريق الأول', m.teamB || 'الفريق الثاني'),
+        );
+      }
+      next[id] = slots.map((s) => {
+        let at = -1;
+        for (const b of beforeVariants) {
+          const j = b.indexOf(s.name);
+          if (j >= 0) {
+            at = j;
+            break;
+          }
+        }
+        return at >= 0 ? { ...s, name: after[at] } : s;
+      });
+    }
+    this.strikes.set(next);
   }
 
   isOut(slot: StrikeSlot): boolean {

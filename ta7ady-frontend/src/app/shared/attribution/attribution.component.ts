@@ -1,4 +1,5 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
+import { SettingsService } from '../settings/settings.service';
 
 // Shared attribution interaction (SPECV2 §2.3): the referee taps team A or B
 // for an answer. The component owns the toggle math (tap again unassigns)
@@ -124,12 +125,15 @@ export class AttributionComponent {
   `,
 })
 export class AuditStripComponent {
+  private settings = inject(SettingsService);
   readonly entries = input<AuditEntry[]>([]);
   readonly teamA = input('');
   readonly teamB = input('');
 
   name(t: 'A' | 'B'): string {
-    return t === 'A' ? this.teamA() || 'الفريق الأول' : this.teamB() || 'الفريق الثاني';
+    return t === 'A'
+      ? this.teamA() || this.settings.teamA() || 'الفريق الأول'
+      : this.teamB() || this.settings.teamB() || 'الفريق الثاني';
   }
 
   fmt(n: number): string {

@@ -171,14 +171,14 @@ describe('Top10Component', () => {
     expect(c.idx()).toBe(0);
   });
 
-  it('dead-turn tracker flags a hint at 3 and resets', () => {
+  it('dead-turn tracker flags a hint at 12 and resets', () => {
     const c = setup();
     expect(c.hintDue(1)).toBe(false);
-    c.bumpDead(1, 1);
-    c.bumpDead(1, 1);
+    for (let i = 0; i < 11; i++) c.bumpDead(1, 1);
+    expect(c.deadOf(1)).toBe(11);
     expect(c.hintDue(1)).toBe(false);
     c.bumpDead(1, 1);
-    expect(c.deadOf(1)).toBe(3);
+    expect(c.deadOf(1)).toBe(12);
     expect(c.hintDue(1)).toBe(true);
     c.bumpDead(1, -1);
     expect(c.hintDue(1)).toBe(false);

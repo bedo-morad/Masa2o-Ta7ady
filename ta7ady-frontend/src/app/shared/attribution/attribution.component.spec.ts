@@ -1,9 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import {
   AttributionComponent,
+  AuditStripComponent,
   attributionDeltas,
   signed,
 } from './attribution.component';
+import { SettingsService } from '../settings/settings.service';
 
 describe('attributionDeltas', () => {
   it('assigns full points to the picked team', () => {
@@ -80,5 +82,33 @@ describe('AttributionComponent', () => {
     expect(last).toEqual(
       expect.objectContaining({ picked: 'B', from: 'A', to: 'B' }),
     );
+  });
+});
+
+describe('AuditStripComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AuditStripComponent],
+    }).compileComponents();
+  });
+
+  it('prefers page names, then settings teams, then generic fallbacks', () => {
+    const settings = TestBed.inject(SettingsService);
+    settings.setTeamA('الصقور');
+    settings.setTeamB('النمور');
+    try {
+      const fixture = TestBed.createComponent(AuditStripComponent);
+      fixture.detectChanges();
+      const strip = fixture.componentInstance;
+      expect(strip.name('A')).toBe('الصقور');
+      expect(strip.name('B')).toBe('النمور');
+      fixture.componentRef.setInput('teamA', 'مكتوب');
+      expect(strip.name('A')).toBe('مكتوب');
+    } finally {
+      settings.resetAll();
+    }
+    const bare = TestBed.createComponent(AuditStripComponent).componentInstance;
+    expect(bare.name('A')).toBe('الفريق الأول');
+    expect(bare.name('B')).toBe('الفريق الثاني');
   });
 });

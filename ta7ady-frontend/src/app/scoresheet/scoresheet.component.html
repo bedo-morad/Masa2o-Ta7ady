@@ -8,7 +8,61 @@
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-  <app-timer [defaultSeconds]="30" label="مؤقت المباراة" />
+  <div class="swap-row">
+    <button type="button" class="swap" (click)="swapTeams()" aria-label="تبديل اسمي الفريقين">
+      <i class="fa-solid fa-arrow-right-arrow-left"></i> تبديل الاسمين
+    </button>
+  </div>
+
+  <app-timer timerKey="scoresheet" [defaultSeconds]="30" label="مؤقت المباراة" />
+
+  @if (current(); as strikeMatch) {
+    <section class="strikes" aria-label="الأخطاء">
+      @for (s of slotsOf(strikeMatch); track $index; let i = $index) {
+        <div class="slot" [class.out]="isOut(s)">
+          <input
+            class="sname"
+            [ngModel]="s.name"
+            (ngModelChange)="setSlotName(strikeMatch.id, i, $event)"
+            [attr.aria-label]="'اسم اللاعب ' + (i + 1)"
+          />
+          <div class="stepper" role="group" [attr.aria-label]="'أخطاء ' + s.name">
+            <button
+              type="button"
+              class="step"
+              (click)="bumpMistake(strikeMatch.id, i, -1)"
+              [disabled]="s.mistakes <= 0"
+              aria-label="إنقاص الأخطاء"
+            >
+              <i class="fa-solid fa-minus"></i>
+            </button>
+            <span class="mcount tabular-nums">{{ s.mistakes }}</span>
+            <button
+              type="button"
+              class="step"
+              (click)="bumpMistake(strikeMatch.id, i, 1)"
+              [disabled]="s.mistakes >= 3"
+              aria-label="زيادة الأخطاء"
+            >
+              <i class="fa-solid fa-plus"></i>
+            </button>
+            <button
+              type="button"
+              class="step ghost"
+              (click)="resetSlot(strikeMatch.id, i)"
+              [disabled]="s.mistakes <= 0"
+              aria-label="تصفير الأخطاء"
+            >
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
+          @if (isOut(s)) {
+            <span class="out-chip">مستبعد</span>
+          }
+        </div>
+      }
+    </section>
+  }
 
   <div class="draw-row">
     <label for="ss-count">عدد المباريات</label>
@@ -111,52 +165,6 @@
           </ol>
         </div>
       </div>
-    </section>
-
-    <section class="strikes" aria-label="الأخطاء">
-      @for (s of slotsOf(match); track $index; let i = $index) {
-        <div class="slot" [class.out]="isOut(s)">
-          <input
-            class="sname"
-            [ngModel]="s.name"
-            (ngModelChange)="setSlotName(match.id, i, $event)"
-            [attr.aria-label]="'اسم اللاعب ' + (i + 1)"
-          />
-          <div class="stepper" role="group" [attr.aria-label]="'أخطاء ' + s.name">
-            <button
-              type="button"
-              class="step"
-              (click)="bumpMistake(match.id, i, -1)"
-              [disabled]="s.mistakes <= 0"
-              aria-label="إنقاص الأخطاء"
-            >
-              <i class="fa-solid fa-minus"></i>
-            </button>
-            <span class="mcount tabular-nums">{{ s.mistakes }}</span>
-            <button
-              type="button"
-              class="step"
-              (click)="bumpMistake(match.id, i, 1)"
-              [disabled]="s.mistakes >= 3"
-              aria-label="زيادة الأخطاء"
-            >
-              <i class="fa-solid fa-plus"></i>
-            </button>
-            <button
-              type="button"
-              class="step ghost"
-              (click)="resetSlot(match.id, i)"
-              [disabled]="s.mistakes <= 0"
-              aria-label="تصفير الأخطاء"
-            >
-              <i class="fa-solid fa-rotate-left"></i>
-            </button>
-          </div>
-          @if (isOut(s)) {
-            <span class="out-chip">مستبعد</span>
-          }
-        </div>
-      }
     </section>
 
     <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />

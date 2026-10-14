@@ -8,7 +8,45 @@
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-  <app-timer [defaultSeconds]="30" label="مؤقت القائمة" />
+  <app-timer timerKey="top10" [defaultSeconds]="30" label="مؤقت القائمة" />
+
+  @if (current(); as hintList) {
+    <div class="dead-row" [class.due]="hintDue(hintList.id)">
+      <span class="dead-label">أدوار ميتة</span>
+      <div class="stepper" role="group" aria-label="أدوار ميتة">
+        <button
+          type="button"
+          class="step"
+          (click)="bumpDead(hintList.id, -1)"
+          [disabled]="deadOf(hintList.id) <= 0"
+          aria-label="إنقاص الأدوار الميتة"
+        >
+          <i class="fa-solid fa-minus"></i>
+        </button>
+        <span class="dcount tabular-nums">{{ deadOf(hintList.id) }}</span>
+        <button
+          type="button"
+          class="step"
+          (click)="bumpDead(hintList.id, 1)"
+          aria-label="زيادة الأدوار الميتة"
+        >
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button
+          type="button"
+          class="step ghost"
+          (click)="resetDead(hintList.id)"
+          [disabled]="deadOf(hintList.id) <= 0"
+          aria-label="تصفير الأدوار الميتة"
+        >
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+      </div>
+      @if (hintDue(hintList.id)) {
+        <span class="hint-chip"><i class="fa-solid fa-lightbulb"></i> تلميح مستحق</span>
+      }
+    </div>
+  }
 
   <div class="draw-row">
     <label for="t10-count">عدد القوائم</label>
@@ -61,42 +99,6 @@
     <section class="board">
       <div class="prompt-row">
         <h3 class="prompt">{{ list.prompt }}</h3>
-      </div>
-
-      <div class="dead-row" [class.due]="hintDue(list.id)">
-        <span class="dead-label">أدوار ميتة</span>
-        <div class="stepper" role="group" aria-label="أدوار ميتة">
-          <button
-            type="button"
-            class="step"
-            (click)="bumpDead(list.id, -1)"
-            [disabled]="deadOf(list.id) <= 0"
-            aria-label="إنقاص الأدوار الميتة"
-          >
-            <i class="fa-solid fa-minus"></i>
-          </button>
-          <span class="dcount tabular-nums">{{ deadOf(list.id) }}</span>
-          <button
-            type="button"
-            class="step"
-            (click)="bumpDead(list.id, 1)"
-            aria-label="زيادة الأدوار الميتة"
-          >
-            <i class="fa-solid fa-plus"></i>
-          </button>
-          <button
-            type="button"
-            class="step ghost"
-            (click)="resetDead(list.id)"
-            [disabled]="deadOf(list.id) <= 0"
-            aria-label="تصفير الأدوار الميتة"
-          >
-            <i class="fa-solid fa-rotate-left"></i>
-          </button>
-        </div>
-        @if (hintDue(list.id)) {
-          <span class="hint-chip"><i class="fa-solid fa-lightbulb"></i> تلميح مستحق</span>
-        }
       </div>
 
       <ol class="answers">

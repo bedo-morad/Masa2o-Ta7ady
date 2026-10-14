@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ScoreboardComponent } from './scoreboard.component';
+import { SettingsService } from '../settings/settings.service';
 
 describe('ScoreboardComponent', () => {
   beforeEach(async () => {
@@ -10,6 +11,37 @@ describe('ScoreboardComponent', () => {
     const fixture = TestBed.createComponent(ScoreboardComponent);
     fixture.detectChanges();
     expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('prefills empty team names from persisted settings once on init', () => {
+    const settings = TestBed.inject(SettingsService);
+    settings.setTeamA('الصقور');
+    settings.setTeamB('النمور');
+    try {
+      const fixture = TestBed.createComponent(ScoreboardComponent);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.teamA()).toBe('الصقور');
+      expect(fixture.componentInstance.teamB()).toBe('النمور');
+    } finally {
+      settings.resetAll();
+    }
+  });
+
+  it('leaves referee-typed names alone; placeholders fall back to settings', () => {
+    const settings = TestBed.inject(SettingsService);
+    settings.setTeamA('الصقور');
+    try {
+      const fixture = TestBed.createComponent(ScoreboardComponent);
+      fixture.componentRef.setInput('teamA', 'مكتوب');
+      fixture.detectChanges();
+      const c = fixture.componentInstance;
+      expect(c.teamA()).toBe('مكتوب');
+      expect(c.teamB()).toBe('');
+      expect(c.placeholderA()).toBe('الصقور');
+      expect(c.placeholderB()).toBe('الفريق الثاني');
+    } finally {
+      settings.resetAll();
+    }
   });
 
   it('bumps scores through the models and allows negative scores', () => {

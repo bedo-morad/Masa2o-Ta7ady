@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { ScoresheetComponent, playerKey } from './scoresheet.component';
 import { ScoresheetMatch } from '../api.service';
+import { SettingsService } from '../shared/settings/settings.service';
 
 describe('playerKey', () => {
   it('separates sides and indexes', () => {
@@ -122,6 +123,54 @@ describe('ScoresheetComponent', () => {
     expect(c.slotsOf(m)[2].name).toContain('النمور');
     c.setSlotName(1, 0, 'كابتن');
     expect(c.slotsOf(m)[0].name).toBe('كابتن');
+  });
+
+  it('strike slots pair settings players with team names, else generic numbers', () => {
+    const c = setup();
+    const settings = TestBed.inject(SettingsService);
+    try {
+      settings.setPlayer('A', 0, 'سامي');
+      c.teamA.set('الصقور');
+      c.teamB.set('النمور');
+      c.strikes.set({});
+      const m = match(1);
+      expect(c.slotsOf(m)[0].name).toBe('الصقور - سامي');
+      expect(c.slotsOf(m)[1].name).toContain('الصقور');
+      expect(c.slotsOf(m)[1].name).not.toContain('-');
+      expect(c.slotsOf(m)[2].name).toContain('النمور');
+    } finally {
+      settings.resetAll();
+    }
+  });
+
+  it('swapTeams swaps names only; scores, assignments and audit untouched', () => {
+    const c = setup();
+    c.teamA.set('الصقور');
+    c.teamB.set('النمور');
+    pick(c, 'A', 0);
+    const auditLen = c.audit().length;
+    c.swapTeams();
+    expect(c.teamA()).toBe('النمور');
+    expect(c.teamB()).toBe('الصقور');
+    expect(c.scoreA()).toBe(1);
+    expect(c.scoreB()).toBe(0);
+    expect(c.assigned(1, 'A:0')).toBe('A');
+    expect(c.audit().length).toBe(auditLen);
+  });
+
+  it('swapTeams rebuilds default slot names but keeps custom ones', () => {
+    const c = setup();
+    const m = match(1);
+    c.teamA.set('الصقور');
+    c.teamB.set('النمور');
+    c.strikes.set({});
+    expect(c.slotsOf(m)[0].name).toContain('الصقور');
+    c.setSlotName(1, 1, 'كابتن');
+    c.swapTeams();
+    const slots = c.slotsOf(m);
+    expect(slots[0].name).toContain('النمور');
+    expect(slots[2].name).toContain('الصقور');
+    expect(slots[1].name).toBe('كابتن');
   });
 
   it('navigation stays in bounds', () => {

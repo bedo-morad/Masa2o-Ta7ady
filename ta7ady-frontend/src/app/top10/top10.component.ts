@@ -179,14 +179,14 @@ export class Top10Component {
     return delta;
   }
 
-  // Referee-owned dead-turn tracker (display only): after 3 dead turns the
+  // Referee-owned dead-turn tracker (display only): after 12 dead turns the
   // room gets a hint. Keyed per list, cleared when the list leaves the run.
   deadOf(listId: number): number {
     return this.deadTurns()[listId] ?? 0;
   }
 
   hintDue(listId: number): boolean {
-    return this.deadOf(listId) >= 3;
+    return this.deadOf(listId) >= 12;
   }
 
   bumpDead(listId: number, d: number): void {

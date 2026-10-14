@@ -1,43 +1,61 @@
 <div class="manage">
   <div class="topbar">
     <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <button
+      type="button"
+      class="lock-btn"
+      [class.on]="adminOn()"
+      (click)="openAdminModal(adminModal)"
+      [attr.aria-label]="adminOn() ? 'وضع الإدارة مفعّل — إدارة القفل' : 'فتح وضع الإدارة'"
+      [title]="adminOn() ? 'وضع الإدارة مفعّل' : 'وضع الإدارة'"
+    >
+      <i class="fa-solid" [class.fa-lock-open]="adminOn()" [class.fa-lock]="!adminOn()"></i>
+    </button>
   </div>
 
   <h2>إدارة الأسئلة</h2>
   <p class="hint">تظهر الإضافات فورًا في اللعب. أسماء اللاعبين مشتركة بين الباسورد والتمثيل.</p>
 
-  @if (!adminOn()) {
-    <form class="admin-locked" (ngSubmit)="unlockAdmin()">
-      <label class="admin-label" for="adminPw"><i class="fa-solid fa-lock"></i> وضع الإدارة (للحذف فقط)</label>
-      <div class="admin-row">
-        <input
-          id="adminPw"
-          type="password"
-          [(ngModel)]="adminPw"
-          name="adminPw"
-          placeholder="كلمة مرور الإدارة"
-          autocomplete="off"
-        />
-        <button type="submit"><i class="fa-solid fa-lock-open"></i> فتح</button>
+  <ng-template #adminModal let-modal>
+    <div class="admin-popup">
+      <div class="admin-popup-head">
+        <h3><i class="fa-solid fa-lock"></i> وضع الإدارة (للحذف فقط)</h3>
+        <button type="button" class="x" (click)="modal.dismiss()" aria-label="إغلاق">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
-      @if (adminError()) {
-        <div class="admin-error" role="alert">{{ adminError() }}</div>
+      @if (!adminOn()) {
+        <form class="admin-form" (ngSubmit)="unlockAdmin(modal)">
+          <label class="admin-label" for="adminPw">كلمة مرور الإدارة</label>
+          <input
+            id="adminPw"
+            type="password"
+            [(ngModel)]="adminPw"
+            name="adminPw"
+            placeholder="كلمة مرور الإدارة"
+            autocomplete="off"
+          />
+          @if (adminError()) {
+            <div class="admin-error" role="alert">{{ adminError() }}</div>
+          }
+          <button type="submit" class="unlock"><i class="fa-solid fa-lock-open"></i> فتح</button>
+        </form>
+      } @else {
+        <p class="admin-state"><i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار الحذف ظاهرة.</p>
+        @if (adminError()) {
+          <div class="admin-error" role="alert">{{ adminError() }}</div>
+        }
+        <div class="admin-actions">
+          <button type="button" class="lock" (click)="lockAdmin(modal)"><i class="fa-solid fa-lock"></i> قفل / تسجيل خروج</button>
+          <button type="button" class="close" (click)="modal.dismiss()">إغلاق</button>
+        </div>
       }
-    </form>
-  } @else {
-    <div class="admin-open">
-      <span><i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار الحذف ظاهرة.</span>
-      <button type="button" (click)="lockAdmin()"><i class="fa-solid fa-lock"></i> قفل</button>
     </div>
-    @if (adminError()) {
-      <div class="admin-error" role="alert">{{ adminError() }}</div>
-    }
-  }
+  </ng-template>
 
   <div class="pools" role="tablist">
     <button type="button" [class.active]="pool() === 'players'" (click)="select('players')">
       <i class="fa-solid fa-users"></i> أسماء اللاعبين
-      <span class="sub">باسورد + تمثيل</span>
     </button>
     <button type="button" [class.active]="pool() === 'ihbid'" (click)="select('ihbid')">
       <i class="fa-solid fa-bullseye"></i> اهبد صح
@@ -75,34 +93,78 @@
   @if (pool() === 'top10') {
     <form class="add column" (ngSubmit)="addTop10()">
       <input [(ngModel)]="newTop10Prompt" name="ntp" placeholder="عنوان القائمة — مثال: أعلى 13 هدافًا…" />
-      <textarea
-        [(ngModel)]="newTop10Answers"
-        name="nta"
-        rows="5"
-        placeholder="13 إجابة — سطر لكل إجابة بالترتيب (الأولى = المركز الأول)"
-      ></textarea>
+      <ol class="ranks">
+        @for (rank of top10Ranks; track rank; let i = $index) {
+          <li>
+            <span class="rank tabular-nums" aria-hidden="true">{{ rank }}</span>
+            <input
+              [ngModel]="top10Answers()[i]"
+              (ngModelChange)="setTop10Answer(i, $event)"
+              [name]="'ans' + rank"
+              [placeholder]="'الإجابة رقم ' + rank"
+              [attr.aria-label]="'الإجابة رقم ' + rank"
+            />
+          </li>
+        }
+      </ol>
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة قائمة</button>
     </form>
   }
   @if (pool() === 'scoresheet') {
     <form class="add column" (ngSubmit)="addScoresheet()">
       <input [(ngModel)]="newMatch" name="nm" placeholder="اسم المباراة — مثال: نهائي كأس العالم 2022" />
-      <div class="duo">
-        <input [(ngModel)]="newTeamA" name="nta2" placeholder="الفريق الأول" />
-        <input [(ngModel)]="newTeamB" name="ntb" placeholder="الفريق الثاني" />
+      <div class="teams">
+        <fieldset class="team">
+          <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الأول</legend>
+          <input
+            class="team-name"
+            [(ngModel)]="newTeamA"
+            name="nta2"
+            placeholder="اسم الفريق الأول"
+            aria-label="اسم الفريق الأول"
+          />
+          <ol class="lineup">
+            @for (slot of lineupSlots; track slot; let i = $index) {
+              <li>
+                <span class="slot tabular-nums" aria-hidden="true">{{ slot }}</span>
+                <input
+                  class="player-box"
+                  [ngModel]="lineupA()[i]"
+                  (ngModelChange)="setLineupA(i, $event)"
+                  [name]="'la' + slot"
+                  [placeholder]="'لاعب ' + slot"
+                  [attr.aria-label]="'لاعب الفريق الأول رقم ' + slot"
+                />
+              </li>
+            }
+          </ol>
+        </fieldset>
+        <fieldset class="team">
+          <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الثاني</legend>
+          <input
+            class="team-name"
+            [(ngModel)]="newTeamB"
+            name="ntb"
+            placeholder="اسم الفريق الثاني"
+            aria-label="اسم الفريق الثاني"
+          />
+          <ol class="lineup">
+            @for (slot of lineupSlots; track slot; let i = $index) {
+              <li>
+                <span class="slot tabular-nums" aria-hidden="true">{{ slot }}</span>
+                <input
+                  class="player-box"
+                  [ngModel]="lineupB()[i]"
+                  (ngModelChange)="setLineupB(i, $event)"
+                  [name]="'lb' + slot"
+                  [placeholder]="'لاعب ' + slot"
+                  [attr.aria-label]="'لاعب الفريق الثاني رقم ' + slot"
+                />
+              </li>
+            }
+          </ol>
+        </fieldset>
       </div>
-      <textarea
-        [(ngModel)]="newLineupA"
-        name="nla"
-        rows="4"
-        placeholder="تشكيلة الفريق الأول — 11 اسمًا، سطر لكل لاعب"
-      ></textarea>
-      <textarea
-        [(ngModel)]="newLineupB"
-        name="nlb"
-        rows="4"
-        placeholder="تشكيلة الفريق الثاني — 11 اسمًا، سطر لكل لاعب"
-      ></textarea>
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة مباراة</button>
     </form>
   }

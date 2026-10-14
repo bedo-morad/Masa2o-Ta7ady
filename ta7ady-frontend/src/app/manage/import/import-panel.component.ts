@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, BulkRowResult, Pool } from '../../api.service';
 
 const POOL_LABEL: Record<Pool, string> = {
@@ -42,6 +43,7 @@ const SCHEMA_NOTE: Record<Pool, string> = {
 })
 export class ImportPanelComponent {
   private api = inject(ApiService);
+  private toast = inject(HotToastService);
 
   readonly pool = input.required<Pool>();
   readonly imported = output<void>();
@@ -182,9 +184,13 @@ export class ImportPanelComponent {
       const res = await firstValueFrom(this.api.bulk(this.pool(), this.rows(), false));
       this.result.set(res ?? []);
       this.preview.set(null);
+      const saved = (res ?? []).filter((r) => r.ok).length;
+      this.toast.success(`تم حفظ ${saved} من الصفوف.`);
       this.imported.emit();
     } catch (e: unknown) {
-      this.confirmError.set(this.bulkMsg(e) ?? 'تعذّر الحفظ — تحقق من الاتصال ثم أعد المحاولة.');
+      const reason = this.bulkMsg(e) ?? 'تعذّر الحفظ — تحقق من الاتصال ثم أعد المحاولة.';
+      this.confirmError.set(reason);
+      this.toast.error(reason);
     } finally {
       this.confirming.set(false);
     }

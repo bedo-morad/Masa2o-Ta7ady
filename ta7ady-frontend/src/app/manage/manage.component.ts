@@ -1,12 +1,16 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { HotToastService } from '@ngxpert/hot-toast';
 import { API_BASE, ApiService, Page, Pool } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
 
 const SIZE = 20;
+export const TOP10_SIZE = 13;
+export const LINEUP_SIZE = 11;
 
 @Component({
   selector: 'app-manage',
@@ -17,6 +21,8 @@ const SIZE = 20;
 })
 export class ManageComponent {
   readonly api = inject(ApiService);
+  private readonly modal = inject(NgbModal);
+  private readonly toast = inject(HotToastService);
 
   readonly pool = signal<Pool>('players');
   readonly page = signal(0);
@@ -31,12 +37,15 @@ export class ManageComponent {
   readonly newAnswer = signal('');
   readonly newRule = signal('');
   readonly newTop10Prompt = signal('');
-  readonly newTop10Answers = signal('');
+  readonly top10Answers = signal<string[]>(Array(TOP10_SIZE).fill(''));
   readonly newMatch = signal('');
   readonly newTeamA = signal('');
   readonly newTeamB = signal('');
-  readonly newLineupA = signal('');
-  readonly newLineupB = signal('');
+  readonly lineupA = signal<string[]>(Array(LINEUP_SIZE).fill(''));
+  readonly lineupB = signal<string[]>(Array(LINEUP_SIZE).fill(''));
+
+  readonly top10Ranks = Array.from({ length: TOP10_SIZE }, (_, i) => i + 1);
+  readonly lineupSlots = Array.from({ length: LINEUP_SIZE }, (_, i) => i + 1);
 
   private readonly playersRes = httpResource<Page<{ id: number; playerName: string }>>(() =>
     this.pool() === 'players'
@@ -108,7 +117,12 @@ export class ManageComponent {
     if (this.page() + 1 < this.totalPages()) this.page.update((p) => p + 1);
   }
 
-  unlockAdmin(): void {
+  openAdminModal(content: TemplateRef<unknown>): void {
+    this.adminError.set('');
+    this.modal.open(content, { centered: true });
+  }
+
+  unlockAdmin(dismiss?: { dismiss: () => void }): void {
     const pw = this.adminPw().trim();
     if (!pw) {
       this.adminError.set('أدخل كلمة المرور.');
@@ -118,16 +132,31 @@ export class ManageComponent {
     this.adminPw.set('');
     this.adminError.set('');
     this.msg.set('تم تفعيل وضع الإدارة لهذه الجلسة — ظهرت أزرار الحذف.');
+    dismiss?.dismiss();
   }
 
-  lockAdmin(): void {
+  lockAdmin(dismiss?: { dismiss: () => void }): void {
     this.api.lock();
+    this.adminError.set('');
     this.msg.set('تم قفل وضع الإدارة — أُخفيت أزرار الحذف.');
+    dismiss?.dismiss();
   }
 
   onImported(): void {
     this.reloadActive();
     this.msg.set('تم الاستيراد — القائمة محدثة.');
+  }
+
+  setTop10Answer(i: number, v: string): void {
+    this.top10Answers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
+  }
+
+  setLineupA(i: number, v: string): void {
+    this.lineupA.update((arr) => arr.map((old, j) => (j === i ? v : old)));
+  }
+
+  setLineupB(i: number, v: string): void {
+    this.lineupB.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
   private reloadActive(): void {
@@ -146,8 +175,11 @@ export class ManageComponent {
       if (this.page() === 0) this.reloadActive();
       else this.page.set(0);
       this.msg.set('تمت الإضافة إلى أسماء اللاعبين.');
+      this.toast.success('تمت الإضافة إلى أسماء اللاعبين.');
     } catch (e: unknown) {
-      this.msg.set(this.apiMsg(e) ?? 'خطأ — الاسم قصير أو مكرر.');
+      const reason = this.apiMsg(e) ?? 'خطأ — الاسم قصير أو مكرر.';
+      this.msg.set(reason);
+      this.toast.error(reason);
     }
   }
 
@@ -160,8 +192,11 @@ export class ManageComponent {
       if (this.page() === 0) this.reloadActive();
       else this.page.set(0);
       this.msg.set('تمت إضافة السؤال.');
-    } catch {
-      this.msg.set('خطأ — تأكد من طول السؤال والجواب.');
+      this.toast.success('تمت إضافة السؤال.');
+    } catch (e: unknown) {
+      const reason = this.apiMsg(e) ?? 'خطأ — تأكد من طول السؤال والجواب.';
+      this.msg.set(reason);
+      this.toast.error(reason);
     }
   }
 
@@ -173,47 +208,66 @@ export class ManageComponent {
       if (this.page() === 0) this.reloadActive();
       else this.page.set(0);
       this.msg.set('تمت إضافة القاعدة.');
-    } catch {
-      this.msg.set('خطأ — القاعدة قصيرة.');
+      this.toast.success('تمت إضافة القاعدة.');
+    } catch (e: unknown) {
+      const reason = this.apiMsg(e) ?? 'خطأ — القاعدة قصيرة.';
+      this.msg.set(reason);
+      this.toast.error(reason);
     }
   }
 
   async addTop10(): Promise<void> {
     this.msg.set('');
+    const answers = this.top10Answers().map((a) => a.trim());
+    if (answers.some((a) => !a)) {
+      const reason = 'أكمل الإجابات الـ13 كلها قبل الإضافة.';
+      this.msg.set(reason);
+      this.toast.error(reason);
+      return;
+    }
     try {
-      await firstValueFrom(this.api.addTop10(this.newTop10Prompt(), this.lines(this.newTop10Answers())));
+      await firstValueFrom(this.api.addTop10(this.newTop10Prompt(), answers));
       this.newTop10Prompt.set('');
-      this.newTop10Answers.set('');
+      this.top10Answers.set(Array(TOP10_SIZE).fill(''));
       if (this.page() === 0) this.reloadActive();
       else this.page.set(0);
       this.msg.set('تمت إضافة قائمة التوب 10.');
-    } catch {
-      this.msg.set('خطأ — يلزم عنوان و13 إجابة مميزة.');
+      this.toast.success('تمت إضافة قائمة التوب 10.');
+    } catch (e: unknown) {
+      const reason = this.apiMsg(e) ?? 'خطأ — يلزم عنوان و13 إجابة مميزة.';
+      this.msg.set(reason);
+      this.toast.error(reason);
     }
   }
 
   async addScoresheet(): Promise<void> {
     this.msg.set('');
+    const a = this.lineupA().map((p) => p.trim());
+    const b = this.lineupB().map((p) => p.trim());
+    if (!this.newMatch().trim() || !this.newTeamA().trim() || !this.newTeamB().trim()
+      || a.some((p) => !p) || b.some((p) => !p)) {
+      const reason = 'أكمل اسم المباراة والفريقين و22 لاعبًا قبل الإضافة.';
+      this.msg.set(reason);
+      this.toast.error(reason);
+      return;
+    }
     try {
       await firstValueFrom(
-        this.api.addScoresheet(
-          this.newMatch(),
-          this.newTeamA(),
-          this.newTeamB(),
-          this.lines(this.newLineupA()),
-          this.lines(this.newLineupB()),
-        ),
+        this.api.addScoresheet(this.newMatch(), this.newTeamA(), this.newTeamB(), a, b),
       );
       this.newMatch.set('');
       this.newTeamA.set('');
       this.newTeamB.set('');
-      this.newLineupA.set('');
-      this.newLineupB.set('');
+      this.lineupA.set(Array(LINEUP_SIZE).fill(''));
+      this.lineupB.set(Array(LINEUP_SIZE).fill(''));
       if (this.page() === 0) this.reloadActive();
       else this.page.set(0);
       this.msg.set('تمت إضافة المباراة.');
-    } catch {
-      this.msg.set('خطأ — يلزم اسم مباراة وفريقان و11 لاعبًا لكل تشكيلة.');
+      this.toast.success('تمت إضافة المباراة.');
+    } catch (e: unknown) {
+      const reason = this.apiMsg(e) ?? 'خطأ — يلزم اسم مباراة وفريقان و11 لاعبًا لكل تشكيلة.';
+      this.msg.set(reason);
+      this.toast.error(reason);
     }
   }
 
@@ -288,17 +342,10 @@ export class ManageComponent {
     return false;
   }
 
-  private lines(text: string): string[] {
-    return text
-      .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
-  }
-
   private apiMsg(e: unknown): string | null {
     if (typeof e === 'object' && e !== null && 'error' in e) {
       const err = (e as { error?: { message?: unknown } }).error;
-      if (err && typeof err.message === 'string') return err.message;
+      if (err && typeof err.message === 'string' && err.message) return err.message;
     }
     return null;
   }

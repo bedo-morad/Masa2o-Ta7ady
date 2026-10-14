@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
+import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, BulkRowResult, Pool } from '../../api.service';
 import { ImportPanelComponent } from './import-panel.component';
 
@@ -10,6 +11,7 @@ function setup(pool: Pool = 'players', bulkImpl?: (p: Pool, r: unknown[], d: boo
   const bulk = vi.fn(
     bulkImpl ?? (() => of([] as BulkRowResult[])),
   );
+  const toast = { success: vi.fn(), error: vi.fn() };
   const apiStub = {
     adminPassword: signal<string | null>(null),
     bulk,
@@ -18,12 +20,16 @@ function setup(pool: Pool = 'players', bulkImpl?: (p: Pool, r: unknown[], d: boo
   };
   TestBed.configureTestingModule({
     imports: [ImportPanelComponent],
-    providers: [provideHttpClient(), { provide: ApiService, useValue: apiStub }],
+    providers: [
+      provideHttpClient(),
+      { provide: ApiService, useValue: apiStub },
+      { provide: HotToastService, useValue: toast },
+    ],
   });
   const fixture = TestBed.createComponent(ImportPanelComponent);
   fixture.componentRef.setInput('pool', pool);
   fixture.detectChanges();
-  return { fixture, apiStub, bulk };
+  return { fixture, apiStub, bulk, toast };
 }
 
 describe('ImportPanelComponent', () => {
@@ -82,7 +88,7 @@ describe('ImportPanelComponent', () => {
   it('confirms with dryRun=false and shows the saved summary', async () => {
     const committed: BulkRowResult[] = [{ index: 0, ok: true, errors: [], id: 42 }];
     const calls: boolean[] = [];
-    const { fixture, bulk } = setup('players', (_p, _r, dry) => {
+    const { fixture, bulk, toast } = setup('players', (_p, _r, dry) => {
       calls.push(dry);
       return of(dry ? [{ index: 0, ok: true, errors: [] }] : committed);
     });
@@ -97,5 +103,23 @@ describe('ImportPanelComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('تم الحفظ');
     expect(el.textContent).toContain('42');
+    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('1'));
+  });
+
+  it('toasts the backend message when import confirm fails', async () => {
+    const { fixture, toast } = setup('players', (_p, _r, dry) =>
+      dry
+        ? of([{ index: 0, ok: true, errors: [] }])
+        : throwError(() => ({ error: { message: 'سبب الرفض من الخادم' } })),
+    );
+    const c = fixture.componentInstance;
+    c.raw.set('[{"playerName": "لاعب جديد تمامًا"}]');
+    await c.parse();
+    await c.dryRun();
+    await c.confirm();
+    fixture.detectChanges();
+    expect(c.confirmError()).toBe('سبب الرفض من الخادم');
+    expect(toast.error).toHaveBeenCalledWith('سبب الرفض من الخادم');
+    expect(toast.success).not.toHaveBeenCalled();
   });
 });

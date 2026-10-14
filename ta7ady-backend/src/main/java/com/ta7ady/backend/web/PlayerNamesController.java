@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PlayerNamesController {
     private final PlayerNameService service;
+    private final AdminGate admin;
 
     // GET /api/players?count=10 -> N random rows as JSON (same for /api/password, /api/acting)
     @GetMapping
@@ -42,8 +44,17 @@ public class PlayerNamesController {
         return service.create(body.getOrDefault("playerName", ""));
     }
 
+    // POST JSON array for bulk import; dryRun=true previews without saving.
+    @PostMapping("/bulk")
+    public List<BulkRowResult> bulk(@RequestBody List<Map<String, Object>> body,
+            @RequestParam(defaultValue = "true") boolean dryRun) {
+        return service.bulk(body, dryRun);
+    }
+
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable Long id,
+            @RequestHeader(value = "X-Admin-Password", required = false) String adminPassword) {
+        admin.requireAdmin(adminPassword);
         service.delete(id);
     }
 }

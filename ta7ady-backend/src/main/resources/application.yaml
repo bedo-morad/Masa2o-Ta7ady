@@ -16,6 +16,12 @@ spring:
       max-file-size: 50MB
 springdoc:
   default-produces-media-type: application/json
+server:
+  error:
+    include-stacktrace: never
+    include-message: always
+admin:
+  password: ${ADMIN_PASSWORD:admin}
 application:
   file:
     uploads:

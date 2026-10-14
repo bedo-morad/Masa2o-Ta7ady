@@ -8,7 +8,7 @@
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-  <app-timer timerKey="top10" [defaultSeconds]="30" label="مؤقت القائمة" />
+  <app-timer timerKey="top10" [defaultSeconds]="10" label="مؤقت القائمة" />
 
   @if (current(); as hintList) {
     <div class="dead-row" [class.due]="hintDue(hintList.id)">

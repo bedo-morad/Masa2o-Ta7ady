@@ -186,9 +186,9 @@ export class ScoresheetComponent {
     return name ? ` - ${name}` : ` ${fallback}`;
   }
 
-  private defaultSlotNames(a: string, b: string): string[] {
-    const pa = this.settings.playersA();
-    const pb = this.settings.playersB();
+  private defaultSlotNames(a: string, b: string, playersA?: string[], playersB?: string[]): string[] {
+    const pa = playersA ?? this.settings.playersA();
+    const pb = playersB ?? this.settings.playersB();
     return [
       `${a}${this.playerSuffix(pa[0], '١')}`,
       `${a}${this.playerSuffix(pa[1], '٢')}`,
@@ -219,6 +219,9 @@ export class ScoresheetComponent {
     if (!oldA && !oldB) return;
     this.teamA.set(oldB);
     this.teamB.set(oldA);
+    // Players travel with their team: slots for the new A use B's players.
+    const oldPA = this.settings.playersA();
+    const oldPB = this.settings.playersB();
     const byId = new Map(this.matches().map((m) => [m.id, m]));
     const next: Record<number, StrikeSlot[]> = {};
     for (const [key, slots] of Object.entries(this.strikes())) {
@@ -227,16 +230,25 @@ export class ScoresheetComponent {
       const after = this.defaultSlotNames(
         oldB || m?.teamA || 'الفريق الأول',
         oldA || m?.teamB || 'الفريق الثاني',
+        oldPB,
+        oldPA,
       );
       const beforeVariants = [
         this.defaultSlotNames(
           oldA || m?.teamA || 'الفريق الأول',
           oldB || m?.teamB || 'الفريق الثاني',
+          oldPA,
+          oldPB,
         ),
       ];
       if (m) {
         beforeVariants.push(
-          this.defaultSlotNames(m.teamA || 'الفريق الأول', m.teamB || 'الفريق الثاني'),
+          this.defaultSlotNames(
+            m.teamA || 'الفريق الأول',
+            m.teamB || 'الفريق الثاني',
+            oldPA,
+            oldPB,
+          ),
         );
       }
       next[id] = slots.map((s) => {

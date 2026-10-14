@@ -213,13 +213,26 @@ h2 {
   font-family: inherit;
   text-align: start;
   cursor: pointer;
+  transition: background 0.15s ease-out, border-color 0.15s ease-out;
 
+  // Selected: a filled surface + border so BOTH sides read clearly in every
+  // theme (deep navy accent-deep was invisible on the lapis default).
   &.is-a {
-    border-color: var(--pitch-accent-deep);
+    background: color-mix(in srgb, var(--pitch-accent-deep) 28%, var(--pitch-surface-2));
+    border-color: var(--pitch-accent);
+    box-shadow: inset 0 0 0 1px var(--pitch-accent);
   }
 
   &.is-b {
+    background: color-mix(in srgb, var(--pitch-gold) 20%, var(--pitch-surface-2));
     border-color: var(--pitch-gold);
+    box-shadow: inset 0 0 0 1px var(--pitch-gold);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prow {
+    transition: none;
   }
 }
 

@@ -31,6 +31,6 @@ export class ThemeService {
     } catch {
       /* ignore */
     }
-    return 'night';
+    return 'lapis';
   }
 }

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { SettingsService } from '../settings/settings.service';
 import { TimerComponent } from './timer.component';
 
 describe('TimerComponent', () => {
@@ -22,5 +23,16 @@ describe('TimerComponent', () => {
     c.toggle();
     expect(c.running()).toBe(false);
     c.ngOnDestroy();
+  });
+
+  it('uses the settings override when timerKey is set', () => {
+    localStorage.clear();
+    TestBed.inject(SettingsService).setTimerOverride('password', 12);
+    const fixture = TestBed.createComponent(TimerComponent);
+    fixture.componentRef.setInput('defaultSeconds', 60);
+    fixture.componentRef.setInput('timerKey', 'password');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.remaining()).toBe(12);
+    localStorage.clear();
   });
 });

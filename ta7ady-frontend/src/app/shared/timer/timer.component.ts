@@ -1,7 +1,11 @@
-import { Component, input, OnDestroy, OnInit, signal, computed } from '@angular/core';
+import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { SettingsService, type TimerKey } from '../settings/settings.service';
+import { AlarmService } from '../alarm/alarm.service';
 
 // Reusable referee timer: dev-configured default, referee controls it.
-// Single icon-only toggle (start/pause) + icon-only reset. Soft beep on timeout.
+// Single icon-only toggle (start/pause) + icon-only reset. Timeout alarm
+// plays through AlarmService (referee's chosen sound + volume).
+// When timerKey is set, the referee's settings override wins over defaultSeconds.
 @Component({
   selector: 'app-timer',
   standalone: true,
@@ -10,22 +14,26 @@ import { Component, input, OnDestroy, OnInit, signal, computed } from '@angular/
 })
 export class TimerComponent implements OnInit, OnDestroy {
   readonly defaultSeconds = input(30);
+  readonly timerKey = input<TimerKey | null>(null);
   readonly label = input('');
+  private settings = inject(SettingsService);
+  private alarm = inject(AlarmService);
+  readonly total = computed(() => {
+    const key = this.timerKey();
+    return key ? this.settings.timerSeconds(key, this.defaultSeconds()) : this.defaultSeconds();
+  });
   readonly remaining = signal(30);
   readonly running = signal(false);
   readonly expired = signal(false);
-  readonly fraction = computed(() =>
-    this.defaultSeconds() > 0 ? this.remaining() / this.defaultSeconds() : 0,
-  );
+  readonly fraction = computed(() => (this.total() > 0 ? this.remaining() / this.total() : 0));
   private id: ReturnType<typeof setInterval> | null = null;
-  private ctx: AudioContext | null = null;
 
   constructor() {}
 
   ngOnInit(): void {
     // Bound inputs are only available here, not in the constructor —
     // reading defaultSeconds() earlier silently falls back to 30.
-    this.remaining.set(this.defaultSeconds());
+    this.remaining.set(this.total());
   }
 
   ngOnDestroy(): void {
@@ -40,7 +48,7 @@ export class TimerComponent implements OnInit, OnDestroy {
   start(): void {
     if (this.running()) return;
     if (this.remaining() <= 0) {
-      this.remaining.set(this.defaultSeconds());
+      this.remaining.set(this.total());
       this.expired.set(false);
     }
     this.running.set(true);
@@ -57,7 +65,7 @@ export class TimerComponent implements OnInit, OnDestroy {
 
   reset(): void {
     this.stopTick();
-    this.remaining.set(this.defaultSeconds());
+    this.remaining.set(this.total());
     this.expired.set(false);
   }
 
@@ -68,27 +76,6 @@ export class TimerComponent implements OnInit, OnDestroy {
   }
 
   private beep(): void {
-    try {
-      const AC =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      this.ctx ??= new AC();
-      const now = this.ctx.currentTime;
-      [660, 520, 660].forEach((freq, i) => {
-        const o = this.ctx!.createOscillator();
-        const g = this.ctx!.createGain();
-        o.connect(g);
-        g.connect(this.ctx!.destination);
-        o.type = 'sine';
-        o.frequency.value = freq;
-        g.gain.setValueAtTime(0.0001, now + i * 0.28);
-        g.gain.exponentialRampToValueAtTime(0.28, now + i * 0.28 + 0.03);
-        g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.28 + 0.25);
-        o.start(now + i * 0.28);
-        o.stop(now + i * 0.28 + 0.27);
-      });
-    } catch {
-      /* audio unavailable: ignore */
-    }
+    this.alarm.play();
   }
 }

@@ -1,0 +1,25 @@
+<div class="attrib">
+  <span class="pts tabular-nums" [class.neg]="points() < 0">{{ fmt(points()) }}</span>
+  <div class="teams" role="group" [attr.aria-label]="label()">
+    <button
+      type="button"
+      class="tbtn ta"
+      [class.on]="assigned() === 'A'"
+      (click)="tap('A')"
+      [attr.aria-pressed]="assigned() === 'A'"
+      [attr.aria-label]="teamA()"
+    >
+      {{ short() ? 'أ' : (teamA() || 'أ') }}
+    </button>
+    <button
+      type="button"
+      class="tbtn tb"
+      [class.on]="assigned() === 'B'"
+      (click)="tap('B')"
+      [attr.aria-pressed]="assigned() === 'B'"
+      [attr.aria-label]="teamB()"
+    >
+      {{ short() ? 'ب' : (teamB() || 'ب') }}
+    </button>
+  </div>
+</div>

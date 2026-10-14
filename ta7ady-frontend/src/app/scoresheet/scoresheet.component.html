@@ -1,0 +1,130 @@
+<div class="challenge">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
+  </div>
+
+  <h2>ورقة المباراة</h2>
+
+  <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
+
+  <app-timer [defaultSeconds]="60" label="مؤقت المباراة" />
+
+  <div class="draw-row">
+    <label for="ss-count">عدد المباريات</label>
+    <select id="ss-count" [(ngModel)]="count">
+      <option [ngValue]="1">1</option>
+      <option [ngValue]="2">2</option>
+      <option [ngValue]="3">3</option>
+    </select>
+    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
+      <i class="fa-solid fa-shuffle"></i> سحب جديد
+    </button>
+  </div>
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+
+  @if (current(); as match) {
+    @if (matches().length > 1) {
+      <div class="nav-row">
+        <button type="button" class="navbtn" (click)="prev()" [disabled]="idx() === 0" aria-label="المباراة السابقة">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <div class="dots" role="group" aria-label="المباريات">
+          @for (m of matches(); track m.id; let i = $index) {
+            <button
+              type="button"
+              class="dot tabular-nums"
+              [class.on]="i === idx()"
+              (click)="go(i)"
+              [attr.aria-label]="'المباراة ' + (i + 1)"
+            >
+              {{ i + 1 }}
+            </button>
+          }
+        </div>
+        <button
+          type="button"
+          class="navbtn"
+          (click)="next()"
+          [disabled]="idx() >= matches().length - 1"
+          aria-label="المباراة التالية"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+      </div>
+    }
+
+    <section class="board">
+      <div class="prompt-row">
+        <h3 class="prompt">{{ match.matchLabel }}</h3>
+        <button
+          type="button"
+          class="mini reroll"
+          (click)="rerollOne(idx())"
+          [disabled]="rerolling() !== null"
+          aria-label="تبديل هذه المباراة"
+          title="تبديل"
+        >
+          <i class="fa-solid fa-dice"></i>
+        </button>
+      </div>
+
+      <div class="sides">
+        <div class="side">
+          <h4 class="side-name">{{ match.teamA }}</h4>
+          <ol class="lineup">
+            @for (p of match.lineupA; track $index; let i = $index) {
+              <li
+                class="prow"
+                [class.is-a]="assigned(match.id, keyOf('A', i)) === 'A'"
+                [class.is-b]="assigned(match.id, keyOf('A', i)) === 'B'"
+              >
+                <span class="pnum tabular-nums">{{ i + 1 }}</span>
+                <span class="pname">{{ p }}</span>
+                <app-attribution
+                  [label]="p"
+                  [points]="1"
+                  [short]="true"
+                  [assigned]="assigned(match.id, keyOf('A', i))"
+                  [teamA]="teamA()"
+                  [teamB]="teamB()"
+                  (change)="onPick(match, keyOf('A', i), p, $event)"
+                />
+              </li>
+            }
+          </ol>
+        </div>
+
+        <div class="side">
+          <h4 class="side-name">{{ match.teamB }}</h4>
+          <ol class="lineup">
+            @for (p of match.lineupB; track $index; let i = $index) {
+              <li
+                class="prow"
+                [class.is-a]="assigned(match.id, keyOf('B', i)) === 'A'"
+                [class.is-b]="assigned(match.id, keyOf('B', i)) === 'B'"
+              >
+                <span class="pnum tabular-nums">{{ i + 1 }}</span>
+                <span class="pname">{{ p }}</span>
+                <app-attribution
+                  [label]="p"
+                  [points]="1"
+                  [short]="true"
+                  [assigned]="assigned(match.id, keyOf('B', i))"
+                  [teamA]="teamA()"
+                  [teamB]="teamB()"
+                  (change)="onPick(match, keyOf('B', i), p, $event)"
+                />
+              </li>
+            }
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
+  }
+</div>

@@ -37,7 +37,7 @@ A prompt names a top-13 ranking (e.g. all-time top league scorers). Teams name e
 answering rank N scores N points (rank 1 = 1 … rank 10 = 10). Ranks 11/12/13 score
 −1/−2/−3. Answering **all three** of 11+12+13 wipes the negatives and awards +6 instead
 (final contribution of the trio is +6, not −6). The referee taps an answer to attribute it
-to a team; points apply automatically. After 3 dead turns (no team answers) the room gets
+to a team; points apply automatically. After 12 dead turns (no team answers) the room gets
 a hint; the referee tracks dead turns. Most points after the run wins.
 
 ## Score Sheet (v2)

@@ -58,7 +58,7 @@ no login, scores may go negative in every game, in-memory scores, no counters/en
   count selector (lists per run, adjustable, default 1), full redraw (no per-list dice).
 - One list at a time (a 13-answer board fills a phone): prompt on top, 13 tappable rows.
   Tap → assign team (points per §2.4) → row shows team state + rank value; tap again unassigns.
-- Dead-turn hint tracker per list: referee-owned stepper; at 3 dead turns the room gets
+- Dead-turn hint tracker per list: referee-owned stepper; at 12 dead turns the room gets
   a hint (display highlight only). Cleared on redraw.
 - "Next list" advances; answered lists stay reviewable within the run.
 
@@ -78,6 +78,22 @@ no login, scores may go negative in every game, in-memory scores, no counters/en
   eliminated flag at 3 (display-only, referee enforces). Cleared on redraw.
 - Same chrome: scoreboard, 30s timer, count selector (matches per run, adjustable,
   default 1), full redraw (no per-match dice).
+
+## 2.10 Settings & persistence (all localStorage, all signals)
+
+- `SettingsService` (+ `ThemeService` kept as the single theme writer): theme
+  (night/sand/lapis, fresh default lapis), alarm sound (classic/chime/buzzer, synthesized
+  Web Audio, no assets) + volume 0–10 (default 5, 0 = mute, gain = 0.06 + v/10×0.44),
+  teamA/teamB + playersA/playersB (2 slots per team), per-challenge timer overrides
+  (password/acting/actingSteal/ihbid/offside/top10/scoresheet; override wins, else the
+  dev default). `timerSeconds(key, fallback)`, `resetAll()`. Settings modal (gear, top-left
+  of home): teams+players, alarm with test-sound preview, 7 timer inputs, 3 theme swatches;
+  auto-saves, no save button.
+- `TimerComponent` takes optional `timerKey` and beeps via `AlarmService.play()`; every
+  play page passes its key (offside included).
+- Team/player names prefill scoreboard models and strike-slot defaults once (still
+  editable); audit fallbacks chain page → settings → generic. Score-sheet swap button
+  swaps names only (scores/assignments/audit untouched).
 
 ## 2.8 v2 seed files (the dedicated seed agent's order)
 

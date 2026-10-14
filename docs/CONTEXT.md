@@ -14,8 +14,8 @@ details, no API shapes, no file names. (Those live in `SPEC.md` / `SPECV2-4.md`.
 - **Teams** — always two teams playing locally on the referee's screen. No accounts, no login.
 - **Players** — individual humans inside a team (used only where a game needs per-person
   tracking, e.g. Who-in-Picture eliminations).
-- **Scoreboard** — the manual ± tally per team. Scores never go below zero. The referee may
-  change scores at any moment, including before a timer ends.
+- **Scoreboard** — the manual ± tally per team. Scores may go below zero in every game.
+  The referee may change scores at any moment, including before a timer ends.
 - **Draw** — any item or challenge may end tied. The referee declares draws; the site never
   forces a tiebreaker and v1–v4 ship no tiebreaker logic.
 - **Attribution** — tapping an answer to record *which team* gave it (Top 10, Score Sheet,

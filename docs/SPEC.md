@@ -71,9 +71,9 @@ Scoring is fully manual — the site only provides the scoreboard (± buttons).
   per-row show/hide; dice icon per row re-rolls just that item.
 - `/manage`: pool selector with 3 pools — player names (**one shared pool for Password +
   Acting**), Ihbid, Offside. Each pool: add form, paged list (`/all`), delete per row.
-- Shared components: scoreboard (editable team names, ± always active, **scores never go
-  negative**), timer (dev-configured default per challenge: Password 30s, Acting 45s + 10s
-  steal, Ihbid 30s, Offside 10s; single icon-only start/pause toggle + icon-only reset;
+- Shared components: scoreboard (editable team names, ± always active, scores may go
+  negative in every game), timer (dev-configured default per challenge: Password 30s, Acting 45s + 10s
+  steal, Ihbid 30s, Offside 5s; single icon-only start/pause toggle + icon-only reset;
   soft two-tone beep on timeout; referee may score before timeout).
 - Deliberately absent in v1: round counters (3/10), turn indicators, undo, end/winner screens,
   play-again flow, score persistence (in-memory only), per-player tracking, tiebreakers.
@@ -145,6 +145,6 @@ Top 10 / Score sheet / Who-in-picture pages; tiebreakers; score persistence; end
 - 10 items each, highest total wins, draws allowed — may change later; count selector added.
 - One merged player table, three URL aliases — Password and Acting need the same data.
 - `?count=` on all random endpoints (1–50) instead of fixed 10.
-- No negatives on the scoreboard (Top 10 is the only future exception).
+- No negatives rule is lifted: scores may go below zero in all games (user override).
 - Single-card reroll (dice icon) in every challenge + full redraw kept.
 - Arabic-only RTL UI, but project communication in English (OpenChamber has weak RTL support).

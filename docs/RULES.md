@@ -37,13 +37,15 @@ A prompt names a top-13 ranking (e.g. all-time top league scorers). Teams name e
 answering rank N scores N points (rank 1 = 1 … rank 10 = 10). Ranks 11/12/13 score
 −1/−2/−3. Answering **all three** of 11+12+13 wipes the negatives and awards +6 instead
 (final contribution of the trio is +6, not −6). The referee taps an answer to attribute it
-to a team; points apply automatically. Most points after the run wins.
+to a team; points apply automatically. After 3 dead turns (no team answers) the room gets
+a hint; the referee tracks dead turns. Most points after the run wins.
 
 ## Score Sheet (v2)
 
 A famous match is announced (e.g. a World Cup final). Each team is assigned one side's
-starting eleven (no substitutes, no coaches — they are not part of the game). Teams take
-turns naming players; each correct name = 1 point, attributed by referee tap. The full
+starting eleven (right side = team A, left side = team B, fixed): no substitutes,
+no coaches — they are not part of the game. Teams take turns naming players; each correct
+name = 1 point, attributed by tapping the player (that side's team scores). The full
 lineups are visible to the referee from the start. Most points after the run wins.
 
 ## Risk (v3)

@@ -3,7 +3,7 @@
 Target branch: `v2` → one big PR to `master` via small focused commits (one commit per
 numbered section below). Language: `CONTEXT.md`. Rules: `RULES.md`. Authoring: `AUTHORING.md`.
 v1 baseline: `SPEC.md`. Philosophy is unchanged: referee = game master, Arabic-only RTL,
-no login, scores never negative, in-memory scores, no counters/end-screens/tiebreakers.
+no login, scores may go negative in every game, in-memory scores, no counters/end-screens/tiebreakers.
 
 ## 2.0 Build order (commit sequence)
 
@@ -54,10 +54,12 @@ no login, scores never negative, in-memory scores, no counters/end-screens/tiebr
 
 ## 2.5 Top-10 page (`/top10`)
 
-- Same referee chrome as v1 pages: scoreboard, dev timer (60s default — lists run long),
-  count selector (lists per run, adjustable, default 1), full redraw + per-list dice reroll.
+- Same referee chrome as v1 pages: scoreboard, dev timer (30s default),
+  count selector (lists per run, adjustable, default 1), full redraw (no per-list dice).
 - One list at a time (a 13-answer board fills a phone): prompt on top, 13 tappable rows.
-  Tap → assign team (points per §2.4) → row shows team color + rank value; tap again unassigns.
+  Tap → assign team (points per §2.4) → row shows team state + rank value; tap again unassigns.
+- Dead-turn hint tracker per list: referee-owned stepper; at 3 dead turns the room gets
+  a hint (display highlight only). Cleared on redraw.
 - "Next list" advances; answered lists stay reviewable within the run.
 
 ## 2.6 Score-sheet backend
@@ -69,10 +71,13 @@ no login, scores never negative, in-memory scores, no counters/end-screens/tiebr
 
 ## 2.7 Score-sheet page (`/scoresheet`)
 
-- Match label + both full lineups **visible to the referee from the start**, two columns
-  labeled by side. Tap a player → assign team (+1 auto, §2.3); tap again unassigns.
-- Same chrome: scoreboard, 60s timer, count selector (matches per run, adjustable,
-  default 1), full redraw + per-match dice reroll.
+- Match label + both full lineups **visible to the referee from the start**, two columns:
+  right column = team A, left column = team B (fixed sides, RTL). Tap a player assigns +1
+  to that column's team (§2.3, no team picker); tap again unassigns.
+- Per-player strike tracker per match: 4 named slots (2 per side), mistake stepper,
+  eliminated flag at 3 (display-only, referee enforces). Cleared on redraw.
+- Same chrome: scoreboard, 30s timer, count selector (matches per run, adjustable,
+  default 1), full redraw (no per-match dice).
 
 ## 2.8 v2 seed files (the dedicated seed agent's order)
 
@@ -90,4 +95,4 @@ v1 pools were wiped to zero; these files re-fill them.
 - `npx ng build` green; impeccable `detect.mjs` clean.
 - Acceptance: import a 300-row file with 5 bad rows → preview flags exactly those 5 →
   confirm imports 295; lock admin, delete hidden; Top-10 full game incl. a negative-rank
-  assignment and a 11+12+13 completion; score-sheet full game; scores never negative.
+  assignment and a 11+12+13 completion; score-sheet full game; negative scores allowed.

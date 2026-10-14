@@ -47,6 +47,17 @@ export class ManageComponent {
   readonly top10Ranks = Array.from({ length: TOP10_SIZE }, (_, i) => i + 1);
   readonly lineupSlots = Array.from({ length: LINEUP_SIZE }, (_, i) => i + 1);
 
+  // Accordion for managed top-10 / scoresheet rows: one open at a time.
+  readonly expandedId = signal<number | null>(null);
+
+  toggle(id: number): void {
+    this.expandedId.update((open) => (open === id ? null : id));
+  }
+
+  isOpen(id: number): boolean {
+    return this.expandedId() === id;
+  }
+
   private readonly playersRes = httpResource<Page<{ id: number; playerName: string }>>(() =>
     this.pool() === 'players'
       ? `${API_BASE}/players/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
@@ -71,7 +82,14 @@ export class ManageComponent {
         : undefined,
   );
   private readonly scoresheetRes = httpResource<
-    Page<{ id: number; matchLabel: string; teamA: string; teamB: string }>
+    Page<{
+      id: number;
+      matchLabel: string;
+      teamA: string;
+      teamB: string;
+      lineupA: string[];
+      lineupB: string[];
+    }>
   >(() =>
     this.pool() === 'scoresheet'
       ? `${API_BASE}/scoresheet/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
@@ -107,14 +125,17 @@ export class ManageComponent {
     this.pool.set(p);
     this.page.set(0);
     this.msg.set('');
+    this.expandedId.set(null);
   }
 
   prev(): void {
     if (this.page() > 0) this.page.update((p) => p - 1);
+    this.expandedId.set(null);
   }
 
   next(): void {
     if (this.page() + 1 < this.totalPages()) this.page.update((p) => p + 1);
+    this.expandedId.set(null);
   }
 
   openAdminModal(content: TemplateRef<unknown>): void {

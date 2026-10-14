@@ -29,6 +29,16 @@ export interface StrikeSlot {
   mistakes: number;
 }
 
+interface StrikeState {
+  slots: StrikeSlot[];
+  /** Names as generated when the slots were created. On swap, a slot whose
+   * current name still equals its generated name is treated as default and
+   * regenerated; renamed slots are never touched. */
+  generated: string[];
+  /** Slot positions the referee renamed by hand — those survive a swap. */
+  custom: boolean[];
+}
+
 export function playerKey(side: Side, index: number): string {
   return `${side}:${index}`;
 }
@@ -64,7 +74,7 @@ export class ScoresheetComponent {
   readonly assignments = signal<Record<number, PlayerMap>>({});
   readonly booked = signal<Record<number, { A: number; B: number }>>({});
   readonly audit = signal<AuditEntry[]>([]);
-  readonly strikes = signal<Record<number, StrikeSlot[]>>({});
+  readonly strikes = signal<Record<number, StrikeState>>({});
   readonly msg = signal('');
   private seq = 0;
 
@@ -198,70 +208,57 @@ export class ScoresheetComponent {
   }
 
   slotsOf(match: ScoresheetMatch): StrikeSlot[] {
+    return this.stateOf(match).slots;
+  }
+
+  /** Per-match strike state, created on first access. */
+  private stateOf(match: ScoresheetMatch): StrikeState {
     const existing = this.strikes()[match.id];
     if (existing) return existing;
     const a = this.teamA() || match.teamA || 'الفريق الأول';
     const b = this.teamB() || match.teamB || 'الفريق الثاني';
-    const fresh: StrikeSlot[] = this.defaultSlotNames(a, b).map((name) => ({
-      name,
-      mistakes: 0,
-    }));
+    const names = this.defaultSlotNames(a, b);
+    const fresh: StrikeState = {
+      generated: names,
+      slots: names.map((name) => ({ name, mistakes: 0 })),
+      custom: [false, false, false, false],
+    };
     this.strikes.update((ss) => ({ ...ss, [match.id]: fresh }));
     return fresh;
   }
 
-  /** Swap team NAMES only (values + placeholders follow via the signals;
-   * strike slots still carrying their defaults are rebuilt, custom names
-   * stay). Scores, assignments and audit are untouched. */
+  /** Swap team NAMES only — the players from settings travel with their team
+   * (new A shows B's players, new B shows A's). Scores, assignments and audit
+   * are untouched. Renamed slots keep their custom name; default slots are
+   * regenerated from the current team names + swapped player pairs. Repeat
+   * swaps work because names are derived from current settings every time. */
   swapTeams(): void {
     const oldA = this.teamA();
     const oldB = this.teamB();
     if (!oldA && !oldB) return;
     this.teamA.set(oldB);
     this.teamB.set(oldA);
-    // Players travel with their team: slots for the new A use B's players.
     const oldPA = this.settings.playersA();
     const oldPB = this.settings.playersB();
     const byId = new Map(this.matches().map((m) => [m.id, m]));
-    const next: Record<number, StrikeSlot[]> = {};
-    for (const [key, slots] of Object.entries(this.strikes())) {
+    const next: Record<number, StrikeState> = {};
+    for (const [key, state] of Object.entries(this.strikes())) {
       const id = Number(key);
       const m = byId.get(id);
-      const after = this.defaultSlotNames(
+      // New team A = old B + old B's players; new team B = old A + old A's players.
+      const swappedNames = this.defaultSlotNames(
         oldB || m?.teamA || 'الفريق الأول',
         oldA || m?.teamB || 'الفريق الثاني',
         oldPB,
         oldPA,
       );
-      const beforeVariants = [
-        this.defaultSlotNames(
-          oldA || m?.teamA || 'الفريق الأول',
-          oldB || m?.teamB || 'الفريق الثاني',
-          oldPA,
-          oldPB,
+      next[id] = {
+        generated: swappedNames,
+        custom: state.custom,
+        slots: state.slots.map((s, j) =>
+          state.custom[j] ? s : { ...s, name: swappedNames[j] },
         ),
-      ];
-      if (m) {
-        beforeVariants.push(
-          this.defaultSlotNames(
-            m.teamA || 'الفريق الأول',
-            m.teamB || 'الفريق الثاني',
-            oldPA,
-            oldPB,
-          ),
-        );
-      }
-      next[id] = slots.map((s) => {
-        let at = -1;
-        for (const b of beforeVariants) {
-          const j = b.indexOf(s.name);
-          if (j >= 0) {
-            at = j;
-            break;
-          }
-        }
-        return at >= 0 ? { ...s, name: after[at] } : s;
-      });
+      };
     }
     this.strikes.set(next);
   }
@@ -274,8 +271,11 @@ export class ScoresheetComponent {
     this.strikes.update((ss) => {
       const cur = ss[matchId];
       if (!cur) return ss;
-      const next = cur.map((s, j) => (j === i ? { ...s, name } : s));
-      return { ...ss, [matchId]: next };
+      const slots = cur.slots.map((s, j) => (j === i ? { ...s, name } : s));
+      // A hand-typed name marks the slot custom so swaps leave it alone.
+      const custom = [...cur.custom];
+      custom[i] = name !== cur.generated[i];
+      return { ...ss, [matchId]: { ...cur, slots, custom } };
     });
   }
 
@@ -283,10 +283,10 @@ export class ScoresheetComponent {
     this.strikes.update((ss) => {
       const cur = ss[matchId];
       if (!cur) return ss;
-      const next = cur.map((s, j) =>
+      const slots = cur.slots.map((s, j) =>
         j === i ? { ...s, mistakes: Math.min(3, Math.max(0, s.mistakes + d)) } : s,
       );
-      return { ...ss, [matchId]: next };
+      return { ...ss, [matchId]: { ...cur, slots } };
     });
   }
 
@@ -294,8 +294,8 @@ export class ScoresheetComponent {
     this.strikes.update((ss) => {
       const cur = ss[matchId];
       if (!cur) return ss;
-      const next = cur.map((s, j) => (j === i ? { ...s, mistakes: 0 } : s));
-      return { ...ss, [matchId]: next };
+      const slots = cur.slots.map((s, j) => (j === i ? { ...s, mistakes: 0 } : s));
+      return { ...ss, [matchId]: { ...cur, slots } };
     });
   }
 }

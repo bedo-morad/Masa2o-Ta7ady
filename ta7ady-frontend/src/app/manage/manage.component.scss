@@ -31,7 +31,7 @@ h2 {
 
 .pools {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 0.5rem;
 
   button {
@@ -84,6 +84,29 @@ h2 {
 
     &::placeholder {
       color: var(--pitch-ink-dim);
+    }
+  }
+
+  textarea {
+    background: var(--pitch-surface);
+    border: 1px solid var(--pitch-line);
+    border-radius: 10px;
+    color: var(--pitch-ink);
+    padding: 0.65rem 0.8rem;
+    font-family: inherit;
+    resize: vertical;
+
+    &::placeholder {
+      color: var(--pitch-ink-dim);
+    }
+  }
+
+  .duo {
+    display: flex;
+    gap: 0.5rem;
+
+    input {
+      min-width: 0;
     }
   }
 
@@ -144,11 +167,19 @@ h2 {
 
 .del {
   background: none;
-  border: none;
+  border: 1px solid var(--pitch-danger);
+  border-radius: 10px;
   color: var(--pitch-danger);
   min-width: 44px;
   min-height: 44px;
-  font-size: 1rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 0.4rem 0.7rem;
+  white-space: nowrap;
+
+  i {
+    margin-inline-end: 0.25rem;
+  }
 }
 
 .pager {
@@ -170,4 +201,98 @@ h2 {
       opacity: 0.45;
     }
   }
+}
+
+.admin-locked {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.admin-label {
+  font-weight: 800;
+
+  i {
+    margin-inline-end: 0.3rem;
+  }
+}
+
+.admin-row {
+  display: flex;
+  gap: 0.5rem;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    background: var(--pitch-surface-2);
+    border: 1px solid var(--pitch-line);
+    border-radius: 10px;
+    color: var(--pitch-ink);
+    padding: 0.65rem 0.8rem;
+    min-height: 44px;
+
+    &::placeholder {
+      color: var(--pitch-ink-dim);
+    }
+  }
+
+  button {
+    background: var(--pitch-accent-deep);
+    border: 1px solid var(--pitch-accent-deep);
+    color: #fff;
+    border-radius: 10px;
+    padding: 0.65rem 1.1rem;
+    font-weight: 800;
+    min-height: 44px;
+    white-space: nowrap;
+
+    i {
+      margin-inline-end: 0.3rem;
+    }
+  }
+}
+
+.admin-open {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-accent-deep);
+  border-radius: var(--radius-card);
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-weight: 700;
+
+  button {
+    background: none;
+    border: 1px solid var(--pitch-line);
+    color: var(--pitch-ink);
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    font-weight: 800;
+    min-height: 44px;
+    white-space: nowrap;
+
+    i {
+      margin-inline-end: 0.3rem;
+    }
+  }
+}
+
+.admin-error {
+  border: 1px solid var(--pitch-danger);
+  color: var(--pitch-danger);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  font-weight: 700;
+}
+
+.rows .sub {
+  color: var(--pitch-ink-dim);
+  font-weight: 600;
+  font-size: 0.85rem;
 }

@@ -1,0 +1,147 @@
+<section class="import" [attr.aria-label]="'استيراد ' + poolLabel()">
+  <h3><i class="fa-solid fa-file-import"></i> استيراد بالجملة — {{ poolLabel() }}</h3>
+
+  <details class="schema">
+    <summary><i class="fa-solid fa-circle-info"></i> صيغة JSON المطلوبة</summary>
+    <p class="schema-note">{{ schemaNote() }}</p>
+    <pre dir="ltr">{{ schemaExample() }}</pre>
+  </details>
+
+  <div class="entry">
+    <label class="file-btn">
+      <i class="fa-solid fa-upload"></i> اختر ملف JSON
+      <input type="file" accept=".json,application/json" (change)="onFile($event)" hidden />
+    </label>
+    <span class="or">أو الصق النص:</span>
+  </div>
+
+  <textarea
+    class="paste"
+    [(ngModel)]="raw"
+    rows="6"
+    placeholder='الصق هنا مصفوفة JSON — مثال: [ {"playerName": "..."} ]'
+    aria-label="الصق محتوى JSON"
+  ></textarea>
+
+  <div class="actions">
+    <button type="button" class="parse" (click)="parse()" [disabled]="busy()">
+      @if (parsing()) {
+        <i class="fa-solid fa-spinner fa-spin"></i> جارٍ التحليل…
+      } @else {
+        <i class="fa-solid fa-magnifying-glass"></i> تحليل النص
+      }
+    </button>
+    @if (hasParsed()) {
+      <span class="loaded tabular-nums">تم تحميل {{ rowCount() }} صفًا</span>
+    }
+  </div>
+
+  @if (parseError()) {
+    <div class="error" role="alert"><i class="fa-solid fa-triangle-exclamation"></i> {{ parseError() }}</div>
+  }
+
+  @if (hasParsed() && !result()) {
+    <div class="actions">
+      <button type="button" class="dry" (click)="dryRun()" [disabled]="dryRunning() || confirming()">
+        @if (dryRunning()) {
+          <i class="fa-solid fa-spinner fa-spin"></i> جارٍ فحص الصفوف…
+        } @else {
+          <i class="fa-solid fa-eye"></i> معاينة قبل الحفظ (فحص تجريبي)
+        }
+      </button>
+    </div>
+  }
+
+  @if (previewError()) {
+    <div class="error" role="alert"><i class="fa-solid fa-triangle-exclamation"></i> {{ previewError() }}</div>
+  }
+
+  @if (preview()) {
+    <div class="verdict tabular-nums">
+      صالح: {{ validCount() }} — غير صالح: {{ invalidCount() }} — لا يُحفظ شيء قبل التأكيد
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">الصف</th>
+            <th scope="col">الحالة</th>
+            <th scope="col">السبب</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of preview(); track r.index) {
+            <tr [class.bad]="!r.ok">
+              <td class="tabular-nums">{{ r.index + 1 }}</td>
+              <td class="row-label">{{ labelFor(r.index) }}</td>
+              <td>
+                @if (r.ok) {
+                  <span class="badge ok"><i class="fa-solid fa-check"></i> صالح</span>
+                } @else {
+                  <span class="badge bad"><i class="fa-solid fa-xmark"></i> غير صالح</span>
+                }
+              </td>
+              <td class="reasons">{{ r.errors.join('؛ ') }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="actions">
+      @if (invalidCount() > 0) {
+        <button type="button" class="drop" (click)="dropInvalid()" [disabled]="busy()">
+          <i class="fa-solid fa-filter"></i> إسقاط الصفوف غير الصالحة ({{ invalidCount() }})
+        </button>
+      }
+      <button type="button" class="confirm" (click)="confirm()" [disabled]="confirming() || dryRunning()">
+        @if (confirming()) {
+          <i class="fa-solid fa-spinner fa-spin"></i> جارٍ الحفظ…
+        } @else {
+          <i class="fa-solid fa-floppy-disk"></i> تأكيد الاستيراد (يحفظ الصالح فقط)
+        }
+      </button>
+    </div>
+  }
+
+  @if (confirmError()) {
+    <div class="error" role="alert"><i class="fa-solid fa-triangle-exclamation"></i> {{ confirmError() }}</div>
+  }
+
+  @if (result()) {
+    <div class="summary tabular-nums" role="status">
+      <i class="fa-solid fa-circle-check"></i>
+      تم الحفظ: {{ savedCount() }} من {{ result()!.length }}
+      @if (savedIds().length > 0) {
+        <span class="ids">— المعرفات الجديدة: {{ savedIds().slice(0, 20).join('، ') }}{{ savedIds().length > 20 ? '…' : '' }}</span>
+      }
+    </div>
+    @if (failedRows().length > 0) {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">الصف</th>
+              <th scope="col">سبب الرفض</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of failedRows(); track r.index) {
+              <tr class="bad">
+                <td class="tabular-nums">{{ r.index + 1 }}</td>
+                <td class="row-label">{{ labelFor(r.index) }}</td>
+                <td class="reasons">{{ r.errors.join('؛ ') }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <div class="actions">
+      <button type="button" class="again" (click)="startOver()">
+        <i class="fa-solid fa-rotate-right"></i> استيراد جديد
+      </button>
+    </div>
+  }
+</section>

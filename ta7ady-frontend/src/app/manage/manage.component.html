@@ -6,6 +6,34 @@
   <h2>إدارة الأسئلة</h2>
   <p class="hint">تظهر الإضافات فورًا في اللعب. أسماء اللاعبين مشتركة بين الباسورد والتمثيل.</p>
 
+  @if (!adminOn()) {
+    <form class="admin-locked" (ngSubmit)="unlockAdmin()">
+      <label class="admin-label" for="adminPw"><i class="fa-solid fa-lock"></i> وضع الإدارة (للحذف فقط)</label>
+      <div class="admin-row">
+        <input
+          id="adminPw"
+          type="password"
+          [(ngModel)]="adminPw"
+          name="adminPw"
+          placeholder="كلمة مرور الإدارة"
+          autocomplete="off"
+        />
+        <button type="submit"><i class="fa-solid fa-lock-open"></i> فتح</button>
+      </div>
+      @if (adminError()) {
+        <div class="admin-error" role="alert">{{ adminError() }}</div>
+      }
+    </form>
+  } @else {
+    <div class="admin-open">
+      <span><i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار الحذف ظاهرة.</span>
+      <button type="button" (click)="lockAdmin()"><i class="fa-solid fa-lock"></i> قفل</button>
+    </div>
+    @if (adminError()) {
+      <div class="admin-error" role="alert">{{ adminError() }}</div>
+    }
+  }
+
   <div class="pools" role="tablist">
     <button type="button" [class.active]="pool() === 'players'" (click)="select('players')">
       <i class="fa-solid fa-users"></i> أسماء اللاعبين
@@ -16,6 +44,12 @@
     </button>
     <button type="button" [class.active]="pool() === 'offside'" (click)="select('offside')">
       <i class="fa-solid fa-flag"></i> أوفسايد
+    </button>
+    <button type="button" [class.active]="pool() === 'top10'" (click)="select('top10')">
+      <i class="fa-solid fa-list-ol"></i> التوب 10
+    </button>
+    <button type="button" [class.active]="pool() === 'scoresheet'" (click)="select('scoresheet')">
+      <i class="fa-solid fa-clipboard-list"></i> ورقة المباراة
     </button>
   </div>
 
@@ -38,6 +72,42 @@
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
     </form>
   }
+  @if (pool() === 'top10') {
+    <form class="add column" (ngSubmit)="addTop10()">
+      <input [(ngModel)]="newTop10Prompt" name="ntp" placeholder="عنوان القائمة — مثال: أعلى 13 هدافًا…" />
+      <textarea
+        [(ngModel)]="newTop10Answers"
+        name="nta"
+        rows="5"
+        placeholder="13 إجابة — سطر لكل إجابة بالترتيب (الأولى = المركز الأول)"
+      ></textarea>
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة قائمة</button>
+    </form>
+  }
+  @if (pool() === 'scoresheet') {
+    <form class="add column" (ngSubmit)="addScoresheet()">
+      <input [(ngModel)]="newMatch" name="nm" placeholder="اسم المباراة — مثال: نهائي كأس العالم 2022" />
+      <div class="duo">
+        <input [(ngModel)]="newTeamA" name="nta2" placeholder="الفريق الأول" />
+        <input [(ngModel)]="newTeamB" name="ntb" placeholder="الفريق الثاني" />
+      </div>
+      <textarea
+        [(ngModel)]="newLineupA"
+        name="nla"
+        rows="4"
+        placeholder="تشكيلة الفريق الأول — 11 اسمًا، سطر لكل لاعب"
+      ></textarea>
+      <textarea
+        [(ngModel)]="newLineupB"
+        name="nlb"
+        rows="4"
+        placeholder="تشكيلة الفريق الثاني — 11 اسمًا، سطر لكل لاعب"
+      ></textarea>
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة مباراة</button>
+    </form>
+  }
+
+  <app-import-panel [pool]="pool()" (imported)="onImported()" />
 
   @if (msg()) {
     <div class="notice">{{ msg() }}</div>
@@ -50,9 +120,11 @@
       @for (p of playerRows(); track p.id) {
         <li>
           <span>{{ p.playerName }}</span>
-          <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          @if (adminOn()) {
+            <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          }
         </li>
       }
     }
@@ -60,9 +132,11 @@
       @for (q of ihbidRows(); track q.id) {
         <li class="wide">
           <span><strong>{{ q.questionText }}</strong> — {{ q.answerText }}</span>
-          <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          @if (adminOn()) {
+            <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          }
         </li>
       }
     }
@@ -70,9 +144,35 @@
       @for (r of offsideRows(); track r.id) {
         <li>
           <span>{{ r.ruleText }}</span>
-          <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          @if (adminOn()) {
+            <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          }
+        </li>
+      }
+    }
+    @if (pool() === 'top10') {
+      @for (t of top10Rows(); track t.id) {
+        <li class="wide">
+          <span><strong>{{ t.prompt }}</strong> <span class="sub tabular-nums">({{ t.answers.length }} إجابة)</span></span>
+          @if (adminOn()) {
+            <button type="button" class="del" (click)="removeTop10(t.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          }
+        </li>
+      }
+    }
+    @if (pool() === 'scoresheet') {
+      @for (m of scoresheetRows(); track m.id) {
+        <li class="wide">
+          <span><strong>{{ m.matchLabel }}</strong> — {{ m.teamA }} × {{ m.teamB }}</span>
+          @if (adminOn()) {
+            <button type="button" class="del" (click)="removeScoresheet(m.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          }
         </li>
       }
     }

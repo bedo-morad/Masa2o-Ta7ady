@@ -18,10 +18,10 @@ export class ScoreboardComponent {
   readonly scoreB = model(0);
 
   bumpA(d: number): void {
-    this.scoreA.update((v) => Math.max(0, v + d));
+    this.scoreA.update((v) => v + d);
   }
 
   bumpB(d: number): void {
-    this.scoreB.update((v) => Math.max(0, v + d));
+    this.scoreB.update((v) => v + d);
   }
 }

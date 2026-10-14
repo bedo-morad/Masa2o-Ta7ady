@@ -37,15 +37,10 @@ describe('ScoresheetComponent', () => {
     return c;
   }
 
-  function pick(c: ScoresheetComponent, key: string, team: 'A' | 'B'): void {
-    const from = c.assigned(1, key);
-    c.onPick(match(1), key, key, {
-      label: key,
-      points: 1,
-      picked: team,
-      from,
-      to: from === team ? null : team,
-    });
+  function pick(c: ScoresheetComponent, side: 'A' | 'B', index: number, player?: string): void {
+    const m = match(1);
+    const list = side === 'A' ? m.lineupA : m.lineupB;
+    c.onToggle(m, side, index, player ?? list[index]);
   }
 
   it('creates with count defaulting to 1', () => {
@@ -54,55 +49,79 @@ describe('ScoresheetComponent', () => {
     expect(c.count()).toBe(1);
   });
 
-  it('tapping a player adds exactly 1 point', () => {
+  it('tapping a player adds exactly 1 point to the column team', () => {
     const c = setup();
-    pick(c, 'A:0', 'A');
-    pick(c, 'B:5', 'B');
+    pick(c, 'A', 0);
+    pick(c, 'B', 5);
     expect(c.scoreA()).toBe(1);
     expect(c.scoreB()).toBe(1);
   });
 
   it('tapping again unassigns and reverses exactly', () => {
     const c = setup();
-    pick(c, 'A:0', 'A');
-    pick(c, 'A:0', 'A');
+    pick(c, 'A', 0);
+    pick(c, 'A', 0);
     expect(c.scoreA()).toBe(0);
     expect(c.assigned(1, 'A:0')).toBeNull();
   });
 
-  it('switching teams moves the point across', () => {
+  it('side lock: column A scores for team A, column B for team B', () => {
     const c = setup();
-    pick(c, 'A:0', 'A');
-    pick(c, 'A:0', 'B');
-    expect(c.scoreA()).toBe(0);
+    pick(c, 'A', 2);
+    expect(c.scoreA()).toBe(1);
+    expect(c.scoreB()).toBe(0);
+    expect(c.assigned(1, 'A:2')).toBe('A');
+    pick(c, 'B', 2);
+    expect(c.scoreA()).toBe(1);
     expect(c.scoreB()).toBe(1);
+    expect(c.assigned(1, 'B:2')).toBe('B');
   });
 
-  it('scores never go below zero', () => {
+  it('unassigning below zero lands negative and audits the real delta', () => {
     const c = setup();
-    pick(c, 'A:0', 'A');
+    pick(c, 'A', 0);
     c.scoreA.set(0); // referee manually zeroed after an attribution
-    pick(c, 'A:0', 'A'); // unassign reverses -1
-    expect(c.scoreA()).toBe(0);
-  });
-
-  it('clamped reversals leave no phantom audit entries', () => {
-    const c = setup();
-    pick(c, 'A:0', 'A');
-    c.scoreA.set(0); // referee manually zeroed after an attribution
-    const before = c.audit().length;
-    pick(c, 'A:0', 'A'); // unassign: -1 clamped away entirely
-    expect(c.scoreA()).toBe(0);
-    expect(c.audit().length).toBe(before); // nothing booked, nothing recorded
+    pick(c, 'A', 0); // unassign reverses -1
+    expect(c.scoreA()).toBe(-1);
+    expect(c.audit().at(-1)).toEqual(expect.objectContaining({ team: 'A', delta: -1 }));
   });
 
   it('every tap appends an audit entry', () => {
     const c = setup();
-    pick(c, 'B:3', 'B');
+    pick(c, 'B', 3);
     expect(c.audit().length).toBe(1);
     expect(c.audit()[0]).toEqual(
       expect.objectContaining({ team: 'B', delta: 1 }),
     );
+  });
+
+  it('strike tracker: 3 mistakes eliminates, reset clears', () => {
+    const c = setup();
+    const m = match(1);
+    expect(c.slotsOf(m).length).toBe(4);
+    expect(c.isOut(c.slotsOf(m)[0])).toBe(false);
+    c.bumpMistake(1, 0, 1);
+    c.bumpMistake(1, 0, 1);
+    expect(c.isOut(c.slotsOf(m)[0])).toBe(false);
+    c.bumpMistake(1, 0, 1);
+    expect(c.slotsOf(m)[0].mistakes).toBe(3);
+    expect(c.isOut(c.slotsOf(m)[0])).toBe(true);
+    expect(c.isOut(c.slotsOf(m)[1])).toBe(false);
+    c.resetSlot(1, 0);
+    expect(c.isOut(c.slotsOf(m)[0])).toBe(false);
+  });
+
+  it('strike slots default to the team names and stay editable', () => {
+    const c = setup();
+    const m = match(1);
+    c.teamA.set('الصقور');
+    c.teamB.set('النمور');
+    // drop any cached slots so defaults rebuild from the team names
+    c.strikes.set({});
+    expect(c.slotsOf(m)[0].name).toContain('الصقور');
+    expect(c.slotsOf(m)[2].name).toContain('النمور');
+    c.setSlotName(1, 0, 'كابتن');
+    expect(c.slotsOf(m)[0].name).toBe('كابتن');
   });
 
   it('navigation stays in bounds', () => {

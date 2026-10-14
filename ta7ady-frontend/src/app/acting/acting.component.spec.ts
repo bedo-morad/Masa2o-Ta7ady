@@ -16,4 +16,11 @@ describe('ActingComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance).toBeTruthy();
   });
+
+  it('builds an encoded google search url', () => {
+    const c = TestBed.createComponent(ActingComponent).componentInstance;
+    expect(c.googleUrl('كريستيانو رونالدو')).toBe(
+      `https://www.google.com/search?q=${encodeURIComponent('كريستيانو رونالدو')}`,
+    );
+  });
 });

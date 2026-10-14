@@ -92,13 +92,14 @@ describe('Top10Component', () => {
     expect(c.scoreB()).toBe(0);
   });
 
-  it('negative ranks subtract but the score clamps at zero', () => {
+  it('negative ranks subtract below zero', () => {
     const c = setup();
     assign(c, 1, 10, 'B');
     assign(c, 1, 13, 'B');
     expect(c.scoreB()).toBe(7);
     assign(c, 1, 10, 'B'); // unassign rank 10
-    expect(c.scoreB()).toBe(0); // 7 - 10 clamps, never negative
+    expect(c.scoreB()).toBe(-3); // 7 - 10 lands negative
+    expect(c.audit().map((e) => e.delta)).toEqual([10, -3, -10]);
   });
 
   it('completing 11+12+13 flips the trio to +6', () => {
@@ -115,10 +116,10 @@ describe('Top10Component', () => {
     const c = setup();
     assign(c, 1, 11, 'B');
     assign(c, 1, 12, 'B');
-    expect(c.scoreB()).toBe(0); // clamped negatives leave no trace
+    expect(c.scoreB()).toBe(-3); // negatives book in full now
     assign(c, 1, 13, 'B');
     expect(c.scoreB()).toBe(6); // trio flips to +6, per RULES.md
-    expect(c.audit().map((e) => e.delta)).toEqual([6]);
+    expect(c.audit().map((e) => e.delta)).toEqual([-1, -2, 9]);
   });
 
   it('unassigning one trio rank reverses the flip exactly', () => {
@@ -128,8 +129,8 @@ describe('Top10Component', () => {
     assign(c, 1, 13, 'B');
     expect(c.scoreB()).toBe(6);
     assign(c, 1, 12, 'B'); // unassign
-    expect(c.scoreB()).toBe(0);
-    expect(c.audit().map((e) => e.delta)).toEqual([6, -6]);
+    expect(c.scoreB()).toBe(-4);
+    expect(c.audit().map((e) => e.delta)).toEqual([-1, -2, 9, -10]);
     expect(c.assigned(1, 12)).toBeNull();
   });
 
@@ -168,5 +169,26 @@ describe('Top10Component', () => {
     expect(c.idx()).toBe(1);
     c.prev();
     expect(c.idx()).toBe(0);
+  });
+
+  it('dead-turn tracker flags a hint at 3 and resets', () => {
+    const c = setup();
+    expect(c.hintDue(1)).toBe(false);
+    c.bumpDead(1, 1);
+    c.bumpDead(1, 1);
+    expect(c.hintDue(1)).toBe(false);
+    c.bumpDead(1, 1);
+    expect(c.deadOf(1)).toBe(3);
+    expect(c.hintDue(1)).toBe(true);
+    c.bumpDead(1, -1);
+    expect(c.hintDue(1)).toBe(false);
+    c.resetDead(1);
+    expect(c.deadOf(1)).toBe(0);
+  });
+
+  it('dead turns never go below zero', () => {
+    const c = setup();
+    c.bumpDead(1, -1);
+    expect(c.deadOf(1)).toBe(0);
   });
 });

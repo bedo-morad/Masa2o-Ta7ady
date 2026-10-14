@@ -1,9 +1,8 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, ApiService, Top10List } from '../api.service';
+import { API_BASE, Top10List } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import {
@@ -17,10 +16,10 @@ import {
 // Frontend scoring (RULES.md Top 10): rank N (1-10) = N pts; 11/12/13 =
 // -1/-2/-3. Holding all three of 11+12+13 flips the trio from -6 to +6.
 // Scoring is booked-effective: per list and team, `booked` tracks the net amount
-// attribution actually added to the score (post floor-clamp). Each tap steers the
-// booked amount toward the map's target contribution, so clamped-away negatives
-// never resurrect (completing the trio from zero scores exactly +6) and the audit
-// always sums to the score. Backend stores no scores.
+// attribution actually added to the score. Each tap steers the booked amount
+// toward the map's target contribution, so completing the trio from zero scores
+// exactly +6 (via a +9 catch-up over the booked -3) and the audit always sums
+// to the score. Scores may go below zero. Backend stores no scores.
 export function rankValue(rank: number): number {
   if (rank <= 10) return rank;
   if (rank === 11) return -1;
@@ -58,8 +57,6 @@ export function teamContribution(m: RankMap, team: 'A' | 'B'): number {
   styleUrl: './top10.component.scss',
 })
 export class Top10Component {
-  private api = inject(ApiService);
-
   readonly teamA = signal('');
   readonly teamB = signal('');
   readonly scoreA = signal(0);
@@ -70,8 +67,8 @@ export class Top10Component {
   readonly assignments = signal<Record<number, RankMap>>({});
   readonly booked = signal<Record<number, { A: number; B: number }>>({});
   readonly audit = signal<AuditEntry[]>([]);
+  readonly deadTurns = signal<Record<number, number>>({});
   readonly msg = signal('');
-  readonly rerolling = signal<number | null>(null);
   private seq = 0;
 
   private readonly res = httpResource<Top10List[]>(
@@ -120,6 +117,7 @@ export class Top10Component {
   }
 
   reload(): void {
+    this.deadTurns.set({});
     this.res.reload();
   }
 
@@ -140,25 +138,6 @@ export class Top10Component {
     this.booked.update((bb) => ({ ...bb, [list.id]: { A: b.A + eA, B: b.B + eB } }));
   }
 
-  async rerollOne(i: number): Promise<void> {
-    if (this.rerolling() !== null) return;
-    this.rerolling.set(i);
-    try {
-      const fresh = await firstValueFrom(this.api.top10Random(6));
-      const ids = new Set(this.lists().map((l) => l.id));
-      const pick = fresh.find((r) => !ids.has(r.id)) ?? fresh[0];
-      if (pick) {
-        const old = this.lists()[i];
-        if (old) this.reverseList(old);
-        this.lists.update((ls) => ls.map((l, j) => (j === i ? pick : l)));
-      }
-    } catch {
-      this.msg.set('تعذر تبديل القائمة — حاول مجددًا.');
-    } finally {
-      this.rerolling.set(null);
-    }
-  }
-
   /** Reverse one list's booked points and drop its assignments. */
   private reverseList(list: Top10List): void {
     const b = this.booked()[list.id] ?? { A: 0, B: 0 };
@@ -169,6 +148,12 @@ export class Top10Component {
     this.assignments.set(all);
     this.booked.update((bb) => {
       const next = { ...bb };
+      delete next[list.id];
+      return next;
+    });
+    this.deadTurns.update((dd) => {
+      if (!(list.id in dd)) return dd;
+      const next = { ...dd };
       delete next[list.id];
       return next;
     });
@@ -184,24 +169,36 @@ export class Top10Component {
     this.idx.update((i) => Math.min(i, Math.max(0, rows.length - 1)));
   }
 
-  /** Applies delta with the zero floor; audits the effective amount only, so the
-   * strip always sums to the score. Returns the effective delta. */
+  /** Applies delta directly (scores may go negative); audits the actual
+   * amount, so the strip always sums to the score. Returns the delta. */
   private applyScore(team: 'A' | 'B', delta: number, label: string): number {
     if (delta === 0) return 0;
-    let eff = 0;
-    if (team === 'A') {
-      const o = this.scoreA();
-      const n = Math.max(0, o + delta);
-      this.scoreA.set(n);
-      eff = n - o;
-    } else {
-      const o = this.scoreB();
-      const n = Math.max(0, o + delta);
-      this.scoreB.set(n);
-      eff = n - o;
-    }
-    if (eff !== 0)
-      this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta: eff }]);
-    return eff;
+    if (team === 'A') this.scoreA.update((v) => v + delta);
+    else this.scoreB.update((v) => v + delta);
+    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
+    return delta;
+  }
+
+  // Referee-owned dead-turn tracker (display only): after 3 dead turns the
+  // room gets a hint. Keyed per list, cleared when the list leaves the run.
+  deadOf(listId: number): number {
+    return this.deadTurns()[listId] ?? 0;
+  }
+
+  hintDue(listId: number): boolean {
+    return this.deadOf(listId) >= 3;
+  }
+
+  bumpDead(listId: number, d: number): void {
+    this.deadTurns.update((dd) => ({ ...dd, [listId]: Math.max(0, (dd[listId] ?? 0) + d) }));
+  }
+
+  resetDead(listId: number): void {
+    this.deadTurns.update((dd) => {
+      if (!(listId in dd)) return dd;
+      const next = { ...dd };
+      delete next[listId];
+      return next;
+    });
   }
 }

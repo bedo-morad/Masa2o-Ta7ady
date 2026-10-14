@@ -1,27 +1,32 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, ApiService, ScoresheetMatch } from '../api.service';
+import { API_BASE, ScoresheetMatch } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import {
   AssignedTeam,
-  AttributionChange,
-  AttributionComponent,
   AuditEntry,
   AuditStripComponent,
 } from '../shared/attribution/attribution.component';
 
 // Score Sheet (RULES.md): each correct player name = 1 point, attributed by
 // referee tap. Both full lineups are referee-visible from the start.
+// Side lock: the right column (side A) always scores for team A, the left
+// column (side B) for team B (RTL). Tapping a player card assigns +1 to that
+// column's team; tapping again unassigns (-1).
 // Scoring is booked-effective like Top-10 (see its header): per match and team,
-// `booked` tracks the net attributed amount actually in the score, so clamped
-// reversals never leave phantom audit entries.
+// `booked` tracks the net attributed amount actually in the score, so reversals
+// always land exactly. Scores may go below zero.
 
 export type Side = 'A' | 'B';
 export type PlayerMap = Record<string, AssignedTeam>; // "A:3" / "B:7" -> team
+
+export interface StrikeSlot {
+  name: string;
+  mistakes: number;
+}
 
 export function playerKey(side: Side, index: number): string {
   return `${side}:${index}`;
@@ -41,15 +46,12 @@ function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
     RouterLink,
     ScoreboardComponent,
     TimerComponent,
-    AttributionComponent,
     AuditStripComponent,
   ],
   templateUrl: './scoresheet.component.html',
   styleUrl: './scoresheet.component.scss',
 })
 export class ScoresheetComponent {
-  private api = inject(ApiService);
-
   readonly teamA = signal('');
   readonly teamB = signal('');
   readonly scoreA = signal(0);
@@ -60,8 +62,8 @@ export class ScoresheetComponent {
   readonly assignments = signal<Record<number, PlayerMap>>({});
   readonly booked = signal<Record<number, { A: number; B: number }>>({});
   readonly audit = signal<AuditEntry[]>([]);
+  readonly strikes = signal<Record<number, StrikeSlot[]>>({});
   readonly msg = signal('');
-  readonly rerolling = signal<number | null>(null);
   private seq = 0;
 
   private readonly res = httpResource<ScoresheetMatch[]>(
@@ -106,18 +108,20 @@ export class ScoresheetComponent {
   }
 
   reload(): void {
+    this.strikes.set({});
     this.res.reload();
   }
 
-  onPick(match: ScoresheetMatch, key: string, player: string, ch: AttributionChange): void {
+  /** Side-locked toggle: the card's own column decides the team (A right,
+   * B left). Tap assigns +1, tap again unassigns (-1). */
+  onToggle(match: ScoresheetMatch, side: Side, index: number, player: string): void {
+    const key = playerKey(side, index);
+    const team: 'A' | 'B' = side;
     const all = { ...this.assignments() };
     const prevMap = all[match.id] ?? {};
-    const from = prevMap[key] ?? null;
-    const to: AssignedTeam = from === ch.picked ? null : ch.picked;
-    if (from === to) return;
     const nextMap: PlayerMap = { ...prevMap };
-    if (to) nextMap[key] = to;
-    else delete nextMap[key];
+    if (nextMap[key]) delete nextMap[key];
+    else nextMap[key] = team;
     all[match.id] = nextMap;
     this.assignments.set(all);
     const b = this.booked()[match.id] ?? { A: 0, B: 0 };
@@ -126,25 +130,6 @@ export class ScoresheetComponent {
     const eA = this.applyScore('A', tA - b.A, player);
     const eB = this.applyScore('B', tB - b.B, player);
     this.booked.update((bb) => ({ ...bb, [match.id]: { A: b.A + eA, B: b.B + eB } }));
-  }
-
-  async rerollOne(i: number): Promise<void> {
-    if (this.rerolling() !== null) return;
-    this.rerolling.set(i);
-    try {
-      const fresh = await firstValueFrom(this.api.scoresheetRandom(6));
-      const ids = new Set(this.matches().map((m) => m.id));
-      const pick = fresh.find((r) => !ids.has(r.id)) ?? fresh[0];
-      if (pick) {
-        const old = this.matches()[i];
-        if (old) this.reverseMatch(old);
-        this.matches.update((ms) => ms.map((m, j) => (j === i ? pick : m)));
-      }
-    } catch {
-      this.msg.set('تعذر تبديل المباراة — حاول مجددًا.');
-    } finally {
-      this.rerolling.set(null);
-    }
   }
 
   /** Reverse one match's booked points and drop its assignments. */
@@ -160,6 +145,12 @@ export class ScoresheetComponent {
       delete next[match.id];
       return next;
     });
+    this.strikes.update((ss) => {
+      if (!(match.id in ss)) return ss;
+      const next = { ...ss };
+      delete next[match.id];
+      return next;
+    });
   }
 
   /** Swap in a fresh run: reverse matches that vanished, keep surviving ones. */
@@ -169,27 +160,68 @@ export class ScoresheetComponent {
       if (!ids.has(old.id)) this.reverseMatch(old);
     }
     this.matches.set(rows);
+    for (const m of rows) this.slotsOf(m);
     this.idx.update((i) => Math.min(i, Math.max(0, rows.length - 1)));
   }
 
-  /** Applies delta with the zero floor; audits the effective amount only, so the
-   * strip always sums to the score. Returns the effective delta. */
+  /** Applies delta directly (scores may go negative); audits the actual
+   * amount, so the strip always sums to the score. Returns the delta. */
   private applyScore(team: 'A' | 'B', delta: number, label: string): number {
     if (delta === 0) return 0;
-    let eff = 0;
-    if (team === 'A') {
-      const o = this.scoreA();
-      const n = Math.max(0, o + delta);
-      this.scoreA.set(n);
-      eff = n - o;
-    } else {
-      const o = this.scoreB();
-      const n = Math.max(0, o + delta);
-      this.scoreB.set(n);
-      eff = n - o;
-    }
-    if (eff !== 0)
-      this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta: eff }]);
-    return eff;
+    if (team === 'A') this.scoreA.update((v) => v + delta);
+    else this.scoreB.update((v) => v + delta);
+    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
+    return delta;
+  }
+
+  // Per-match mistake tracker (display only, referee enforces): 4 named slots
+  // (2 per side); 3 mistakes eliminates that player. Keyed per match id,
+  // cleared when the match leaves the run.
+  slotsOf(match: ScoresheetMatch): StrikeSlot[] {
+    const existing = this.strikes()[match.id];
+    if (existing) return existing;
+    const a = this.teamA() || match.teamA || 'الفريق الأول';
+    const b = this.teamB() || match.teamB || 'الفريق الثاني';
+    const fresh: StrikeSlot[] = [
+      { name: `${a} ١`, mistakes: 0 },
+      { name: `${a} ٢`, mistakes: 0 },
+      { name: `${b} ١`, mistakes: 0 },
+      { name: `${b} ٢`, mistakes: 0 },
+    ];
+    this.strikes.update((ss) => ({ ...ss, [match.id]: fresh }));
+    return fresh;
+  }
+
+  isOut(slot: StrikeSlot): boolean {
+    return slot.mistakes >= 3;
+  }
+
+  setSlotName(matchId: number, i: number, name: string): void {
+    this.strikes.update((ss) => {
+      const cur = ss[matchId];
+      if (!cur) return ss;
+      const next = cur.map((s, j) => (j === i ? { ...s, name } : s));
+      return { ...ss, [matchId]: next };
+    });
+  }
+
+  bumpMistake(matchId: number, i: number, d: number): void {
+    this.strikes.update((ss) => {
+      const cur = ss[matchId];
+      if (!cur) return ss;
+      const next = cur.map((s, j) =>
+        j === i ? { ...s, mistakes: Math.min(3, Math.max(0, s.mistakes + d)) } : s,
+      );
+      return { ...ss, [matchId]: next };
+    });
+  }
+
+  resetSlot(matchId: number, i: number): void {
+    this.strikes.update((ss) => {
+      const cur = ss[matchId];
+      if (!cur) return ss;
+      const next = cur.map((s, j) => (j === i ? { ...s, mistakes: 0 } : s));
+      return { ...ss, [matchId]: next };
+    });
   }
 }

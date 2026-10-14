@@ -24,4 +24,11 @@ describe('IhbidComponent', () => {
     c.toggle(7);
     expect(c.revealed().has(7)).toBe(false);
   });
+
+  it('builds an encoded google search url', () => {
+    const c = TestBed.createComponent(IhbidComponent).componentInstance;
+    expect(c.googleUrl('كم هدفا سجل؟')).toBe(
+      `https://www.google.com/search?q=${encodeURIComponent('كم هدفا سجل؟')}`,
+    );
+  });
 });

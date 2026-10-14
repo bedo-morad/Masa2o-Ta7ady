@@ -48,6 +48,10 @@ export class IhbidComponent {
     this.res.reload();
   }
 
+  googleUrl(text: string): string {
+    return `https://www.google.com/search?q=${encodeURIComponent(text)}`;
+  }
+
   toggle(id: number): void {
     this.revealed.update((s) => {
       const next = new Set(s);

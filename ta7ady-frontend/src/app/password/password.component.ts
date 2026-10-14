@@ -55,6 +55,10 @@ export class PasswordComponent {
     this.cards.update((cs) => cs.map((c, idx) => (idx === i ? { ...c, flipped: !c.flipped } : c)));
   }
 
+  googleUrl(name: string): string {
+    return `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+  }
+
   async rerollOne(i: number): Promise<void> {
     if (this.rerolling() !== null) return;
     this.rerolling.set(i);

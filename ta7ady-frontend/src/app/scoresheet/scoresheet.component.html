@@ -8,7 +8,7 @@
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-  <app-timer [defaultSeconds]="60" label="مؤقت المباراة" />
+  <app-timer [defaultSeconds]="30" label="مؤقت المباراة" />
 
   <div class="draw-row">
     <label for="ss-count">عدد المباريات</label>
@@ -60,16 +60,6 @@
     <section class="board">
       <div class="prompt-row">
         <h3 class="prompt">{{ match.matchLabel }}</h3>
-        <button
-          type="button"
-          class="mini reroll"
-          (click)="rerollOne(idx())"
-          [disabled]="rerolling() !== null"
-          aria-label="تبديل هذه المباراة"
-          title="تبديل"
-        >
-          <i class="fa-solid fa-dice"></i>
-        </button>
       </div>
 
       <div class="sides">
@@ -77,22 +67,21 @@
           <h4 class="side-name">{{ match.teamA }}</h4>
           <ol class="lineup">
             @for (p of match.lineupA; track $index; let i = $index) {
-              <li
-                class="prow"
-                [class.is-a]="assigned(match.id, keyOf('A', i)) === 'A'"
-                [class.is-b]="assigned(match.id, keyOf('A', i)) === 'B'"
-              >
-                <span class="pnum tabular-nums">{{ i + 1 }}</span>
-                <span class="pname">{{ p }}</span>
-                <app-attribution
-                  [label]="p"
-                  [points]="1"
-                  [short]="true"
-                  [assigned]="assigned(match.id, keyOf('A', i))"
-                  [teamA]="teamA()"
-                  [teamB]="teamB()"
-                  (change)="onPick(match, keyOf('A', i), p, $event)"
-                />
+              <li>
+                <button
+                  type="button"
+                  class="prow"
+                  [class.is-a]="assigned(match.id, keyOf('A', i)) === 'A'"
+                  (click)="onToggle(match, 'A', i, p)"
+                  [attr.aria-pressed]="assigned(match.id, keyOf('A', i)) === 'A'"
+                  [attr.aria-label]="p"
+                >
+                  <span class="pnum tabular-nums">{{ i + 1 }}</span>
+                  <span class="pname">{{ p }}</span>
+                  @if (assigned(match.id, keyOf('A', i)) === 'A') {
+                    <i class="fa-solid fa-check picked"></i>
+                  }
+                </button>
               </li>
             }
           </ol>
@@ -102,27 +91,72 @@
           <h4 class="side-name">{{ match.teamB }}</h4>
           <ol class="lineup">
             @for (p of match.lineupB; track $index; let i = $index) {
-              <li
-                class="prow"
-                [class.is-a]="assigned(match.id, keyOf('B', i)) === 'A'"
-                [class.is-b]="assigned(match.id, keyOf('B', i)) === 'B'"
-              >
-                <span class="pnum tabular-nums">{{ i + 1 }}</span>
-                <span class="pname">{{ p }}</span>
-                <app-attribution
-                  [label]="p"
-                  [points]="1"
-                  [short]="true"
-                  [assigned]="assigned(match.id, keyOf('B', i))"
-                  [teamA]="teamA()"
-                  [teamB]="teamB()"
-                  (change)="onPick(match, keyOf('B', i), p, $event)"
-                />
+              <li>
+                <button
+                  type="button"
+                  class="prow"
+                  [class.is-b]="assigned(match.id, keyOf('B', i)) === 'B'"
+                  (click)="onToggle(match, 'B', i, p)"
+                  [attr.aria-pressed]="assigned(match.id, keyOf('B', i)) === 'B'"
+                  [attr.aria-label]="p"
+                >
+                  <span class="pnum tabular-nums">{{ i + 1 }}</span>
+                  <span class="pname">{{ p }}</span>
+                  @if (assigned(match.id, keyOf('B', i)) === 'B') {
+                    <i class="fa-solid fa-check picked"></i>
+                  }
+                </button>
               </li>
             }
           </ol>
         </div>
       </div>
+    </section>
+
+    <section class="strikes" aria-label="الأخطاء">
+      @for (s of slotsOf(match); track $index; let i = $index) {
+        <div class="slot" [class.out]="isOut(s)">
+          <input
+            class="sname"
+            [ngModel]="s.name"
+            (ngModelChange)="setSlotName(match.id, i, $event)"
+            [attr.aria-label]="'اسم اللاعب ' + (i + 1)"
+          />
+          <div class="stepper" role="group" [attr.aria-label]="'أخطاء ' + s.name">
+            <button
+              type="button"
+              class="step"
+              (click)="bumpMistake(match.id, i, -1)"
+              [disabled]="s.mistakes <= 0"
+              aria-label="إنقاص الأخطاء"
+            >
+              <i class="fa-solid fa-minus"></i>
+            </button>
+            <span class="mcount tabular-nums">{{ s.mistakes }}</span>
+            <button
+              type="button"
+              class="step"
+              (click)="bumpMistake(match.id, i, 1)"
+              [disabled]="s.mistakes >= 3"
+              aria-label="زيادة الأخطاء"
+            >
+              <i class="fa-solid fa-plus"></i>
+            </button>
+            <button
+              type="button"
+              class="step ghost"
+              (click)="resetSlot(match.id, i)"
+              [disabled]="s.mistakes <= 0"
+              aria-label="تصفير الأخطاء"
+            >
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
+          @if (isOut(s)) {
+            <span class="out-chip">مستبعد</span>
+          }
+        </div>
+      }
     </section>
 
     <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />

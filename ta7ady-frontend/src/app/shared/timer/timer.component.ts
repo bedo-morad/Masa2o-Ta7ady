@@ -74,17 +74,18 @@ export class TimerComponent implements OnInit, OnDestroy {
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx ??= new AC();
       const now = this.ctx.currentTime;
-      [523.25, 392].forEach((freq, i) => {
+      [660, 520, 660].forEach((freq, i) => {
         const o = this.ctx!.createOscillator();
         const g = this.ctx!.createGain();
         o.connect(g);
         g.connect(this.ctx!.destination);
+        o.type = 'sine';
         o.frequency.value = freq;
-        g.gain.setValueAtTime(0.0001, now + i * 0.22);
-        g.gain.exponentialRampToValueAtTime(0.14, now + i * 0.22 + 0.03);
-        g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.22 + 0.2);
-        o.start(now + i * 0.22);
-        o.stop(now + i * 0.22 + 0.22);
+        g.gain.setValueAtTime(0.0001, now + i * 0.28);
+        g.gain.exponentialRampToValueAtTime(0.28, now + i * 0.28 + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.28 + 0.25);
+        o.start(now + i * 0.28);
+        o.stop(now + i * 0.28 + 0.27);
       });
     } catch {
       /* audio unavailable: ignore */

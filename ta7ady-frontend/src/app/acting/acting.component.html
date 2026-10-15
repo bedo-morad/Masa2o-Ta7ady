@@ -8,8 +8,8 @@
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-  <app-timer [defaultSeconds]="45" label="مؤقت التمثيل" />
-  <app-timer [defaultSeconds]="10" label="مؤقت السرقة" />
+  <app-timer timerKey="acting" [defaultSeconds]="45" label="مؤقت التمثيل" />
+  <app-timer timerKey="actingSteal" [defaultSeconds]="10" label="مؤقت السرقة" />
 
   <div class="draw-row">
     <label for="ac-count">عدد البطاقات</label>
@@ -41,6 +41,19 @@
           <span class="face front">{{ i + 1 }}</span>
           <span class="face back">{{ c.flipped ? c.row.playerName : '' }}</span>
         </button>
+        @if (c.flipped) {
+          <a
+            class="gsearch"
+            [href]="googleUrl(c.row.playerName)"
+            target="_blank"
+            rel="noopener"
+            (click)="$event.stopPropagation()"
+            aria-label="بحث عن اللاعب"
+            title="بحث"
+          >
+            <i class="fa-brands fa-google"></i>
+          </a>
+        }
         <button
           type="button"
           class="reroll"

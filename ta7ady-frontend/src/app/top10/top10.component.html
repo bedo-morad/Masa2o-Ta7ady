@@ -1,0 +1,131 @@
+<div class="challenge">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
+  </div>
+
+  <h2>التوب 10</h2>
+
+  <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
+
+  <app-timer timerKey="top10" [defaultSeconds]="10" label="مؤقت القائمة" />
+
+  @if (current(); as hintList) {
+    <div class="dead-row" [class.due]="hintDue(hintList.id)">
+      <span class="dead-label">أدوار ميتة</span>
+      <div class="stepper" role="group" aria-label="أدوار ميتة">
+        <button
+          type="button"
+          class="step"
+          (click)="bumpDead(hintList.id, -1)"
+          [disabled]="deadOf(hintList.id) <= 0"
+          aria-label="إنقاص الأدوار الميتة"
+        >
+          <i class="fa-solid fa-minus"></i>
+        </button>
+        <span class="dcount tabular-nums">{{ deadOf(hintList.id) }}</span>
+        <button
+          type="button"
+          class="step"
+          (click)="bumpDead(hintList.id, 1)"
+          aria-label="زيادة الأدوار الميتة"
+        >
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button
+          type="button"
+          class="step ghost"
+          (click)="resetDead(hintList.id)"
+          [disabled]="deadOf(hintList.id) <= 0"
+          aria-label="تصفير الأدوار الميتة"
+        >
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+      </div>
+      @if (hintDue(hintList.id)) {
+        <span class="hint-chip"><i class="fa-solid fa-lightbulb"></i> تلميح مستحق</span>
+      }
+    </div>
+  }
+
+  <div class="draw-row">
+    <label for="t10-count">عدد القوائم</label>
+    <select id="t10-count" [(ngModel)]="count">
+      <option [ngValue]="1">1</option>
+      <option [ngValue]="2">2</option>
+      <option [ngValue]="3">3</option>
+      <option [ngValue]="5">5</option>
+    </select>
+    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
+      <i class="fa-solid fa-shuffle"></i> سحب جديد
+    </button>
+  </div>
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+
+  @if (current(); as list) {
+    @if (lists().length > 1) {
+      <div class="nav-row">
+        <button type="button" class="navbtn" (click)="prev()" [disabled]="idx() === 0" aria-label="القائمة السابقة">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <div class="dots" role="group" aria-label="القوائم">
+          @for (l of lists(); track l.id; let i = $index) {
+            <button
+              type="button"
+              class="dot tabular-nums"
+              [class.on]="i === idx()"
+              (click)="go(i)"
+              [attr.aria-label]="'القائمة ' + (i + 1)"
+            >
+              {{ i + 1 }}
+            </button>
+          }
+        </div>
+        <button
+          type="button"
+          class="navbtn"
+          (click)="next()"
+          [disabled]="idx() >= lists().length - 1"
+          aria-label="القائمة التالية"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+      </div>
+    }
+
+    <section class="board">
+      <div class="prompt-row">
+        <h3 class="prompt">{{ list.prompt }}</h3>
+      </div>
+
+      <ol class="answers">
+        @for (a of list.answers; track $index; let r = $index) {
+          <li
+            class="arow"
+            [class.is-a]="assigned(list.id, r + 1) === 'A'"
+            [class.is-b]="assigned(list.id, r + 1) === 'B'"
+          >
+            <span class="rank tabular-nums">{{ r + 1 }}</span>
+            <span class="atext">{{ a }}</span>
+            @if (trioOf(list.id) && r + 1 >= 11) {
+              <span class="trio-chip tabular-nums">+6</span>
+            }
+            <app-attribution
+              [label]="a"
+              [points]="valueOf(r + 1)"
+              [assigned]="assigned(list.id, r + 1)"
+              [teamA]="teamA()"
+              [teamB]="teamB()"
+              (change)="onAssign(list, r + 1, $event)"
+            />
+          </li>
+        }
+      </ol>
+    </section>
+
+    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
+  }
+</div>

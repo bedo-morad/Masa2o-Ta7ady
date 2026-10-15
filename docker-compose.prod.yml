@@ -1,0 +1,67 @@
+# Production deploy stack. Local dev stays on docker-compose.yaml (postgres only).
+# Run: docker compose -f docker-compose.prod.yml up -d --build
+services:
+  postgres:
+    image: postgres:18
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-username}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-ta7ady}
+    volumes:
+      - postgres-prod:/var/lib/postgresql/data
+    networks:
+      - ta7ady-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-username} -d ${POSTGRES_DB:-ta7ady}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    build:
+      context: ./ta7ady-backend
+    image: masa2o-ta7ady-backend:latest
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - ta7ady-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/players?count=1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./ta7ady-frontend
+    image: masa2o-ta7ady-frontend:latest
+    depends_on:
+      - backend
+    ports:
+      - "80:8080"
+    networks:
+      - ta7ady-network
+    healthcheck:
+      # BusyBox wget resolves "localhost" to ::1 first; nginx only listens on IPv4 here.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  ta7ady-network:
+    driver: bridge
+
+volumes:
+  postgres-prod:
+    driver: local

@@ -8,7 +8,7 @@
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-  <app-timer [defaultSeconds]="30" label="مؤقت الكتابة" />
+  <app-timer timerKey="ihbid" [defaultSeconds]="30" label="مؤقت الكتابة" />
 
   <div class="draw-row">
     <label for="ih-count">عدد الأسئلة</label>
@@ -30,7 +30,20 @@
   <ol class="qlist">
     @for (q of rows(); track q.id; let i = $index) {
       <li class="qitem">
-        <div class="qtext"><span class="qnum tabular-nums">{{ i + 1 }}</span> {{ q.questionText }}</div>
+        <div class="qtext">
+          <span class="qnum tabular-nums">{{ i + 1 }}</span>
+          <span class="qbody">{{ q.questionText }}</span>
+          <a
+            class="gq"
+            [href]="googleUrl(q.questionText)"
+            target="_blank"
+            rel="noopener"
+            aria-label="بحث عن السؤال"
+            title="بحث"
+          >
+            <i class="fa-brands fa-google"></i>
+          </a>
+        </div>
         <div class="qactions">
           @if (revealed().has(q.id)) {
             <div class="answer">

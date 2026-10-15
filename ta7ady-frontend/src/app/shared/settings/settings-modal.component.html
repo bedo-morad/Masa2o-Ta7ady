@@ -1,0 +1,160 @@
+<div class="backdrop" (click)="close()"></div>
+<div class="dialog" role="dialog" aria-modal="true" aria-label="الإعدادات">
+  <header class="head">
+    <h2>الإعدادات</h2>
+    <button type="button" class="icon-btn" (click)="close()" aria-label="إغلاق الإعدادات">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </header>
+
+  <section class="group" aria-label="الفرق واللاعبون">
+    <h3><i class="fa-solid fa-users"></i> الفرق واللاعبون</h3>
+    <div class="team-block">
+      <input
+        class="text-input"
+        [ngModel]="settings.teamA()"
+        (ngModelChange)="settings.setTeamA($event)"
+        placeholder="الفريق الأول"
+        aria-label="اسم الفريق الأول"
+      />
+      <div class="players">
+        <input
+          class="text-input"
+          [ngModel]="settings.playersA()[0]"
+          (ngModelChange)="settings.setPlayer('A', 0, $event)"
+          placeholder="لاعب 1"
+          aria-label="لاعب 1 من الفريق الأول"
+        />
+        <input
+          class="text-input"
+          [ngModel]="settings.playersA()[1]"
+          (ngModelChange)="settings.setPlayer('A', 1, $event)"
+          placeholder="لاعب 2"
+          aria-label="لاعب 2 من الفريق الأول"
+        />
+      </div>
+    </div>
+    <div class="team-block">
+      <input
+        class="text-input"
+        [ngModel]="settings.teamB()"
+        (ngModelChange)="settings.setTeamB($event)"
+        placeholder="الفريق الثاني"
+        aria-label="اسم الفريق الثاني"
+      />
+      <div class="players">
+        <input
+          class="text-input"
+          [ngModel]="settings.playersB()[0]"
+          (ngModelChange)="settings.setPlayer('B', 0, $event)"
+          placeholder="لاعب 1"
+          aria-label="لاعب 1 من الفريق الثاني"
+        />
+        <input
+          class="text-input"
+          [ngModel]="settings.playersB()[1]"
+          (ngModelChange)="settings.setPlayer('B', 1, $event)"
+          placeholder="لاعب 2"
+          aria-label="لاعب 2 من الفريق الثاني"
+        />
+      </div>
+    </div>
+  </section>
+
+  <section class="group" aria-label="التنبيه">
+    <h3><i class="fa-solid fa-bell"></i> التنبيه</h3>
+    <div class="sounds" role="group" aria-label="صوت التنبيه">
+      @for (s of sounds; track s.id) {
+        <button
+          type="button"
+          class="choice"
+          [class.active]="settings.alarmSoundId() === s.id"
+          (click)="settings.setAlarmSound(s.id)"
+        >
+          {{ s.label }}
+        </button>
+      }
+    </div>
+    <button type="button" class="preview" (click)="preview()">
+      <i class="fa-solid fa-play"></i>
+      تجربة الصوت
+    </button>
+    <div class="volume-row">
+      <input
+        type="range"
+        min="0"
+        max="10"
+        step="1"
+        class="volume"
+        [ngModel]="settings.alarmVolume()"
+        (ngModelChange)="settings.setAlarmVolume($event)"
+        aria-label="مستوى الصوت"
+      />
+      <span class="badge tabular-nums">{{ settings.alarmVolume() }}</span>
+    </div>
+    <button
+      type="button"
+      class="vibrate-toggle"
+      [class.active]="settings.vibrateOnTimeout()"
+      (click)="settings.setVibrate(!settings.vibrateOnTimeout())"
+      [attr.aria-pressed]="settings.vibrateOnTimeout()"
+      aria-label="الاهتزاز عند انتهاء الوقت"
+    >
+      <i
+        class="fa-solid"
+        [class.fa-toggle-on]="settings.vibrateOnTimeout()"
+        [class.fa-toggle-off]="!settings.vibrateOnTimeout()"
+        aria-hidden="true"
+      ></i>
+      الاهتزاز عند انتهاء الوقت
+    </button>
+  </section>
+
+  <section class="group" aria-label="مؤقتات الفقرات">
+    <h3><i class="fa-solid fa-stopwatch"></i> مؤقتات الفقرات</h3>
+    <div class="timers">
+      @for (f of timerFields; track f.key) {
+        <label class="timer-field">
+          <span>{{ f.label }}</span>
+          <input
+            type="number"
+            min="1"
+            inputmode="numeric"
+            class="text-input tabular-nums"
+            [ngModel]="timerText(f.key)"
+            (ngModelChange)="onTimerText(f.key, $event)"
+            [placeholder]="defaultPlaceholder(f.key)"
+            [attr.aria-label]="'مؤقت ' + f.label + ' بالثواني، فارغ يعني ' + defaultPlaceholder(f.key)"
+          />
+        </label>
+      }
+    </div>
+  </section>
+
+  <section class="group" aria-label="المظهر">
+    <h3><i class="fa-solid fa-palette"></i> المظهر</h3>
+    <div class="swatches" role="group" aria-label="المظهر">
+      @for (t of themes; track t.id) {
+        <button
+          type="button"
+          class="swatch"
+          [class.active]="settings.theme() === t.id"
+          (click)="settings.setTheme(t.id)"
+          [attr.aria-label]="t.label"
+          [attr.aria-pressed]="settings.theme() === t.id"
+        >
+          <span class="dot" [class]="'dot ' + t.id"></span>
+          {{ t.label }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span class="autosave">تُحفظ الإعدادات تلقائيًا</span>
+    <button type="button" class="reset" (click)="reset()">
+      <i class="fa-solid fa-rotate-right"></i>
+      إعادة الضبط
+    </button>
+  </footer>
+</div>

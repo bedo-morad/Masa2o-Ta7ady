@@ -4,6 +4,8 @@ import { PasswordComponent } from './password/password.component';
 import { ActingComponent } from './acting/acting.component';
 import { IhbidComponent } from './ihbid/ihbid.component';
 import { OffsideComponent } from './offside/offside.component';
+import { Top10Component } from './top10/top10.component';
+import { ScoresheetComponent } from './scoresheet/scoresheet.component';
 import { ManageComponent } from './manage/manage.component';
 
 export const routes: Routes = [
@@ -12,6 +14,8 @@ export const routes: Routes = [
   { path: 'acting', component: ActingComponent },
   { path: 'ihbid', component: IhbidComponent },
   { path: 'offside', component: OffsideComponent },
+  { path: 'top10', component: Top10Component },
+  { path: 'scoresheet', component: ScoresheetComponent },
   { path: 'manage', component: ManageComponent },
   { path: '**', redirectTo: '' },
 ];

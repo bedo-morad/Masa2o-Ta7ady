@@ -1,19 +1,22 @@
-import { Component, inject } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ThemeService, type Theme } from '../theme.service';
+import { SettingsModalComponent } from '../shared/settings/settings-modal.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, SettingsModalComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent {
-  private themes = inject(ThemeService);
-  readonly theme = this.themes.theme;
+  readonly settingsOpen = signal(false);
 
-  setTheme(t: Theme): void {
-    this.themes.setTheme(t);
+  openSettings(): void {
+    this.settingsOpen.set(true);
+  }
+
+  closeSettings(): void {
+    this.settingsOpen.set(false);
   }
 }

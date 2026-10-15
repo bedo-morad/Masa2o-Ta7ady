@@ -72,3 +72,14 @@ body {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+// NgbModal renders at body level, outside themed components: theme its shell
+// so the admin popup never shows white corners in dark themes. Backdrop keeps
+// the default dim. Scoped to modal chrome only.
+.modal-content {
+  background-color: var(--pitch-surface);
+  color: var(--pitch-ink);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}

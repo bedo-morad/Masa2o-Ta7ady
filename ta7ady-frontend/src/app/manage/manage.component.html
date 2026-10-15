@@ -1,21 +1,73 @@
 <div class="manage">
   <div class="topbar">
     <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <button
+      type="button"
+      class="lock-btn"
+      [class.on]="adminOn()"
+      (click)="openAdminModal(adminModal)"
+      [attr.aria-label]="adminOn() ? 'وضع الإدارة مفعّل — إدارة القفل' : 'فتح وضع الإدارة'"
+      [title]="adminOn() ? 'وضع الإدارة مفعّل' : 'وضع الإدارة'"
+    >
+      <i class="fa-solid" [class.fa-lock-open]="adminOn()" [class.fa-lock]="!adminOn()"></i>
+    </button>
   </div>
 
   <h2>إدارة الأسئلة</h2>
   <p class="hint">تظهر الإضافات فورًا في اللعب. أسماء اللاعبين مشتركة بين الباسورد والتمثيل.</p>
 
+  <ng-template #adminModal let-modal>
+    <div class="admin-popup">
+      <div class="admin-popup-head">
+        <h3><i class="fa-solid fa-lock"></i> وضع الإدارة (للحذف فقط)</h3>
+        <button type="button" class="x" (click)="modal.dismiss()" aria-label="إغلاق">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      @if (!adminOn()) {
+        <form class="admin-form" (ngSubmit)="unlockAdmin(modal)">
+          <label class="admin-label" for="adminPw">كلمة مرور الإدارة</label>
+          <input
+            id="adminPw"
+            type="password"
+            [(ngModel)]="adminPw"
+            name="adminPw"
+            placeholder="كلمة مرور الإدارة"
+            autocomplete="off"
+          />
+          @if (adminError()) {
+            <div class="admin-error" role="alert">{{ adminError() }}</div>
+          }
+          <button type="submit" class="unlock"><i class="fa-solid fa-lock-open"></i> فتح</button>
+        </form>
+      } @else {
+        <p class="admin-state"><i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار الحذف ظاهرة.</p>
+        @if (adminError()) {
+          <div class="admin-error" role="alert">{{ adminError() }}</div>
+        }
+        <div class="admin-actions">
+          <button type="button" class="lock" (click)="lockAdmin(modal)"><i class="fa-solid fa-lock"></i> قفل / تسجيل خروج</button>
+          <button type="button" class="close" (click)="modal.dismiss()">إغلاق</button>
+        </div>
+      }
+    </div>
+  </ng-template>
+
   <div class="pools" role="tablist">
     <button type="button" [class.active]="pool() === 'players'" (click)="select('players')">
       <i class="fa-solid fa-users"></i> أسماء اللاعبين
-      <span class="sub">باسورد + تمثيل</span>
     </button>
     <button type="button" [class.active]="pool() === 'ihbid'" (click)="select('ihbid')">
       <i class="fa-solid fa-bullseye"></i> اهبد صح
     </button>
     <button type="button" [class.active]="pool() === 'offside'" (click)="select('offside')">
       <i class="fa-solid fa-flag"></i> أوفسايد
+    </button>
+    <button type="button" [class.active]="pool() === 'top10'" (click)="select('top10')">
+      <i class="fa-solid fa-list-ol"></i> التوب 10
+    </button>
+    <button type="button" [class.active]="pool() === 'scoresheet'" (click)="select('scoresheet')">
+      <i class="fa-solid fa-clipboard-list"></i> ورقة المباراة
     </button>
   </div>
 
@@ -38,6 +90,84 @@
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
     </form>
   }
+  @if (pool() === 'top10') {
+    <form class="add column" (ngSubmit)="addTop10()">
+      <input [(ngModel)]="newTop10Prompt" name="ntp" placeholder="عنوان القائمة — مثال: أعلى 13 هدافًا…" />
+      <ol class="ranks">
+        @for (rank of top10Ranks; track rank; let i = $index) {
+          <li>
+            <span class="rank tabular-nums" aria-hidden="true">{{ rank }}</span>
+            <input
+              [ngModel]="top10Answers()[i]"
+              (ngModelChange)="setTop10Answer(i, $event)"
+              [name]="'ans' + rank"
+              [placeholder]="'الإجابة رقم ' + rank"
+              [attr.aria-label]="'الإجابة رقم ' + rank"
+            />
+          </li>
+        }
+      </ol>
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة قائمة</button>
+    </form>
+  }
+  @if (pool() === 'scoresheet') {
+    <form class="add column" (ngSubmit)="addScoresheet()">
+      <input [(ngModel)]="newMatch" name="nm" placeholder="اسم المباراة — مثال: نهائي كأس العالم 2022" />
+      <div class="teams">
+        <fieldset class="team">
+          <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الأول</legend>
+          <input
+            class="team-name"
+            [(ngModel)]="newTeamA"
+            name="nta2"
+            placeholder="اسم الفريق الأول"
+            aria-label="اسم الفريق الأول"
+          />
+          <ol class="lineup">
+            @for (slot of lineupSlots; track slot; let i = $index) {
+              <li>
+                <input
+                  class="player-box"
+                  [ngModel]="lineupA()[i]"
+                  (ngModelChange)="setLineupA(i, $event)"
+                  [name]="'la' + slot"
+                  placeholder="اسم لاعب"
+                  aria-label="لاعب في الفريق الأول"
+                />
+              </li>
+            }
+          </ol>
+        </fieldset>
+        <fieldset class="team">
+          <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الثاني</legend>
+          <input
+            class="team-name"
+            [(ngModel)]="newTeamB"
+            name="ntb"
+            placeholder="اسم الفريق الثاني"
+            aria-label="اسم الفريق الثاني"
+          />
+          <ol class="lineup">
+            @for (slot of lineupSlots; track slot; let i = $index) {
+              <li>
+                <input
+                  class="player-box"
+                  [ngModel]="lineupB()[i]"
+                  (ngModelChange)="setLineupB(i, $event)"
+                  [name]="'lb' + slot"
+                  placeholder="اسم لاعب"
+                  aria-label="لاعب في الفريق الثاني"
+                />
+              </li>
+            }
+          </ol>
+        </fieldset>
+      </div>
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة مباراة</button>
+    </form>
+  }
+
+  <app-import-panel [pool]="pool()" (imported)="onImported()" />
 
   @if (msg()) {
     <div class="notice">{{ msg() }}</div>
@@ -50,19 +180,26 @@
       @for (p of playerRows(); track p.id) {
         <li>
           <span>{{ p.playerName }}</span>
-          <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          @if (adminOn()) {
+            <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          }
         </li>
       }
     }
     @if (pool() === 'ihbid') {
       @for (q of ihbidRows(); track q.id) {
-        <li class="wide">
-          <span><strong>{{ q.questionText }}</strong> — {{ q.answerText }}</span>
-          <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+        <li class="wide ihbid-row">
+          <span class="qa">
+            <span class="q">{{ q.questionText }}</span>
+            <span class="answer-chip">{{ q.answerText }}</span>
+          </span>
+          @if (adminOn()) {
+            <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          }
         </li>
       }
     }
@@ -70,9 +207,87 @@
       @for (r of offsideRows(); track r.id) {
         <li>
           <span>{{ r.ruleText }}</span>
-          <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          @if (adminOn()) {
+            <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          }
+        </li>
+      }
+    }
+    @if (pool() === 'top10') {
+      @for (t of top10Rows(); track t.id) {
+        <li class="wide managed-row" [class.open]="isOpen(t.id)">
+          <div class="row-head">
+            <button
+              type="button"
+              class="row-main"
+              (click)="toggle(t.id)"
+              [attr.aria-expanded]="isOpen(t.id)"
+              [attr.aria-label]="(isOpen(t.id) ? 'إخفاء الإجابات: ' : 'عرض الإجابات: ') + t.prompt"
+            >
+              <span class="prompt"><strong>{{ t.prompt }}</strong></span>
+              <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(t.id)" aria-hidden="true"></i>
+            </button>
+            @if (adminOn()) {
+              <button type="button" class="del" (click)="removeTop10(t.id)" aria-label="حذف">
+                <i class="fa-solid fa-trash"></i> حذف
+              </button>
+            }
+          </div>
+          @if (isOpen(t.id)) {
+            <ol class="reveal">
+              @for (a of t.answers; track $index) {
+                <li>
+                  <span class="rank tabular-nums" aria-hidden="true">{{ $index + 1 }}</span>
+                  <span>{{ a }}</span>
+                </li>
+              }
+            </ol>
+          }
+        </li>
+      }
+    }
+    @if (pool() === 'scoresheet') {
+      @for (m of scoresheetRows(); track m.id) {
+        <li class="wide managed-row" [class.open]="isOpen(m.id)">
+          <div class="row-head">
+            <button
+              type="button"
+              class="row-main"
+              (click)="toggle(m.id)"
+              [attr.aria-expanded]="isOpen(m.id)"
+              [attr.aria-label]="(isOpen(m.id) ? 'إخفاء التشكيلتين: ' : 'عرض التشكيلتين: ') + m.matchLabel"
+            >
+              <span class="prompt"><strong>{{ m.matchLabel }}</strong></span>
+              <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(m.id)" aria-hidden="true"></i>
+            </button>
+            @if (adminOn()) {
+              <button type="button" class="del" (click)="removeScoresheet(m.id)" aria-label="حذف">
+                <i class="fa-solid fa-trash"></i> حذف
+              </button>
+            }
+          </div>
+          @if (isOpen(m.id)) {
+            <div class="reveal lineups">
+              <div class="lineup-side">
+                <h4>{{ m.teamA }}</h4>
+                <ul>
+                  @for (p of m.lineupA; track $index) {
+                    <li>{{ p }}</li>
+                  }
+                </ul>
+              </div>
+              <div class="lineup-side">
+                <h4>{{ m.teamB }}</h4>
+                <ul>
+                  @for (p of m.lineupB; track $index) {
+                    <li>{{ p }}</li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
         </li>
       }
     }

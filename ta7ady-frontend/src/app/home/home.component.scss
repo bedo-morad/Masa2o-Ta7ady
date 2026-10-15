@@ -5,14 +5,38 @@
 }
 
 .hero {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  // Physical order: gear (first in DOM) stays at the physical left edge
+  // no matter the page direction, title fills the same row beside it.
+  direction: ltr;
   margin-bottom: 1.5rem;
 
   h1 {
+    flex: 1;
+    min-width: 0;
+    direction: rtl;
+    text-align: start;
     font-size: 2.6rem;
     font-weight: 900;
     letter-spacing: -0.02em;
     margin: 0;
   }
+}
+
+.gear {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .play-grid {
@@ -46,50 +70,6 @@
 
   &:active {
     transform: none;
-  }
-}
-
-.themes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-
-  button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    background: var(--pitch-surface);
-    border: 1px solid var(--pitch-line);
-    border-radius: 999px;
-    color: var(--pitch-ink);
-    padding: 0.6rem 0.4rem;
-    font-weight: 800;
-    min-height: 48px;
-
-    &.active {
-      border-color: var(--pitch-accent);
-    }
-  }
-
-  .dot {
-    width: 1.1rem;
-    height: 1.1rem;
-    border-radius: 50%;
-    flex: none;
-
-    &.night {
-      background: #2bb673;
-    }
-
-    &.lapis {
-      background: #e8a42c;
-    }
-
-    &.sand {
-      background: #d9a441;
-    }
   }
 }
 

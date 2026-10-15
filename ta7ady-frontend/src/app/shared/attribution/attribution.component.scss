@@ -1,0 +1,50 @@
+.attrib {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pts {
+  font-weight: 900;
+  font-size: 0.9rem;
+  color: var(--pitch-accent);
+  min-width: 2.2rem;
+  text-align: center;
+
+  &.neg {
+    color: var(--pitch-danger);
+  }
+}
+
+.teams {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.tbtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-weight: 800;
+  font-size: 0.85rem;
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.ta.on {
+    background: var(--pitch-accent-deep);
+    border-color: var(--pitch-accent-deep);
+    color: #fff;
+  }
+
+  &.tb.on {
+    background: var(--pitch-gold);
+    border-color: var(--pitch-gold);
+    color: #000;
+  }
+}

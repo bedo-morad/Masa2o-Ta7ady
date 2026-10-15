@@ -3,7 +3,7 @@
     <input
       class="team-name"
       [(ngModel)]="teamA"
-      placeholder="الفريق الأول"
+      [placeholder]="placeholderA()"
       aria-label="اسم الفريق الأول"
     />
     <div class="score-row">
@@ -20,7 +20,7 @@
     <input
       class="team-name"
       [(ngModel)]="teamB"
-      placeholder="الفريق الثاني"
+      [placeholder]="placeholderB()"
       aria-label="اسم الفريق الثاني"
     />
     <div class="score-row">

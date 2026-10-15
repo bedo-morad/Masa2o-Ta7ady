@@ -93,8 +93,32 @@ h2 {
 }
 
 .qtext {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   font-size: 1.05rem;
+}
+
+.qbody {
+  flex: 1;
+  min-width: 0;
+}
+
+.gq {
+  margin-inline-start: auto;
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink-dim);
+  font-size: 0.95rem;
+  text-decoration: none;
 }
 
 .qnum {

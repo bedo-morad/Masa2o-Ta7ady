@@ -1,14 +1,22 @@
 spring:
   application:
     name: ta7ady-backend
+  # Load the project-root .env file when present (dev machines and the Docker image);
+  # absent or unreadable file is skipped silently so the defaults below still apply.
+  # In Docker, compose env_file provides the same values as real environment variables,
+  # which take precedence over anything imported here.
+  config:
+    import:
+      - "optional:file:../.env"
+      - "optional:file:.env"
   datasource:
-    url: jdbc:postgresql://localhost:5432/ta7ady
-    username: username
-    password: password
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ta7ady}
+    username: ${SPRING_DATASOURCE_USERNAME:username}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   servlet:
@@ -16,6 +24,12 @@ spring:
       max-file-size: 50MB
 springdoc:
   default-produces-media-type: application/json
+server:
+  error:
+    include-stacktrace: never
+    include-message: always
+admin:
+  password: ${ADMIN_PASSWORD:admin}
 application:
   file:
     uploads:

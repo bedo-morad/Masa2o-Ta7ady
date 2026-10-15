@@ -57,7 +57,8 @@ lean Egyptian/Arab + world stars. No clue fields, no categories — the games ne
 ### 3.2 Ihbid — `{"questionText": "...", "answerText": "..."}`
 
 Question answerable by a **number or date** teams can write down and be "closer" on.
-Timeless records and founding years only. Answer is the exact value as plain text.
+Timeless records, founding years, and shirt numbers only (e.g. "what is the shirt number
+for player X"). Answer is the exact value as plain text.
 
 ```json
 [
@@ -118,9 +119,13 @@ One genre label + exactly 4 questions, one per tier, in tier order. Tier ↔ era
 5 = last-10-years obvious (no child-easy); 10 = last-10-years deep; 20 = 10–20 years ago;
 40 = 20+ years ago, really hard (near-impossible to answer), nothing before 1980.
 No double flag stored — the site hides the double among the 16 at draw time.
-No multiple-choice options stored — the referee invents them live. Genres may be trophy,
-competition, player, club, continent, nation, or one specific season of any of those.
-Genres may duplicate across packs (e.g. two World Cup packs). Be creative: use the
+No multiple-choice options stored — the referee invents them live. A genre may be a club,
+nation, competition, player, season, a specific season for a specific club or competition
+(never a specific season for a nation), coach, transfers, or record numbers — max variety
+across the file, no two packs sharing the same angle. Genres may duplicate across packs
+(e.g. two World Cup packs) only with fully different questions. Strictly increasing
+hardness inside every pack: 10 harder than 5, 20 harder than 10, 40 near-impossible and
+harder than 20 — never a lower tier easier than a higher one. Be creative: use the
 examples as style guides only, never copy them verbatim — invent new genres and angles
 while following the tier↔era rules.
 
@@ -142,9 +147,13 @@ while following the tier↔era rules.
 
 Rapid-fire generic Q&A with short answers. Difficulty is random per round (never batched
 or sorted — luck of the draw is the game) at a **50 / 35 / 15** easy/medium/hard mix
-(slightly harder than the base §1 mix). Short, read-aloud-friendly, one-fact answers.
-Be creative: style like the examples, never copy them — new facts and angles that still
-follow §1 (timeless, cut-if-unsure, ~25% local).
+(slightly harder than the base §1 mix), plus ~5% near-impossible fear questions (any era,
+still pre-1980 floor, timeless, cut-if-unsure). Short, read-aloud-friendly, one-fact answers.
+Max variety of templates (no more than ~2 questions per phrasing): top scorer of team X /
+nation X, where was the 20XX World Cup held, nationality of player X, club where player X
+started his career, tricky look-easy-but-hard and look-hard-but-easy angles, shirt-number
+style facts, and the already-made styles. Be creative: style like the examples, never copy
+them — new facts and angles that still follow §1 (timeless, cut-if-unsure, ~25% local).
 
 ```json
 [

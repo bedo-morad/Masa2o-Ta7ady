@@ -45,15 +45,17 @@ attribution patterns). Terms: `CONTEXT.md`. Rules: `RULES.md`. Authoring: `AUTHO
 - Structure: 6 rounds (3 per team, alternating; referee picks who starts once, then
   auto-alternates with Prev/Next + dots). All 72 questions are drawn once at game start
   (`?count=72`, chunked 12 per round) so no question repeats across rounds. Each round:
-  120s timer, rapid-fire; the run shows question + hidden answer with per-row reveal
-  (Ihbid pattern). No redraw button inside a round, no per-question dice (luck of the
-  draw is the game). Answered rounds stay reviewable.
-- Chain tracker (display-only, referee-owned): Correct doubles the displayed chain
-  (1 → 2 → 4 → 8 … capped at 2048), MISS zeroes the unbanked chain, **BANK** moves the
-  chain into that team's banked total (scoreboard + audit entry) and resets the chain
-  to 1. All three are manual taps — the site computes nothing on its own and never
-  auto-banks or auto-wipes. BANK writes to the scoreboard (like attribution deltas);
-  Correct/Miss never write scores by themselves.
+  120s timer, rapid-fire; one question card at a time showing question + answer openly
+  (no hidden/reveal — referee-visible by design), with Prev/Next question buttons
+  (greyed at first/last). No explanatory/rules text on the page. Each card has a Google
+  search icon (Ihbid pattern) for on-the-fly fact-check. No redraw button inside a round,
+  no per-question dice (luck of the draw is the game). Answered rounds stay reviewable.
+- Chain tracker (display-only, referee-owned): chain starts at 0; Correct sets 1 on a
+  zeroed chain else doubles (1 → 2 → 4 → 8 … capped at 2048), MISS zeroes the unbanked
+  chain, **BANK** moves the chain into that team's banked total (scoreboard + audit entry)
+  and resets the chain to 0. All three are manual taps — the site computes nothing on its
+  own and never auto-banks or auto-wipes. BANK writes to the scoreboard (like attribution
+  deltas); Correct/Miss never write scores by themselves.
 - Round-history strip (audit-strip pattern): banked amount per round per team, plus the
   §2.3 audit entries for BANK writes. Manual ± still available.
 - Same chrome: scoreboard, 120s timer (`bank` settings key), count fixed at 12 per round
@@ -82,8 +84,11 @@ attribution patterns). Terms: `CONTEXT.md`. Rules: `RULES.md`. Authoring: `AUTHO
   Double handling: if the double was already found/scored, no new double is hidden;
   otherwise the double is re-hidden uniformly among the currently-unanswered questions
   (so a rerolled-away hidden double cannot be lost or duplicated).
-- Answering is referee-judged: correct → referee taps team attribution for face value
-  (×2 if doubled) via the §2.3 pattern; wrong → no auto-penalty. Cards are
+- Answering is referee-judged: correct → referee taps the team button for face value
+  (×2 if doubled) via the §2.3 pattern; wrong → no auto-penalty. Team buttons are big
+  and full-width; no points-value text beside them (the tier value on the cell is enough).
+  No explanatory/rules text on the page. Each question has a Google search icon (Ihbid
+  pattern) for on-the-fly fact-check. Cards are
   referee-managed with a display-only tracker: 4 powers per team (Steal / Extra Time /
   Multiple Choice / Phone Call), used/unused toggles, reset on new board, excluded from
   the audit strip — it exists only so a spent card cannot be reused.

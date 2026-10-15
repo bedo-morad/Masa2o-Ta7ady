@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
@@ -109,14 +109,25 @@ export class RiskComponent {
   readonly loading = this.res.isLoading;
 
   constructor() {
-    effect(() => {
-      const rows = this.res.value();
-      if (rows) {
-        this.loadBoard(rows);
-        this.msg.set(rows.length ? '' : 'لا توجد مجموعات بعد — أضف من صفحة إدارة الأسئلة.');
-      }
-      if (this.res.error()) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
-    });
+    // NOTE: loadBoard reads packs/assignments/double (for point reversal) and
+    // writes them. Without untracked the effect would subscribe to those too
+    // and re-trigger itself on every write (new Set/object identities + a fresh
+    // random double each run) — an infinite loop that freezes the page and
+    // never settles the board. Only res.value()/error() may trigger a reload.
+    effect(
+      () => {
+        const rows = this.res.value();
+        const err = this.res.error();
+        untracked(() => {
+          if (rows) {
+            this.loadBoard(rows);
+            this.msg.set(rows.length ? '' : 'لا توجد مجموعات بعد — أضف من صفحة إدارة الأسئلة.');
+          }
+          if (err) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
+        });
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   // ── board ──────────────────────────────────────────────────────────────

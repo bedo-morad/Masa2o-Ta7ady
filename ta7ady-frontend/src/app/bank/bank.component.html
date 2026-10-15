@@ -1,0 +1,194 @@
+<div class="challenge">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
+  </div>
+
+  <h2>البنك</h2>
+
+  <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
+
+  @if (startTeam(); as starter) {
+    <section class="order-row" aria-label="ترتيب الأدوار">
+      <span class="order-chip">
+        <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
+        البداية: {{ nameOf(starter) }}
+      </span>
+      <span class="order-note">يتناوبان تلقائيًا · ٣ أدوار لكل فريق</span>
+      <button type="button" class="new-game" (click)="newGame()" [disabled]="loading()">
+        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> لعبة جديدة
+      </button>
+    </section>
+
+    <app-timer timerKey="bank" [defaultSeconds]="120" label="مؤقت الدور" />
+
+    <section
+      class="chain"
+      [class.wiped]="chainOf(idx()) === 0"
+      [class.maxed]="chainOf(idx()) >= maxChain"
+      aria-label="تسلسل النقاط"
+    >
+      <header class="chain-head">
+        <span class="chain-label">التسلسل الحالي</span>
+        @if (chainOf(idx()) === 0) {
+          <span class="chain-flag danger">انمسح</span>
+        } @else if (chainOf(idx()) >= maxChain) {
+          <span class="chain-flag gold">الحد الأقصى</span>
+        }
+        <span class="chain-team">{{ nameOf(teamOfRound(idx())) }}</span>
+      </header>
+
+      <div class="chain-hero tabular-nums" aria-live="polite">{{ chainOf(idx()) }}</div>
+
+      <ol class="ladder" aria-label="سلّم التسلسل">
+        @for (v of ladder; track v) {
+          <li
+            class="rung tabular-nums"
+            [class.on]="chainOf(idx()) === v"
+            [class.done]="chainOf(idx()) > v"
+          >
+            {{ v }}
+          </li>
+        }
+      </ol>
+
+      <div class="chain-actions">
+        <button type="button" class="act correct" (click)="correct()">
+          <i class="fa-solid fa-check" aria-hidden="true"></i> صح — يضاعف
+        </button>
+        <button type="button" class="act miss" (click)="miss()">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i> خطأ — يمسح
+        </button>
+        <button
+          type="button"
+          class="act bank"
+          (click)="bank()"
+          [disabled]="chainOf(idx()) <= 0"
+        >
+          <i class="fa-solid fa-vault" aria-hidden="true"></i> حصّن
+        </button>
+      </div>
+
+      <p class="chain-saved">
+        محصّن هذا الدور
+        <span class="tabular-nums">{{ bankedOf(idx()) }}</span>
+      </p>
+    </section>
+
+    <div class="nav-row">
+      <button
+        type="button"
+        class="navbtn"
+        (click)="prev()"
+        [disabled]="idx() === 0"
+        aria-label="الدور السابق"
+      >
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+      </button>
+      <div class="dots" role="group" aria-label="الأدوار الستة">
+        @for (r of rounds; track r) {
+          <button
+            type="button"
+            class="dot"
+            [class.on]="r === idx()"
+            [class.team-a]="teamOfRound(r) === 'A'"
+            [class.team-b]="teamOfRound(r) === 'B'"
+            (click)="go(r)"
+            [attr.aria-label]="'الدور ' + (r + 1)"
+          >
+            <span class="dot-no tabular-nums">{{ r + 1 }}</span>
+            @if (bankedOf(r) > 0) {
+              <span class="dot-bank tabular-nums">{{ bankedOf(r) }}</span>
+            }
+          </button>
+        }
+      </div>
+      <button
+        type="button"
+        class="navbtn"
+        (click)="next()"
+        [disabled]="idx() >= rounds.length - 1"
+        aria-label="الدور التالي"
+      >
+        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <section class="board">
+      <div class="round-head">
+        <span class="round-no tabular-nums">الدور {{ idx() + 1 }} من {{ rounds.length }}</span>
+        <span class="round-team">{{ nameOf(teamOfRound(idx())) }}</span>
+        <span class="round-count tabular-nums">{{ perRound }} سؤالًا · ١٢٠ ث</span>
+      </div>
+
+      <ol class="qlist">
+        @for (q of currentRoundQuestions(); track q.id; let i = $index) {
+          <li class="qitem">
+            <div class="qtext">
+              <span class="qnum tabular-nums">{{ i + 1 }}</span>
+              <span class="qbody">{{ q.question }}</span>
+            </div>
+            <div class="qactions">
+              @if (revealed().has(q.id)) {
+                <div class="answer">
+                  <span class="value">{{ q.answer }}</span>
+                  <button type="button" class="mini" (click)="toggle(q.id)">
+                    <i class="fa-solid fa-eye-slash" aria-hidden="true"></i> إخفاء
+                  </button>
+                </div>
+              } @else {
+                <button type="button" class="mini ghost" (click)="toggle(q.id)">
+                  <i class="fa-solid fa-eye" aria-hidden="true"></i> إظهار الجواب للحكم
+                </button>
+              }
+            </div>
+          </li>
+        } @empty {
+          <li class="qempty">لم تُسحب أسئلة هذا الدور بعد.</li>
+        }
+      </ol>
+    </section>
+
+    <section class="history" aria-label="محصّن الأدوار">
+      <h3 class="history-title">محصّن الأدوار</h3>
+      <ol class="history-list">
+        @for (r of rounds; track r) {
+          <li
+            class="hcell"
+            [class.team-a]="teamOfRound(r) === 'A'"
+            [class.team-b]="teamOfRound(r) === 'B'"
+          >
+            <span class="hround tabular-nums">د{{ r + 1 }}</span>
+            <span class="hteam">{{ nameOf(teamOfRound(r)) }}</span>
+            <span class="hamount tabular-nums">{{ bankedOf(r) }}</span>
+          </li>
+        }
+      </ol>
+    </section>
+
+    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
+  } @else {
+    <section class="gate" aria-label="اختيار الفريق البادئ">
+      <h3 class="gate-title">من يبدأ؟</h3>
+      <p class="gate-note">
+        اختر الفريق الذي يفتح الدور الأول؛ بقية الأدوار تتبادل تلقائيًا — ٣ أدوار لكل فريق.
+      </p>
+      <div class="gate-buttons">
+        <button type="button" class="gate-btn team-a" (click)="pickStart('A')">
+          {{ nameOf('A') }}
+        </button>
+        <button type="button" class="gate-btn team-b" (click)="pickStart('B')">
+          {{ nameOf('B') }}
+        </button>
+      </div>
+      <p class="gate-hint">
+        <i class="fa-solid fa-shuffle" aria-hidden="true"></i>
+        {{ total }} سؤالًا تُسحب مرة واحدة في بداية اللعبة — {{ perRound }} لكل دور، بلا تكرار.
+      </p>
+    </section>
+  }
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+</div>

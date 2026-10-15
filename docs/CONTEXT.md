@@ -26,7 +26,7 @@ details, no API shapes, no file names. (Those live in `SPEC.md` / `SPECV2-4.md`.
 - **Pool** — the question store for one challenge family. v1 pools: player names (shared by
   Password + Acting), Ihbid questions, Offside rules. Later: Top-10 lists, Score-sheet
   matches, Risk packs, Bank questions, Ana Meen subjects, Who-in-Picture photos.
-- **Seed file** — a curated JSON file per pool (`ta7ady-backend/seeds/*.json`), 75–500 entries
+- **Seed file** — a curated JSON file per pool (`seeds/*.json` at the project root), 75–500 entries
   depending on the pool, kept in git as the re-seeding source of truth. Imported through the
   bulk importer, never applied blindly.
 - **Difficulty** — an *authoring rule*, not a stored field. No question carries a difficulty

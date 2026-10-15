@@ -8,7 +8,7 @@ Picture upload stays a post-v4 future; v4 hotlinks photos (see §4.3).
 ## 4.0 Build order
 
 1. Ana Meen backend (§4.1) — 2. Ana Meen page (§4.2) — 3. Who-in-Picture backend (§4.3) —
-   4. Who-in-Picture page (§4.4) — 5. Seeds (§4.5).
+   4. Who-in-Picture page (§4.4) — 5. Seeds (§4.5) — 6. Picked draws (§4.7, ID first then search).
 
 ## 4.1 Ana Meen backend
 
@@ -64,3 +64,61 @@ Imported via the v2 importer with dry-run review.
 - `ng build` green, detector clean.
 - Acceptance: full 3-subject Ana Meen game incl. a clue-5 solve still scoring 1; full
   11-player photo game incl. an elimination and a shared photo; edit a row in both pools.
+- Picked draws acceptance, see §4.7.
+
+## 4.7 Picked draws — pick-by-ID (Phase 1) + search-to-pick (Phase 2)
+
+Optional opt-in on top of random, which stays the default. Bank is excluded entirely
+(stays fully random, no `?ids=`, no picker). Covers every other pool: player names
+(Password + Acting shared), Ihbid, Offside, Top-10, Score-sheet, Risk packs, Ana Meen,
+Who-in-Picture.
+
+### 4.7.1 Backend (Phase 1)
+
+- `GET /api/{pool}?ids=1,2,3` (comma-separated) on all covered pools. Present `ids`
+  wins over `?count=`; absent/empty `ids` = today's random path unchanged.
+- Response order = request order. Unknown IDs are skipped with a `missing: [...]`
+  note, never a whole-draw 404. Empty entries ignored.
+- Max picked size reuses each pool's existing count clamp (e.g. scoresheet 1–10,
+  whopicture 1–5, top10 1–50). No changes to `/all` or POST schemas.
+- Risk: pack IDs only — inner tier questions are never individually pickable.
+
+### 4.7.2 Play-page UI (Phase 1)
+
+- Each covered play page keeps its existing random-count dropdown untouched and gains
+  a separate same-styled Pick dropdown ("how many picked questions") → N text boxes,
+  one ID per box. N boxes = N questions for one run/round/board.
+- Per-run meaning: Password/Acting/Ihbid/Offside N = run size; Top-10/Scoresheet/
+  AnaMeen/Who-picture N = lists/matches/subjects/photos in this run; Risk N = packs
+  per board (caller uses 4); Bank has no picker (one 12-question round stays random).
+- Starting from Pick plays exactly the filled boxes in box order; empty boxes are
+  ignored (5 boxes + 3 filled = play those 3). Starting from Random ignores boxes.
+  Mode switch never auto-clears. Picked runs keep the same redraw/dice semantics as
+  random (redraw = new random unless still in Pick mode; dice on a picked row
+  re-rolls random).
+- Validation: per-box inline error (non-numeric / duplicate across boxes / not found);
+  Start blocked while any filled box is invalid.
+
+### 4.7.3 ID surfacing (Phase 1)
+
+- `/manage` shows a copyable `#id` per row in all pools; create/edit confirmation
+  states the ID explicitly (e.g. "saved as #42").
+- Play views show a small referee-only `#id` tag per card/row so a random draw can be
+  replayed later by ID.
+
+### 4.7.4 Search-to-pick (Phase 2, after Phase 1 works)
+
+- Same N-box UI — search fills boxes, it does not replace them. One shared search
+  fills the first empty box (or per-box search icon, same effect); typed IDs keep
+  working exactly as in Phase 1.
+- Substring match on each pool's display field(s) via paged
+  `GET /api/{pool}/search?q=`. No fuzzy ranking in v4.
+
+### 4.7.5 Tests & acceptance (Phase 1 gates Phase 2)
+
+- Backend: `ids` wins over `count`, order = request order, `missing` list, max-size
+  clamp per pool, Bank has no `ids` path.
+- Frontend: N boxes from Pick dropdown, invalid-blocks-start, `#id` visible in
+  `/manage` + create-toast + play views, random default untouched.
+- Acceptance: replay a just-added question by its ID with friends; picked run with
+  one bad box blocked, then fixed and played.

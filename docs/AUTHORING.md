@@ -28,7 +28,7 @@ for an audience of fans deeply into the **last ~10 years** of football:
 
 ## 2. JSON plumbing (all pools)
 
-- One file per pool in `ta7ady-backend/seeds/` (`players.json`, `ihbid.json`,
+- One file per pool in `seeds/` at the project root (`players.json`, `ihbid.json`,
   `offside.json`, `top10.json`, `scoresheet.json`, `risk.json`, `bank.json`,
   `anameen.json`, `whopicture.json`).
 - Files import through the bulk importer (file upload or paste, JSON only) with a dry-run

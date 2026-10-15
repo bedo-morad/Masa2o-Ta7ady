@@ -97,7 +97,7 @@ no login, scores may go negative in every game, in-memory scores, no counters/en
 
 ## 2.8 v2 seed files (the dedicated seed agent's order)
 
-`ta7ady-backend/seeds/`: `players.json` 300, `ihbid.json` 150, `offside.json` 150,
+`seeds/` (project root): `players.json` 300, `ihbid.json` 150, `offside.json` 150,
 `top10.json` 75 lists, `scoresheet.json` 75 matches — all per `AUTHORING.md` (60/30/10 era
 mix, no difficulty field, checklist §4). Imported through §2.1 with dry-run review.
 v1 pools were wiped to zero; these files re-fill them.

@@ -22,11 +22,11 @@ describe('SettingsModalComponent', () => {
     expect(el.querySelector('[aria-label="المظهر"]')).toBeTruthy();
   });
 
-  it('renders seven timer fields and a preview button', () => {
+  it('renders nine timer fields and a preview button', () => {
     const fixture = TestBed.createComponent(SettingsModalComponent);
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelectorAll('.timer-field').length).toBe(7);
+    expect(el.querySelectorAll('.timer-field').length).toBe(9);
     expect(el.textContent).toContain('تجربة الصوت');
   });
 
@@ -64,6 +64,8 @@ describe('SettingsModalComponent', () => {
     expect(byLabel('التمثيل')?.placeholder).toBe('45');
     expect(byLabel('خطف التمثيل')?.placeholder).toBe('10');
     expect(byLabel('أوفسايد')?.placeholder).toBe('5');
+    expect(byLabel('البنك')?.placeholder).toBe('120');
+    expect(byLabel('الريسك')?.placeholder).toBe('30');
     // Empty still means "use default": no override stored.
     const svc = TestBed.inject(SettingsService);
     expect(svc.timerSeconds('password', 30)).toBe(30);

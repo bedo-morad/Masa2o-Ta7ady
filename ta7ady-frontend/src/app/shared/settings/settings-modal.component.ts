@@ -38,6 +38,8 @@ export class SettingsModalComponent {
     { key: 'offside', label: 'أوفسايد' },
     { key: 'top10', label: 'التوب 10' },
     { key: 'scoresheet', label: 'ورقة المباراة' },
+    { key: 'bank', label: 'البنك' },
+    { key: 'risk', label: 'الريسك' },
   ];
 
   // In-game defaults per timerKey (must match each game's defaultSeconds).
@@ -50,6 +52,8 @@ export class SettingsModalComponent {
     offside: 5,
     top10: 10,
     scoresheet: 10,
+    bank: 120,
+    risk: 30,
   };
 
   defaultPlaceholder(key: TimerKey): string {

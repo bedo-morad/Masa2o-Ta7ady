@@ -1,0 +1,151 @@
+<div class="challenge">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
+  </div>
+
+  <h2>الريسك</h2>
+
+  <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
+
+  <app-timer timerKey="risk" [defaultSeconds]="30" label="مؤقت السؤال" />
+
+  <div class="draw-row">
+    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
+      <i class="fa-solid fa-shuffle"></i> سحب لوحة جديدة
+    </button>
+  </div>
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+
+  @if (packs().length) {
+    <section class="board" aria-label="لوحة الريسك">
+      <div class="genre-row" [style.grid-template-columns]="gridCols()">
+        @for (p of packs(); track p.id; let c = $index) {
+          <div class="genre">
+            <span class="gname">{{ p.genre }}</span>
+            <button
+              type="button"
+              class="reroll"
+              (click)="rerollColumn(c)"
+              [disabled]="rerolling() !== null"
+              [attr.aria-label]="'تبديل جانب ' + p.genre"
+              title="تبديل هذا الجانب"
+            >
+              <i
+                class="fa-solid"
+                [class.fa-dice]="rerolling() !== c"
+                [class.fa-spinner]="rerolling() === c"
+                aria-hidden="true"
+              ></i>
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="grid" [style.grid-template-columns]="gridCols()">
+        @for (tier of tiers; track $index; let t = $index) {
+          @for (p of packs(); track p.id) {
+            @let key = keyOf(p.id, t);
+            @if (p.questions[t]) {
+              <button
+                type="button"
+                class="cell"
+                [class.is-seen]="isSeen(key)"
+                [class.is-open]="isOpen(key)"
+                [class.is-a]="assigned(key) === 'A'"
+                [class.is-b]="assigned(key) === 'B'"
+                (click)="toggleCell(key)"
+                [attr.aria-pressed]="isOpen(key)"
+                [attr.aria-label]="p.genre + ' ' + pts(t)"
+              >
+                <span class="pts tabular-nums">{{ pts(t) }}</span>
+                @if (isDouble(key)) {
+                  <span class="dbl" title="سؤال مضاعف"><i class="fa-solid fa-bolt"></i></span>
+                }
+                @if (assigned(key); as team) {
+                  <span class="tag">{{ team === 'A' ? (teamA() || 'أ') : (teamB() || 'ب') }}</span>
+                }
+              </button>
+            } @else {
+              <span class="cell empty"></span>
+            }
+          }
+        }
+      </div>
+    </section>
+
+    @if (open(); as key) {
+      @if (cellAt(key); as q) {
+        <section class="spotlight" aria-label="السؤال المفتوح">
+          <header class="spot-head">
+            <span class="spot-genre">{{ genreOf(key) }}</span>
+            <span class="spot-tier tabular-nums">{{ pts(tierOf(key)) }}</span>
+            @if (isDouble(key)) {
+              <span class="dbl-chip"><i class="fa-solid fa-bolt"></i> مضاعف ×٢</span>
+            }
+          </header>
+          <p class="spot-q">{{ q.question }}</p>
+          <p class="spot-a"><span class="alabel">الجواب</span><span>{{ q.answer }}</span></p>
+          <app-attribution
+            [label]="q.question"
+            [points]="pointsOf(key)"
+            [assigned]="assigned(key)"
+            [teamA]="teamA()"
+            [teamB]="teamB()"
+            (change)="onAssign(key, q.question, $event)"
+          />
+        </section>
+      }
+    }
+
+    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
+  }
+
+  <section class="cards" aria-label="بطاقات الفريقين">
+    <div class="card-col">
+      <h4>{{ teamA() || 'الفريق الأول' }}</h4>
+      @for (label of cardLabels; track $index; let i = $index) {
+        <button
+          type="button"
+          class="card"
+          [class.used]="cardUsed('A', i)"
+          (click)="toggleCard('A', i)"
+          [attr.aria-pressed]="cardUsed('A', i)"
+          [attr.aria-label]="label"
+        >
+          <i
+            class="fa-solid"
+            [class.fa-circle-check]="cardUsed('A', i)"
+            [class.fa-circle]="!cardUsed('A', i)"
+            aria-hidden="true"
+          ></i>
+          <span>{{ label }}</span>
+        </button>
+      }
+    </div>
+    <div class="card-col">
+      <h4>{{ teamB() || 'الفريق الثاني' }}</h4>
+      @for (label of cardLabels; track $index; let i = $index) {
+        <button
+          type="button"
+          class="card"
+          [class.used]="cardUsed('B', i)"
+          (click)="toggleCard('B', i)"
+          [attr.aria-pressed]="cardUsed('B', i)"
+          [attr.aria-label]="label"
+        >
+          <i
+            class="fa-solid"
+            [class.fa-circle-check]="cardUsed('B', i)"
+            [class.fa-circle]="!cardUsed('B', i)"
+            aria-hidden="true"
+          ></i>
+          <span>{{ label }}</span>
+        </button>
+      }
+    </div>
+  </section>
+</div>

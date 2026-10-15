@@ -473,3 +473,28 @@ h2 {
 .reveal.lineups{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
 .lineup-side h4{margin:0 0 .4rem;font-size:.9rem;font-weight:900}
 .lineup-side ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.35rem}
+
+/* Inline edit (SPECV3 §3.1): same shapes as the add forms, prefilled per row. */
+.edit{flex:1;min-width:0;display:flex;flex-direction:column;gap:.55rem}
+.edit.column{width:100%}
+.edit>input{width:100%;box-sizing:border-box;background:var(--pitch-surface-2);border:1px solid var(--pitch-line);border-radius:10px;color:var(--pitch-ink);padding:.65rem .8rem;min-height:48px}
+.edit>input::placeholder{color:var(--pitch-ink-dim)}
+.managed-row .edit{padding:.65rem .9rem}
+.edit-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.edit-actions .save{background:var(--pitch-accent-deep);border:1px solid var(--pitch-accent-deep);color:#fff;border-radius:10px;padding:.6rem 1.1rem;font-weight:800;min-height:44px;cursor:pointer}
+.edit-actions .save i{margin-inline-end:.3rem}
+.edit-actions .cancel{background:var(--pitch-surface-2);border:1px solid var(--pitch-line);color:var(--pitch-ink);border-radius:10px;padding:.6rem 1.1rem;font-weight:800;min-height:44px;cursor:pointer}
+
+.row-actions{display:flex;align-items:center;gap:.4rem;flex:none}
+.edit-btn{background:none;border:1px solid var(--pitch-line);border-radius:10px;color:var(--pitch-accent-deep);min-width:44px;min-height:44px;padding:.4rem .6rem;font-size:.9rem;cursor:pointer}
+
+/* Risk tiers: one labelled row per points value (5/10/20/40) for add + edit. */
+.tiers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.45rem}
+.tiers li{display:flex;align-items:center;gap:.55rem}
+.tiers .tier{flex:0 0 2.6rem;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;background:var(--pitch-surface-2);border:1px solid var(--pitch-line);border-radius:10px;color:var(--pitch-ink)}
+.tiers .tier-fields{flex:1;min-width:0;display:flex;flex-direction:column;gap:.35rem}
+.tiers input{width:100%;box-sizing:border-box;background:var(--pitch-surface);border:1px solid var(--pitch-line);border-radius:10px;color:var(--pitch-ink);padding:.6rem .75rem;min-height:44px}
+.tiers input::placeholder{color:var(--pitch-ink-dim)}
+.risk-reveal .tier{flex:0 0 auto;min-width:2.4rem;min-height:1rem;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:.7rem;padding:0 .2rem;background:var(--pitch-surface-2);border:1px solid var(--pitch-line);border-radius:6px}
+.risk-reveal .rq{flex:1;min-width:0}
+.bank-row .qa{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem .6rem}

@@ -198,14 +198,6 @@ h2 {
   color: var(--pitch-gold);
 }
 
-.spot-tier {
-  background: var(--pitch-surface-2);
-  border: 1px solid var(--pitch-line);
-  border-radius: 999px;
-  padding: 0.05rem 0.6rem;
-  font-weight: 900;
-}
-
 .dbl-chip {
   display: inline-flex;
   align-items: center;
@@ -220,26 +212,36 @@ h2 {
 
 .spot-q {
   margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 800;
 }
 
+// Google fact-check link (Ihbid pattern, §3.5): a 44px target pushed to the row end.
+.gq {
+  margin-inline-start: auto;
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink-dim);
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
 .spot-a {
   margin: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
   padding: 0.5rem 0.7rem;
   border-radius: 10px;
   background: var(--pitch-surface-2);
   font-weight: 700;
-
-  .alabel {
-    flex: none;
-    font-size: 0.8rem;
-    font-weight: 900;
-    color: var(--pitch-ink-dim);
-  }
 }
 
 .cards {

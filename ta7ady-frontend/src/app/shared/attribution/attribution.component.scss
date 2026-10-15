@@ -48,3 +48,23 @@
     color: #000;
   }
 }
+
+// Risk §3.5: award buttons that are big and full-width, stacked so each team's
+// tap target spans the spotlight (long names get the whole row).
+.attrib.stretch {
+  width: 100%;
+
+  .teams {
+    flex: 1;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .tbtn {
+    width: 100%;
+    max-width: none;
+    min-height: 56px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
+}

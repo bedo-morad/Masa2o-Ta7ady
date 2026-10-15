@@ -141,6 +141,11 @@ export class RiskComponent {
     return tierPoints(tier);
   }
 
+  /** Google fact-check link for the open question (Ihbid pattern, §3.5). */
+  googleUrl(text: string): string {
+    return `https://www.google.com/search?q=${encodeURIComponent(text)}`;
+  }
+
   /** A fresh board: reverse the outgoing board's points, reset every frontend
    * layer, then re-hide the double uniformly among all 16 cells. */
   loadBoard(rows: RiskPack[]): void {

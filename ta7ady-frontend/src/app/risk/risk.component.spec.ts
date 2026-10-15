@@ -232,6 +232,12 @@ describe('RiskComponent', () => {
     expect(c.double()).not.toBeNull();
   });
 
+  it('builds an encoded Google fact-check link for a question', () => {
+    const c = setup();
+    const q = 'من فاز بكأس العالم 2022؟';
+    expect(c.googleUrl(q)).toBe(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
+  });
+
   it('card tracker toggles used/unused and stays out of the audit strip', () => {
     const c = setup();
     const auditLen = c.audit().length;

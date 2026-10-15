@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -50,6 +51,13 @@ class EditAdminGateTest {
         mvc.perform(put("/api/players/999999").header(ADMIN, "nope")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deleteWithoutHeaderIs401ForBankAndRisk() throws Exception {
+        mvc.perform(delete("/api/bank/999999")).andExpect(status().isUnauthorized());
+        mvc.perform(delete("/api/risk/999999")).andExpect(status().isUnauthorized());
+        mvc.perform(delete("/api/bank/999999").header(ADMIN, "nope")).andExpect(status().isUnauthorized());
     }
 
     @Test

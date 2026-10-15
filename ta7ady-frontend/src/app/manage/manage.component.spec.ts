@@ -83,11 +83,7 @@ describe('ManageComponent admin unlock', () => {
       unlock: vi.fn((pw: string) => adminPassword.set(pw)),
       lock: vi.fn(() => adminPassword.set(null)),
       bulk: vi.fn(() => of([])),
-      deletePlayer: vi.fn(() => of(undefined)),
-      deleteIhbid: vi.fn(() => of(undefined)),
-      deleteOffside: vi.fn(() => of(undefined)),
-      deleteTop10: vi.fn(() => of(undefined)),
-      deleteScoresheet: vi.fn(() => of(undefined)),
+      del: vi.fn(() => of(undefined)),
     };
     await TestBed.configureTestingModule({
       imports: [ManageComponent],
@@ -135,7 +131,7 @@ describe('ManageComponent admin unlock', () => {
     expect(apiStub.unlock).toHaveBeenCalledWith('secret');
     expect(el.querySelector('.del')).not.toBeNull();
 
-    apiStub.deletePlayer.mockReturnValueOnce(throwError(() => ({ status: 401 })));
+    apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 401 })));
     await c.removePlayer(1);
     fixture.detectChanges();
     expect(apiStub.lock).toHaveBeenCalled();
@@ -162,11 +158,7 @@ describe('ManageComponent add forms', () => {
       addOffside: vi.fn(() => of({ id: 1 })),
       addTop10: vi.fn(() => of({ id: 1, prompt: 'p', answers: [] })),
       addScoresheet: vi.fn(() => of({ id: 1 })),
-      deletePlayer: vi.fn(() => of(undefined)),
-      deleteIhbid: vi.fn(() => of(undefined)),
-      deleteOffside: vi.fn(() => of(undefined)),
-      deleteTop10: vi.fn(() => of(undefined)),
-      deleteScoresheet: vi.fn(() => of(undefined)),
+      del: vi.fn(() => of(undefined)),
     };
     await TestBed.configureTestingModule({
       imports: [ManageComponent],
@@ -305,11 +297,7 @@ describe('ManageComponent polish', () => {
       addOffside: vi.fn(() => of({ id: 1 })),
       addTop10: vi.fn(() => of({ id: 1, prompt: 'p', answers: [] })),
       addScoresheet: vi.fn(() => of({ id: 1 })),
-      deletePlayer: vi.fn(() => of(undefined)),
-      deleteIhbid: vi.fn(() => of(undefined)),
-      deleteOffside: vi.fn(() => of(undefined)),
-      deleteTop10: vi.fn(() => of(undefined)),
-      deleteScoresheet: vi.fn(() => of(undefined)),
+      del: vi.fn(() => of(undefined)),
     };
     await TestBed.configureTestingModule({
       imports: [ManageComponent],

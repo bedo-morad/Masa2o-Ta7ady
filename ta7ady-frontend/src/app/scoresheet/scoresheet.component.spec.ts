@@ -125,7 +125,7 @@ describe('ScoresheetComponent', () => {
     expect(c.slotsOf(m)[0].name).toBe('كابتن');
   });
 
-  it('strike slots pair settings players with team names, else generic numbers', () => {
+  it('strike slots show the saved player alone, else "<team> - لاعب n"', () => {
     const c = setup();
     const settings = TestBed.inject(SettingsService);
     try {
@@ -134,10 +134,10 @@ describe('ScoresheetComponent', () => {
       c.teamB.set('النمور');
       c.strikes.set({});
       const m = match(1);
-      expect(c.slotsOf(m)[0].name).toBe('الصقور - سامي');
-      expect(c.slotsOf(m)[1].name).toContain('الصقور');
-      expect(c.slotsOf(m)[1].name).not.toContain('-');
-      expect(c.slotsOf(m)[2].name).toContain('النمور');
+      expect(c.slotsOf(m)[0].name).toBe('سامي');
+      expect(c.slotsOf(m)[1].name).toBe('الصقور - لاعب ٢');
+      expect(c.slotsOf(m)[2].name).toBe('النمور - لاعب ١');
+      expect(c.slotsOf(m)[3].name).toBe('النمور - لاعب ٢');
     } finally {
       settings.resetAll();
     }
@@ -158,19 +158,23 @@ describe('ScoresheetComponent', () => {
     expect(c.audit().length).toBe(auditLen);
   });
 
-  it('swapTeams rebuilds default slot names but keeps custom ones', () => {
+  it('swapTeams leaves strike slot names completely alone', () => {
     const c = setup();
     const m = match(1);
     c.teamA.set('الصقور');
     c.teamB.set('النمور');
     c.strikes.set({});
-    expect(c.slotsOf(m)[0].name).toContain('الصقور');
+    const before = c.slotsOf(m).map((s) => s.name);
+    expect(before[0]).toContain('الصقور');
     c.setSlotName(1, 1, 'كابتن');
     c.swapTeams();
-    const slots = c.slotsOf(m);
-    expect(slots[0].name).toContain('النمور');
-    expect(slots[2].name).toContain('الصقور');
-    expect(slots[1].name).toBe('كابتن');
+    expect(c.teamA()).toBe('النمور');
+    expect(c.teamB()).toBe('الصقور');
+    // strike area is frozen: nothing renamed, nothing re-paired
+    expect(c.slotsOf(m)[0].name).toBe(before[0]);
+    expect(c.slotsOf(m)[1].name).toBe('كابتن');
+    c.swapTeams();
+    expect(c.slotsOf(m)[0].name).toBe(before[0]);
   });
 
   it('navigation stays in bounds', () => {

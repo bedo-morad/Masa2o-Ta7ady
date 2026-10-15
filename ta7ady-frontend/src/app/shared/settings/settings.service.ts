@@ -1,7 +1,7 @@
 import { Injectable, Signal, inject, signal } from '@angular/core';
 import { ThemeService, type Theme } from '../../theme.service';
 
-export type AlarmSoundId = 'classic' | 'chime' | 'buzzer';
+export type AlarmSoundId = 'classic' | 'triplet' | 'gong';
 
 export type TimerKey =
   | 'password'
@@ -22,7 +22,7 @@ export const TIMER_KEYS: readonly TimerKey[] = [
   'scoresheet',
 ];
 
-export const ALARM_SOUNDS: readonly AlarmSoundId[] = ['classic', 'chime', 'buzzer'];
+export const ALARM_SOUNDS: readonly AlarmSoundId[] = ['classic', 'triplet', 'gong'];
 
 const SOUND_KEY = 'ta7ady-alarm-sound';
 const VOLUME_KEY = 'ta7ady-alarm-volume';
@@ -31,6 +31,7 @@ const TEAM_B_KEY = 'ta7ady-team-b';
 const PLAYERS_A_KEY = 'ta7ady-players-a';
 const PLAYERS_B_KEY = 'ta7ady-players-b';
 const TIMERS_KEY = 'ta7ady-timer-overrides';
+const VIBRATE_KEY = 'ta7ady-vibrate';
 
 const DEFAULT_VOLUME = 5;
 
@@ -52,6 +53,7 @@ export class SettingsService {
   private readonly overridesSrc = signal<Partial<Record<TimerKey, number | null>>>(
     readOverrides(),
   );
+  private readonly vibrateSrc = signal<boolean>(readVibrate());
 
   readonly alarmSoundId: Signal<AlarmSoundId> = this.soundSrc.asReadonly();
   readonly alarmVolume: Signal<number> = this.volumeSrc.asReadonly();
@@ -61,13 +63,14 @@ export class SettingsService {
   readonly playersB: Signal<string[]> = this.playersBSrc.asReadonly();
   readonly timerOverrides: Signal<Partial<Record<TimerKey, number | null>>> =
     this.overridesSrc.asReadonly();
+  readonly vibrateOnTimeout: Signal<boolean> = this.vibrateSrc.asReadonly();
 
   setTheme(t: Theme): void {
     this.themes.setTheme(t);
   }
 
   setAlarmSound(id: AlarmSoundId): void {
-    if (id !== 'classic' && id !== 'chime' && id !== 'buzzer') return;
+    if (id !== 'classic' && id !== 'triplet' && id !== 'gong') return;
     this.soundSrc.set(id);
     write(SOUND_KEY, id);
   }
@@ -105,6 +108,11 @@ export class SettingsService {
     write(TIMERS_KEY, JSON.stringify(this.overridesSrc()));
   }
 
+  setVibrate(on: boolean): void {
+    this.vibrateSrc.set(!!on);
+    write(VIBRATE_KEY, this.vibrateSrc() ? '1' : '0');
+  }
+
   // Effective start value: the referee's override wins when set, else the fallback.
   timerSeconds(key: TimerKey, fallback: number): number {
     const o = this.overridesSrc()[key];
@@ -121,6 +129,7 @@ export class SettingsService {
     this.playersASrc.set(['', '']);
     this.playersBSrc.set(['', '']);
     this.overridesSrc.set({});
+    this.vibrateSrc.set(true);
     write(SOUND_KEY, 'classic');
     write(VOLUME_KEY, String(DEFAULT_VOLUME));
     write(TEAM_A_KEY, '');
@@ -128,6 +137,7 @@ export class SettingsService {
     write(PLAYERS_A_KEY, JSON.stringify(['', '']));
     write(PLAYERS_B_KEY, JSON.stringify(['', '']));
     write(TIMERS_KEY, JSON.stringify({}));
+    write(VIBRATE_KEY, '1');
   }
 }
 
@@ -149,7 +159,14 @@ function readString(key: string): string {
 
 function readSound(): AlarmSoundId {
   const v = readString(SOUND_KEY);
-  return v === 'chime' || v === 'buzzer' || v === 'classic' ? v : 'classic';
+  return v === 'triplet' || v === 'gong' || v === 'classic' ? v : 'classic';
+}
+
+function readVibrate(): boolean {
+  const v = readString(VIBRATE_KEY);
+  // Enabled by default: only an explicit stored off-switch disables it.
+  if (v === '') return true;
+  return v !== '0' && v !== 'false';
 }
 
 function readVolume(): number {

@@ -77,5 +77,17 @@ export class TimerComponent implements OnInit, OnDestroy {
 
   private beep(): void {
     this.alarm.play();
+    this.buzz();
+  }
+
+  // Haptic nudge on timeout when the referee enabled it. Guarded so desktop
+  // browsers without vibration support are a silent no-op.
+  private buzz(): void {
+    if (!this.settings.vibrateOnTimeout()) return;
+    try {
+      if (typeof navigator !== 'undefined') navigator.vibrate?.([200, 100, 200]);
+    } catch {
+      /* vibration unsupported: ignore */
+    }
   }
 }

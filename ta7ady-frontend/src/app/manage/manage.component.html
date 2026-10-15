@@ -259,7 +259,7 @@
               [attr.aria-expanded]="isOpen(m.id)"
               [attr.aria-label]="(isOpen(m.id) ? 'إخفاء التشكيلتين: ' : 'عرض التشكيلتين: ') + m.matchLabel"
             >
-              <span class="prompt"><strong>{{ m.matchLabel }}</strong> <span class="teams-line">{{ m.teamA }} × {{ m.teamB }}</span></span>
+              <span class="prompt"><strong>{{ m.matchLabel }}</strong></span>
               <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(m.id)" aria-hidden="true"></i>
             </button>
             @if (adminOn()) {

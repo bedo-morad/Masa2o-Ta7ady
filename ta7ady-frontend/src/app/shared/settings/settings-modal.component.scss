@@ -10,7 +10,9 @@
 .backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  // Same dim as the admin-password (NgbModal/Bootstrap) backdrop: black at 50%.
+  background: rgba(0, 0, 0, 0.5);
+  animation: settings-fade 0.3s ease-out;
 }
 
 .dialog {
@@ -24,6 +26,39 @@
   border-bottom: none;
   border-radius: 20px 20px 0 0;
   padding: 1rem 1rem 1.5rem;
+  // Sheet rises from the bottom: fade + scale/translate, transform/opacity only.
+  // 0.3s ease-out matches the Bootstrap admin-modal dialog transition.
+  transform-origin: 50% 100%;
+  animation: settings-pop 0.3s ease-out;
+}
+
+@keyframes settings-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes settings-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .dialog {
+    animation: none;
+  }
 }
 
 .head {
@@ -170,6 +205,35 @@
   border: 1px solid var(--pitch-line);
   font-weight: 900;
   font-size: 1.2rem;
+}
+
+.vibrate-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 0.7rem;
+  border-radius: 12px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 0.55rem 0.8rem;
+
+  i {
+    font-size: 1.4rem;
+    color: var(--pitch-ink-dim);
+  }
+
+  &.active {
+    border-color: var(--pitch-accent);
+
+    i {
+      color: var(--pitch-accent);
+    }
+  }
 }
 
 .timers {

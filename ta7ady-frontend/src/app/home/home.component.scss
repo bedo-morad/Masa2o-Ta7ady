@@ -5,9 +5,19 @@
 }
 
 .hero {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  // Physical order: gear (first in DOM) stays at the physical left edge
+  // no matter the page direction, title fills the same row beside it.
+  direction: ltr;
   margin-bottom: 1.5rem;
 
   h1 {
+    flex: 1;
+    min-width: 0;
+    direction: rtl;
+    text-align: start;
     font-size: 2.6rem;
     font-weight: 900;
     letter-spacing: -0.02em;
@@ -15,13 +25,8 @@
   }
 }
 
-.top-bar {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 0.5rem;
-}
-
 .gear {
+  flex: none;
   width: 48px;
   height: 48px;
   border-radius: 50%;

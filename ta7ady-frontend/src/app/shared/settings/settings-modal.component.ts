@@ -20,8 +20,8 @@ export class SettingsModalComponent {
 
   readonly sounds: { id: AlarmSoundId; label: string }[] = [
     { id: 'classic', label: 'كلاسيكي' },
-    { id: 'chime', label: 'رنين' },
-    { id: 'buzzer', label: 'صفارة' },
+    { id: 'triplet', label: 'ثلاثية صاعدة' },
+    { id: 'gong', label: 'غونغ ناعم' },
   ];
 
   readonly themes: { id: Theme; label: string }[] = [
@@ -39,6 +39,22 @@ export class SettingsModalComponent {
     { key: 'top10', label: 'التوب 10' },
     { key: 'scoresheet', label: 'ورقة المباراة' },
   ];
+
+  // In-game defaults per timerKey (must match each game's defaultSeconds).
+  // Shown as the input placeholder; an empty field still means "use default".
+  readonly timerDefaults: Record<TimerKey, number> = {
+    password: 30,
+    acting: 45,
+    actingSteal: 10,
+    ihbid: 30,
+    offside: 5,
+    top10: 10,
+    scoresheet: 10,
+  };
+
+  defaultPlaceholder(key: TimerKey): string {
+    return String(this.timerDefaults[key]);
+  }
 
   close(): void {
     this.closed.emit();

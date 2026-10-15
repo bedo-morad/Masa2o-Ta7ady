@@ -92,6 +92,22 @@
       />
       <span class="badge tabular-nums">{{ settings.alarmVolume() }}</span>
     </div>
+    <button
+      type="button"
+      class="vibrate-toggle"
+      [class.active]="settings.vibrateOnTimeout()"
+      (click)="settings.setVibrate(!settings.vibrateOnTimeout())"
+      [attr.aria-pressed]="settings.vibrateOnTimeout()"
+      aria-label="الاهتزاز عند انتهاء الوقت"
+    >
+      <i
+        class="fa-solid"
+        [class.fa-toggle-on]="settings.vibrateOnTimeout()"
+        [class.fa-toggle-off]="!settings.vibrateOnTimeout()"
+        aria-hidden="true"
+      ></i>
+      الاهتزاز عند انتهاء الوقت
+    </button>
   </section>
 
   <section class="group" aria-label="مؤقتات الفقرات">
@@ -107,8 +123,8 @@
             class="text-input tabular-nums"
             [ngModel]="timerText(f.key)"
             (ngModelChange)="onTimerText(f.key, $event)"
-            placeholder="الافتراضي"
-            [attr.aria-label]="'مؤقت ' + f.label + ' بالثواني، فارغ يعني الوقت الافتراضي'"
+            [placeholder]="defaultPlaceholder(f.key)"
+            [attr.aria-label]="'مؤقت ' + f.label + ' بالثواني، فارغ يعني ' + defaultPlaceholder(f.key)"
           />
         </label>
       }

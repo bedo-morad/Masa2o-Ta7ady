@@ -17,6 +17,7 @@ describe('SettingsService', () => {
   it('starts with sane defaults', () => {
     expect(svc.alarmSoundId()).toBe('classic');
     expect(svc.alarmVolume()).toBe(5);
+    expect(svc.vibrateOnTimeout()).toBe(true);
     expect(svc.teamA()).toBe('');
     expect(svc.teamB()).toBe('');
     expect(svc.playersA()).toEqual(['', '']);
@@ -24,14 +25,14 @@ describe('SettingsService', () => {
   });
 
   it('persists sound, volume, teams and players to ta7ady-* keys', () => {
-    svc.setAlarmSound('chime');
+    svc.setAlarmSound('triplet');
     svc.setAlarmVolume(8);
     svc.setTeamA('الصقور');
     svc.setTeamB('النسور');
     svc.setPlayer('A', 0, 'أحمد');
     svc.setPlayer('B', 1, 'سارة');
 
-    expect(localStorage.getItem('ta7ady-alarm-sound')).toBe('chime');
+    expect(localStorage.getItem('ta7ady-alarm-sound')).toBe('triplet');
     expect(localStorage.getItem('ta7ady-alarm-volume')).toBe('8');
     expect(localStorage.getItem('ta7ady-team-a')).toBe('الصقور');
     expect(localStorage.getItem('ta7ady-team-b')).toBe('النسور');
@@ -40,7 +41,7 @@ describe('SettingsService', () => {
 
     // A fresh instance picks up the stored values.
     const fresh = TestBed.runInInjectionContext(() => new SettingsService());
-    expect(fresh.alarmSoundId()).toBe('chime');
+    expect(fresh.alarmSoundId()).toBe('triplet');
     expect(fresh.alarmVolume()).toBe(8);
     expect(fresh.teamA()).toBe('الصقور');
     expect(fresh.playersA()).toEqual(['أحمد', '']);
@@ -68,9 +69,21 @@ describe('SettingsService', () => {
     expect(svc.timerSeconds('ihbid', 90)).toBe(90);
   });
 
+  it('persists the vibrate toggle and defaults it to on', () => {
+    expect(svc.vibrateOnTimeout()).toBe(true);
+    svc.setVibrate(false);
+    expect(svc.vibrateOnTimeout()).toBe(false);
+    expect(localStorage.getItem('ta7ady-vibrate')).toBe('0');
+    const fresh = TestBed.runInInjectionContext(() => new SettingsService());
+    expect(fresh.vibrateOnTimeout()).toBe(false);
+    svc.setVibrate(true);
+    expect(localStorage.getItem('ta7ady-vibrate')).toBe('1');
+  });
+
   it('resetAll restores every default', () => {
-    svc.setAlarmSound('buzzer');
+    svc.setAlarmSound('gong');
     svc.setAlarmVolume(10);
+    svc.setVibrate(false);
     svc.setTeamA('x');
     svc.setPlayer('A', 1, 'y');
     svc.setTimerOverride('top10', 12);
@@ -80,6 +93,7 @@ describe('SettingsService', () => {
 
     expect(svc.alarmSoundId()).toBe('classic');
     expect(svc.alarmVolume()).toBe(5);
+    expect(svc.vibrateOnTimeout()).toBe(true);
     expect(svc.teamA()).toBe('');
     expect(svc.playersA()).toEqual(['', '']);
     expect(svc.timerSeconds('top10', 60)).toBe(60);

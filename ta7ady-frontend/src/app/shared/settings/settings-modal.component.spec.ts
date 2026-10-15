@@ -47,8 +47,40 @@ describe('SettingsModalComponent', () => {
       fixture.nativeElement.querySelectorAll('.sounds .choice'),
     ) as HTMLButtonElement[];
     buttons[1].click();
-    expect(svc.alarmSoundId()).toBe('chime');
+    expect(svc.alarmSoundId()).toBe('triplet');
     buttons[2].click();
-    expect(svc.alarmSoundId()).toBe('buzzer');
+    expect(svc.alarmSoundId()).toBe('gong');
+  });
+
+  it('timer placeholders show the real default seconds', () => {
+    const fixture = TestBed.createComponent(SettingsModalComponent);
+    fixture.detectChanges();
+    const inputs = Array.from(
+      fixture.nativeElement.querySelectorAll('.timer-field input'),
+    ) as HTMLInputElement[];
+    const byLabel = (label: string): HTMLInputElement | undefined =>
+      inputs.find((i) => i.getAttribute('aria-label')?.includes(label));
+    expect(byLabel('الباسورد')?.placeholder).toBe('30');
+    expect(byLabel('التمثيل')?.placeholder).toBe('45');
+    expect(byLabel('خطف التمثيل')?.placeholder).toBe('10');
+    expect(byLabel('أوفسايد')?.placeholder).toBe('5');
+    // Empty still means "use default": no override stored.
+    const svc = TestBed.inject(SettingsService);
+    expect(svc.timerSeconds('password', 30)).toBe(30);
+  });
+
+  it('vibrate toggle is on by default and flips the service', () => {
+    const fixture = TestBed.createComponent(SettingsModalComponent);
+    fixture.detectChanges();
+    const svc = TestBed.inject(SettingsService);
+    const toggle = fixture.nativeElement.querySelector(
+      '.vibrate-toggle',
+    ) as HTMLButtonElement;
+    expect(toggle).toBeTruthy();
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    toggle.click();
+    expect(svc.vibrateOnTimeout()).toBe(false);
+    toggle.click();
+    expect(svc.vibrateOnTimeout()).toBe(true);
   });
 });

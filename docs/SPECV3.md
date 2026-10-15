@@ -6,8 +6,21 @@ attribution patterns). Terms: `CONTEXT.md`. Rules: `RULES.md`. Authoring: `AUTHO
 
 ## 3.0 Build order
 
-1. Question editing (§3.1) — 2. Bank backend (§3.2) — 3. Bank page (§3.3) —
-   4. Risk backend (§3.4) — 5. Risk page (§3.5) — 6. Seeds (§3.6).
+0. Bulk deduplication prep (§3.0.1) — 1. Question editing (§3.1) — 2. Bank backend (§3.2) —
+   3. Bank page (§3.3) — 4. Risk backend (§3.4) — 5. Risk page (§3.5) — 6. Seeds (§3.6).
+
+## 3.0.1 V3 prep: bulk deduplication (from V2 review)
+
+- Backend: extract generic `BulkHelper<T>` (or base service) for the 5x `bulk()` copies
+  (`Ihbid/Offside/PlayerName/Top10/ScoresheetService`): shared 413 check,
+  `firstSeen/toSave/saveIndex/results` loop, placeholder + save pass. Per-pool lambdas
+  only for `validate`, key extraction, `toEntity`, `save`. Unify `MAX_BULK_ROWS` and
+  `str()/list()` helpers; introduce bulk-row DTO records to replace
+  `Map<String,Object>` + `toString()` casts (kills the `match`/`matchLabel` alias hack).
+- Controllers: shared base for `POST /bulk` + admin-gated `DELETE` (5x copies today).
+- Frontend `api.service.ts`: generic `page(pool)` + `del(pool,id)` to replace the 5x
+  `xxxPage()` / `deleteX()` copies. No behaviour change — `BulkAdminGateTest` stays green.
+- Why now: V3 adds `bank` + `risk` pools; without this the copies go 5 → 7.
 
 ## 3.1 Question editing (extends the v2 delete-only admin)
 

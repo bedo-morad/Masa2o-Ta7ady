@@ -41,8 +41,10 @@ details, no API shapes, no file names. (Those live in `SPEC.md` / `SPECV2-4.md`.
   challenge = 3 rounds per team (6 total).
 - **Bank (verb)** — in the Bank game: locking currently-chained points into the safe total.
   Unbanked points double per consecutive correct answer (1→2→4→8…) and are lost on a miss.
-- **Card (Risk)** — a physical, referee-managed power: Steal, Extra Time, Multiple Choice.
-  Each team holds 3 cards, each usable once. Cards are invisible to the site by design.
+- **Card (Risk)** — a physical, referee-managed power: Steal, Extra Time, Multiple Choice,
+  Phone Call. Each team holds 4 cards, each usable once. Cards are referee-managed;
+  the site shows a display-only used/unused tracker (reset per board) so a card cannot be
+  reused by mistake — no enforcement beyond that.
 - **Double** — the one randomly-hidden double-points question among Risk's 16. Revealed only
   when its question is revealed. Randomized on the device at draw time, never stored.
 - **Steal (Risk)** — answering a question the other team failed, only before they answer.

@@ -17,11 +17,13 @@ for an audience of fans deeply into the **last ~10 years** of football:
   "who won the 1967 Champions League". Example: 1990s AFCON scorers, pre-2000 Ballon d'Or
   one-off winners.
 - Target mix per file: **60 / 30 / 10**. Verify the mix before delivering a file.
-- **Egyptian content (25%)**: this is an Egyptian game — about one quarter of every file
-  must be Egyptian: local and international Egyptian players, league and cup, national
-  teams (all ages/genders you are sure about), Egyptian clubs, and Egyptian
-  clubs/players/nation in African and international competitions. Spread it across all
-  three difficulty bands, not just the easy ones.
+  Exception (v3): Bank is pushed slightly harder — **50 / 35 / 15**.
+- **Local content (25%)**: this is an Egyptian game — about one quarter of every file
+  must be local, i.e. anything related to Egypt (not just the Egyptian league): local and
+  international Egyptian players, league and cup, national teams (all ages/genders you are
+  sure about), Egyptian clubs, and Egyptian clubs/players/nation in African and
+  international competitions. Spread it across all three difficulty bands, not just the
+  easy ones. For Risk, ~25% of genres are local-themed genres (the genre itself is local).
 - Prefer timeless facts (records, founding years, all-time lists) over current-season stats
   that rot. Every fact must be one you are highly confident is correct — a wrong answer
   poisons game night. When unsure, cut the question.
@@ -114,10 +116,13 @@ Famous matches only. Exactly 11 names per side, kickoff order, no substitutes, n
 
 One genre label + exactly 4 questions, one per tier, in tier order. Tier ↔ era mapping:
 5 = last-10-years obvious (no child-easy); 10 = last-10-years deep; 20 = 10–20 years ago;
-40 = 20+ years ago, really hard, nothing before 1980. No double flag stored — the site
-hides the double among the 16 at draw time. No multiple-choice options stored — the
-referee invents them live. Genres may be trophy, competition, player, club, continent,
-nation, or one specific season of any of those.
+40 = 20+ years ago, really hard (near-impossible to answer), nothing before 1980.
+No double flag stored — the site hides the double among the 16 at draw time.
+No multiple-choice options stored — the referee invents them live. Genres may be trophy,
+competition, player, club, continent, nation, or one specific season of any of those.
+Genres may duplicate across packs (e.g. two World Cup packs). Be creative: use the
+examples as style guides only, never copy them verbatim — invent new genres and angles
+while following the tier↔era rules.
 
 ```json
 [
@@ -135,8 +140,11 @@ nation, or one specific season of any of those.
 
 ### 3.7 Bank questions — `{"question": "...", "answer": "..."}`
 
-Rapid-fire generic Q&A with short answers. Fully random difficulty per round (never batched
-or sorted — luck of the draw is the game). Short, read-aloud-friendly, one-fact answers.
+Rapid-fire generic Q&A with short answers. Difficulty is random per round (never batched
+or sorted — luck of the draw is the game) at a **50 / 35 / 15** easy/medium/hard mix
+(slightly harder than the base §1 mix). Short, read-aloud-friendly, one-fact answers.
+Be creative: style like the examples, never copy them — new facts and angles that still
+follow §1 (timeless, cut-if-unsure, ~25% local).
 
 ```json
 [
@@ -171,8 +179,10 @@ survive link rot; nothing you would not want shared to a room full of phones.
 ## 4. Delivery checklist (per file)
 
 1. Entry count hits the version's target (v2: players 300, Ihbid 150, Offside 150,
-   Top-10 lists 75, Score-sheet matches 75).
-2. 60/30/10 era mix verified by sampling, with ~25% Egyptian content in every file.
+   Top-10 lists 75, Score-sheet matches 75; v3: Risk packs 50, Bank questions 500,
+   Bank later grows to 1000).
+2. Era mix verified by sampling (base 60/30/10; Bank 50/35/15), with ~25% local content
+   in every file (Risk: ~25% of genres are local-themed).
 3. No duplicates within or across same-pool files; every text field ≥ 3 chars.
 4. Lists ordered and complete (13 answers, 11+11 lineups, 4-tier packs, 5 clues, 11 photo names).
 5. Zero uncertain facts — cut, don't guess.

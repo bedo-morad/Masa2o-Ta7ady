@@ -3,7 +3,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import {
   BANK_CHAIN_MAX,
-  BANK_CHAIN_STEPS,
   BANK_PER_ROUND,
   BANK_ROUNDS,
   BANK_TOTAL,
@@ -16,14 +15,6 @@ describe('bank constants', () => {
     expect(BANK_ROUNDS).toBe(6);
     expect(BANK_PER_ROUND).toBe(12);
     expect(BANK_TOTAL).toBe(72);
-  });
-
-  it('ladders the chain 1 → 2 → 4 … 2048', () => {
-    expect(BANK_CHAIN_STEPS.length).toBe(12);
-    expect(BANK_CHAIN_STEPS[0]).toBe(1);
-    expect(BANK_CHAIN_STEPS[1]).toBe(2);
-    expect(BANK_CHAIN_STEPS[2]).toBe(4);
-    expect(BANK_CHAIN_STEPS.at(-1)).toBe(BANK_CHAIN_MAX);
   });
 });
 

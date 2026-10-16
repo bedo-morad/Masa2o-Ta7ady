@@ -117,7 +117,7 @@ remaining 75% after approval.
   scoreboard delta + audit); double hidden uniformly and revealed only with its question
   (incl. genre-reroll re-hide rule); attribution ×2 path; 4-card tracker display-only
   (used/unused, reset per board); Risk spotlight carries one Google fact-check icon per
-  question and big full-width team award buttons with no points text beside them.
+  question and big side-by-side team award buttons with no points text beside them.
 - `ng build` green, detector clean.
 - Acceptance: full 6-round Bank game from one 72-draw incl. a mid-chain bank and a
   mid-chain miss; full 16-question Risk board incl. finding and scoring the double,

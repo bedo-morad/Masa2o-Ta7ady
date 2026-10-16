@@ -132,7 +132,7 @@ a:focus-visible {
   }
 }
 
-// ── The commission: chain hero + doubling ladder + the 3 taps ─
+// ── The commission: chain hero + the 3 taps ──────────────────
 .chain {
   background: var(--pitch-surface);
   border: 1px solid var(--pitch-line);
@@ -189,42 +189,6 @@ a:focus-visible {
   // An unbanked, zeroed chain is a calm "nothing here", not an alarm.
   &.zero {
     color: var(--pitch-ink-dim);
-  }
-}
-
-.ladder {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.3rem;
-}
-
-.rung {
-  min-width: 2.5rem;
-  padding: 0.2rem 0.4rem;
-  text-align: center;
-  font-size: 0.75rem;
-  font-weight: 800;
-  border-radius: 8px;
-  border: 1px solid var(--pitch-line);
-  background: var(--pitch-surface-2);
-  color: var(--pitch-ink-dim);
-  transition: background 0.15s ease-out, color 0.15s ease-out;
-
-  &.done {
-    background: color-mix(in srgb, var(--pitch-accent-deep) 45%, var(--pitch-surface-2));
-    border-color: var(--pitch-accent-deep);
-    color: var(--pitch-ink);
-  }
-
-  &.on {
-    background: var(--pitch-gold);
-    border-color: var(--pitch-gold);
-    color: #000;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--pitch-gold) 40%, transparent);
   }
 }
 
@@ -375,10 +339,19 @@ a:focus-visible {
   gap: 0.6rem;
 }
 
+// Card counter: where you are in the round's 12, set as a pill (N/12).
 .qcard-pos {
-  color: var(--pitch-ink-dim);
-  font-weight: 800;
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.15rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-weight: 900;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
 }
 
 .gq {
@@ -532,8 +505,7 @@ a:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .chain,
-  .chain-hero,
-  .rung {
+  .chain-hero {
     transition: none;
   }
 }

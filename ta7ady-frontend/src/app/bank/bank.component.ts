@@ -31,11 +31,6 @@ export const BANK_PER_ROUND = 12;
 /** One draw per game: 6 rounds × 12 questions (SPECV3 §3.2/§3.3). */
 export const BANK_TOTAL = BANK_ROUNDS * BANK_PER_ROUND;
 export const BANK_CHAIN_MAX = 2048;
-/** The ladder the referee reads: 1, 2, 4 … 2048 (12 rungs). */
-export const BANK_CHAIN_STEPS: readonly number[] = Array.from(
-  { length: 12 },
-  (_, i) => 2 ** i,
-);
 
 export type BankTeam = 'A' | 'B';
 
@@ -73,7 +68,6 @@ export class BankComponent {
   private seq = 0;
 
   readonly rounds = Array.from({ length: BANK_ROUNDS }, (_, i) => i);
-  readonly ladder = BANK_CHAIN_STEPS;
   readonly total = BANK_TOTAL;
   readonly perRound = BANK_PER_ROUND;
   readonly maxChain = BANK_CHAIN_MAX;

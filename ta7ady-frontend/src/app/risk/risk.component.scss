@@ -187,10 +187,18 @@ h2 {
   gap: 0.5rem;
 }
 
+// Header is a centered caption — genre + this question's points — with the
+// Google fact-check link pinned to the row end (left in RTL, §3.5).
 .spot-head {
+  position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  min-height: 44px;
+  padding-inline: 52px;
+  text-align: center;
 }
 
 .spot-genre {
@@ -198,12 +206,26 @@ h2 {
   color: var(--pitch-gold);
 }
 
+.spot-pts {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  padding: 0.1rem 0.65rem;
+  border-radius: 999px;
+  background: var(--pitch-gold);
+  color: #000;
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+
 .dbl-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  background: var(--pitch-gold);
-  color: #000;
+  border: 1px solid color-mix(in srgb, var(--pitch-gold) 55%, var(--pitch-line));
+  background: color-mix(in srgb, var(--pitch-gold) 14%, var(--pitch-surface-2));
+  color: var(--pitch-gold);
   font-weight: 900;
   font-size: 0.8rem;
   border-radius: 999px;
@@ -212,16 +234,17 @@ h2 {
 
 .spot-q {
   margin: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 800;
 }
 
-// Google fact-check link (Ihbid pattern, §3.5): a 44px target pushed to the row end.
+// Google fact-check link (Ihbid pattern, §3.5): a 44px target pinned to the
+// row end of the header — the left edge in RTL.
 .gq {
-  margin-inline-start: auto;
+  position: absolute;
+  inset-inline-end: 0;
+  top: 50%;
+  transform: translateY(-50%);
   flex: none;
   min-width: 44px;
   min-height: 44px;

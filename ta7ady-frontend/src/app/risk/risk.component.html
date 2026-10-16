@@ -81,12 +81,10 @@
         <section class="spotlight" aria-label="السؤال المفتوح">
           <header class="spot-head">
             <span class="spot-genre">{{ genreOf(key) }}</span>
+            <span class="spot-pts tabular-nums">{{ pointsOf(key) }}</span>
             @if (isDouble(key)) {
               <span class="dbl-chip"><i class="fa-solid fa-bolt"></i> مضاعف ×٢</span>
             }
-          </header>
-          <p class="spot-q">
-            <span>{{ q.question }}</span>
             <a
               class="gq"
               [href]="googleUrl(q.question)"
@@ -97,7 +95,8 @@
             >
               <i class="fa-brands fa-google"></i>
             </a>
-          </p>
+          </header>
+          <p class="spot-q">{{ q.question }}</p>
           <p class="spot-a">{{ q.answer }}</p>
           <app-attribution
             [label]="q.question"

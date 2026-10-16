@@ -49,19 +49,18 @@
   }
 }
 
-// Risk §3.5: award buttons that are big and full-width, stacked so each team's
-// tap target spans the spotlight (long names get the whole row).
+// Risk §3.5: big award buttons side by side on one row, each tap target taking
+// an equal half of the spotlight (long names ellipsize rather than wrap).
 .attrib.stretch {
   width: 100%;
 
   .teams {
     flex: 1;
-    flex-direction: column;
     gap: 0.45rem;
   }
 
   .tbtn {
-    width: 100%;
+    flex: 1;
     max-width: none;
     min-height: 56px;
     border-radius: 12px;

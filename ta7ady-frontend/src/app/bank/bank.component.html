@@ -19,8 +19,6 @@
       </button>
     </section>
 
-    <app-timer timerKey="bank" [defaultSeconds]="120" label="مؤقت الدور" />
-
     <section class="chain" [class.maxed]="chainOf(idx()) >= maxChain" aria-label="تسلسل النقاط">
       <header class="chain-head">
         <span class="chain-label">التسلسل</span>
@@ -33,18 +31,6 @@
       <div class="chain-hero tabular-nums" [class.zero]="chainOf(idx()) === 0" aria-live="polite">
         {{ chainOf(idx()) }}
       </div>
-
-      <ol class="ladder" aria-label="سلّم التسلسل">
-        @for (v of ladder; track v) {
-          <li
-            class="rung tabular-nums"
-            [class.on]="chainOf(idx()) === v"
-            [class.done]="chainOf(idx()) > v"
-          >
-            {{ v }}
-          </li>
-        }
-      </ol>
 
       <div class="chain-actions">
         <button type="button" class="act correct" (click)="correct()">
@@ -105,7 +91,7 @@
 
     <section class="qcard" aria-label="سؤال الدور">
       <header class="qcard-head">
-        <span class="qcard-pos tabular-nums">د{{ idx() + 1 }} · {{ qIdx() + 1 }}/{{ qCount() }}</span>
+        <span class="qcard-pos tabular-nums">{{ qIdx() + 1 }}/{{ qCount() }}</span>
         @if (currentQuestion(); as q) {
           <a
             class="gq"
@@ -151,6 +137,8 @@
         </button>
       </footer>
     </section>
+
+    <app-timer timerKey="bank" [defaultSeconds]="120" label="مؤقت الدور" />
 
     <section class="history" aria-label="محصّن الأدوار">
       <h3 class="history-title">محصّن الأدوار</h3>

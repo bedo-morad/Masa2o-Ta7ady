@@ -17,7 +17,7 @@ describe('SettingsModalComponent', () => {
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('[aria-label="الفرق واللاعبون"]')).toBeTruthy();
-    expect(el.querySelector('[aria-label="التنبيه"]')).toBeTruthy();
+    expect(el.querySelector('[aria-label="المؤقت"]')).toBeTruthy();
     expect(el.querySelector('[aria-label="مؤقتات الفقرات"]')).toBeTruthy();
     expect(el.querySelector('[aria-label="المظهر"]')).toBeTruthy();
   });
@@ -62,10 +62,10 @@ describe('SettingsModalComponent', () => {
       inputs.find((i) => i.getAttribute('aria-label')?.includes(label));
     expect(byLabel('الباسورد')?.placeholder).toBe('30');
     expect(byLabel('التمثيل')?.placeholder).toBe('45');
-    expect(byLabel('خطف التمثيل')?.placeholder).toBe('10');
+    expect(byLabel('سرقة التمثيل')?.placeholder).toBe('10');
     expect(byLabel('أوفسايد')?.placeholder).toBe('5');
-    expect(byLabel('البنك')?.placeholder).toBe('120');
-    expect(byLabel('الريسك')?.placeholder).toBe('30');
+    expect(byLabel('بنك')?.placeholder).toBe('120');
+    expect(byLabel('ريسك')?.placeholder).toBe('30');
     // Empty still means "use default": no override stored.
     const svc = TestBed.inject(SettingsService);
     expect(svc.timerSeconds('password', 30)).toBe(30);

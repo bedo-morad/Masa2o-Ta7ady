@@ -55,9 +55,11 @@ competition, player, club, continent, nation, a specific season — anything sim
 each genre: Easy = 5 pts, Medium = 10, Hard = 20, Very Hard = 40. **One of the 16 is a
 hidden double-points question**, revealed only when chosen. Teams alternate picking a
 question and have 30 seconds to answer. Most points at the end wins.
-Each team holds 3 one-use cards, managed entirely by the referee (the site tracks nothing):
-**Steal** (answer a question the other team failed, only before they answer), **Extra Time**
-(+30 seconds), **Multiple Choice** (referee invents 4 options on the spot).
+Each team holds 4 one-use cards, managed entirely by the referee (the site shows a
+display-only used/unused tracker per team, reset per board, so a spent card cannot be
+reused by mistake): **Steal** (answer a question the other team failed, only before
+they answer), **Extra Time** (+30 seconds), **Multiple Choice** (referee invents 4
+options on the spot), **Phone Call** (call a friend).
 
 ## Bank (v3)
 

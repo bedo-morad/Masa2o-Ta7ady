@@ -20,8 +20,8 @@ export class SettingsModalComponent {
 
   readonly sounds: { id: AlarmSoundId; label: string }[] = [
     { id: 'classic', label: 'كلاسيكي' },
-    { id: 'triplet', label: 'ثلاثية صاعدة' },
-    { id: 'gong', label: 'غونغ ناعم' },
+    { id: 'triplet', label: 'تصاعدي' },
+    { id: 'gong', label: 'ناعم' },
   ];
 
   readonly themes: { id: Theme; label: string }[] = [
@@ -33,11 +33,13 @@ export class SettingsModalComponent {
   readonly timerFields: { key: TimerKey; label: string }[] = [
     { key: 'password', label: 'الباسورد' },
     { key: 'acting', label: 'التمثيل' },
-    { key: 'actingSteal', label: 'خطف التمثيل' },
+    { key: 'actingSteal', label: 'سرقة التمثيل' },
     { key: 'ihbid', label: 'اهبد صح' },
     { key: 'offside', label: 'أوفسايد' },
-    { key: 'top10', label: 'التوب 10' },
-    { key: 'scoresheet', label: 'ورقة المباراة' },
+    { key: 'top10', label: 'توب 10' },
+    { key: 'scoresheet', label: 'سكور شيت' },
+    { key: 'bank', label: 'بنك' },
+    { key: 'risk', label: 'ريسك' },
   ];
 
   // In-game defaults per timerKey (must match each game's defaultSeconds).
@@ -50,6 +52,8 @@ export class SettingsModalComponent {
     offside: 5,
     top10: 10,
     scoresheet: 10,
+    bank: 120,
+    risk: 30,
   };
 
   defaultPlaceholder(key: TimerKey): string {

@@ -57,6 +57,10 @@ export class AttributionComponent {
   readonly teamA = input('');
   readonly teamB = input('');
   readonly short = input(false);
+  // Presentation switches for hosts that want plain, large buttons (Risk §3.5):
+  // hide the signed points badge, and stretch the buttons across the row side by side.
+  readonly showPoints = input(true);
+  readonly stretch = input(false);
   readonly change = output<AttributionChange>();
 
   tap(picked: 'A' | 'B'): void {

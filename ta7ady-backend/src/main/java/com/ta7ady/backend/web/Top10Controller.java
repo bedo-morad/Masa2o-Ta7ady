@@ -4,25 +4,24 @@ import com.ta7ady.backend.entity.Top10List;
 import com.ta7ady.backend.service.Top10Service;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/top10")
-@RequiredArgsConstructor
-public class Top10Controller {
+public class Top10Controller extends BulkAdminController<Top10BulkRow> {
     private final Top10Service service;
-    private final AdminGate admin;
+
+    public Top10Controller(Top10Service service, AdminGate admin) {
+        super(admin);
+        this.service = service;
+    }
 
     // GET /api/top10?count=1 -> N random lists with all 13 answers
     @GetMapping
@@ -39,24 +38,22 @@ public class Top10Controller {
     @PostMapping
     public Top10List create(@RequestBody Map<String, Object> body) {
         Object answers = body.get("answers");
-        return service.create(str(body.get("prompt")), answers instanceof List ? (List<?>) answers : null);
+        return service.create(BulkHelper.str(body.get("prompt")),
+                answers instanceof List ? (List<?>) answers : null);
     }
 
-    // POST JSON array for bulk import; dryRun=true previews without saving.
-    @PostMapping("/bulk")
-    public List<BulkRowResult> bulk(@RequestBody List<Map<String, Object>> body,
-            @RequestParam(defaultValue = "true") boolean dryRun) {
-        return service.bulk(body, dryRun);
+    @Override
+    protected List<BulkRowResult> bulkRows(List<Top10BulkRow> rows, boolean dryRun) {
+        return service.bulk(rows, dryRun);
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id,
-            @RequestHeader(value = "X-Admin-Password", required = false) String adminPassword) {
-        admin.requireAdmin(adminPassword);
+    @Override
+    protected Top10List updateRow(Long id, Top10BulkRow body) {
+        return service.update(id, body.prompt(), body.answers());
+    }
+
+    @Override
+    protected void deleteRow(Long id) {
         service.delete(id);
-    }
-
-    private static String str(Object raw) {
-        return raw == null ? null : raw.toString();
     }
 }

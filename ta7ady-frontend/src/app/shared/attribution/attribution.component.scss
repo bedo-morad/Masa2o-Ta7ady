@@ -48,3 +48,22 @@
     color: #000;
   }
 }
+
+// Risk §3.5: big award buttons side by side on one row, each tap target taking
+// an equal half of the spotlight (long names ellipsize rather than wrap).
+.attrib.stretch {
+  width: 100%;
+
+  .teams {
+    flex: 1;
+    gap: 0.45rem;
+  }
+
+  .tbtn {
+    flex: 1;
+    max-width: none;
+    min-height: 56px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
+}

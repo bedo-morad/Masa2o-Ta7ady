@@ -10,9 +10,17 @@ export interface ScoresheetMatch {
   id: number; matchLabel: string; teamA: string; teamB: string;
   lineupA: string[]; lineupB: string[];
 }
+// Bank pool (SPECV3 §3.2): generic rapid-fire Q&A, fully random draws.
+export interface BankQuestion { id: number; question: string; answer: string; }
+// Risk (SPECV3 §3.4/§3.5): one genre + exactly 4 tiered questions, in tier
+// order (5/10/20/40). `points` mirrors the authoring schema; the page reads the
+// tier from the row position, not the field.
+export interface RiskQuestion { points?: number; question: string; answer: string; }
+export interface RiskPack { id: number; genre: string; questions: RiskQuestion[]; }
 export interface BulkRowResult { index: number; ok: boolean; errors: string[]; id?: number; }
 
-export type Pool = 'players' | 'ihbid' | 'offside' | 'top10' | 'scoresheet';
+// v3 adds 'bank' + 'risk' to the pool list; their /all pagination and game routes are available in the frontend.
+export type Pool = 'players' | 'ihbid' | 'offside' | 'top10' | 'scoresheet' | 'bank' | 'risk';
 
 export interface Page<T> {
   content: T[];
@@ -56,70 +64,49 @@ export class ApiService {
     return this.http.post<BulkRowResult[]>(`${BASE}/${pool}/bulk`, rows, { params });
   }
 
+  // Generic paged listing for any pool (the /manage list view).
+  page<T>(pool: Pool, page = 0, size = 20): Observable<Page<T>> {
+    const params = new HttpParams().set('page', page).set('size', size).set('sort', 'id,desc');
+    return this.http.get<Page<T>>(`${BASE}/${pool}/all`, { params });
+  }
+
+  // Generic admin-gated delete for any pool.
+  del(pool: Pool, id: number): Observable<void> {
+    return this.http.delete<void>(`${BASE}/${pool}/${id}`, this.adminHeaders());
+  }
+
   // Merged player pool: password + acting share the same backend table.
   // Canonical endpoint is /players; /password and /acting are aliases.
   playersRandom10(count = 10): Observable<PlayerName[]> {
     return this.http.get<PlayerName[]>(`${BASE}/players?count=${count}`);
   }
-  playersPage(page = 0, size = 20): Observable<Page<PlayerName>> {
-    const params = new HttpParams().set('page', page).set('size', size).set('sort', 'id,desc');
-    return this.http.get<Page<PlayerName>>(`${BASE}/players/all`, { params });
-  }
   addPlayer(playerName: string): Observable<PlayerName> {
     return this.http.post<PlayerName>(`${BASE}/players`, { playerName });
-  }
-  deletePlayer(id: number): Observable<void> {
-    return this.http.delete<void>(`${BASE}/players/${id}`, this.adminHeaders());
   }
 
   ihbidRandom10(count = 10): Observable<IhbidQuestion[]> {
     return this.http.get<IhbidQuestion[]>(`${BASE}/ihbid?count=${count}`);
   }
-  ihbidPage(page = 0, size = 20): Observable<Page<IhbidQuestion>> {
-    const params = new HttpParams().set('page', page).set('size', size).set('sort', 'id,desc');
-    return this.http.get<Page<IhbidQuestion>>(`${BASE}/ihbid/all`, { params });
-  }
   addIhbid(questionText: string, answerText: string): Observable<IhbidQuestion> {
     return this.http.post<IhbidQuestion>(`${BASE}/ihbid`, { questionText, answerText });
-  }
-  deleteIhbid(id: number): Observable<void> {
-    return this.http.delete<void>(`${BASE}/ihbid/${id}`, this.adminHeaders());
   }
 
   offsideRandom10(count = 10): Observable<OffsideRule[]> {
     return this.http.get<OffsideRule[]>(`${BASE}/offside?count=${count}`);
   }
-  offsidePage(page = 0, size = 20): Observable<Page<OffsideRule>> {
-    const params = new HttpParams().set('page', page).set('size', size).set('sort', 'id,desc');
-    return this.http.get<Page<OffsideRule>>(`${BASE}/offside/all`, { params });
-  }
   addOffside(ruleText: string): Observable<OffsideRule> {
     return this.http.post<OffsideRule>(`${BASE}/offside`, { ruleText });
-  }
-  deleteOffside(id: number): Observable<void> {
-    return this.http.delete<void>(`${BASE}/offside/${id}`, this.adminHeaders());
   }
 
   top10Random(count = 1): Observable<Top10List[]> {
     return this.http.get<Top10List[]>(`${BASE}/top10?count=${count}`);
   }
-  top10Page(page = 0, size = 20): Observable<Page<Top10List>> {
-    const params = new HttpParams().set('page', page).set('size', size).set('sort', 'id,desc');
-    return this.http.get<Page<Top10List>>(`${BASE}/top10/all`, { params });
-  }
   addTop10(prompt: string, answers: string[]): Observable<Top10List> {
     return this.http.post<Top10List>(`${BASE}/top10`, { prompt, answers });
-  }
-  deleteTop10(id: number): Observable<void> {
-    return this.http.delete<void>(`${BASE}/top10/${id}`, this.adminHeaders());
   }
 
   scoresheetRandom(count = 1): Observable<ScoresheetMatch[]> {
     return this.http.get<ScoresheetMatch[]>(`${BASE}/scoresheet?count=${count}`);
-  }
-  scoresheetPage(page = 0, size = 20): Observable<Page<ScoresheetMatch>> {
-    const params = new HttpParams().set('page', page).set('size', size).set('sort', 'id,desc');
-    return this.http.get<Page<ScoresheetMatch>>(`${BASE}/scoresheet/all`, { params });
   }
   addScoresheet(
     matchLabel: string, teamA: string, teamB: string, lineupA: string[], lineupB: string[],
@@ -128,7 +115,27 @@ export class ApiService {
       matchLabel, teamA, teamB, lineupA, lineupB,
     });
   }
-  deleteScoresheet(id: number): Observable<void> {
-    return this.http.delete<void>(`${BASE}/scoresheet/${id}`, this.adminHeaders());
+
+  // Risk packs: a draw of `count` packs (4 = one board; reroll fetches 1).
+  riskRandom(count = 4): Observable<RiskPack[]> {
+    return this.http.get<RiskPack[]>(`${BASE}/risk?count=${count}`);
+  }
+
+  // Bank pool (SPECV3 §3.2): rapid-fire Q&A; the game draws ?count=72 once.
+  bankRandom(count = 12): Observable<BankQuestion[]> {
+    return this.http.get<BankQuestion[]>(`${BASE}/bank?count=${count}`);
+  }
+  addBank(question: string, answer: string): Observable<BankQuestion> {
+    return this.http.post<BankQuestion>(`${BASE}/bank`, { question, answer });
+  }
+
+  addRisk(genre: string, questions: RiskQuestion[]): Observable<RiskPack> {
+    return this.http.post<RiskPack>(`${BASE}/risk`, { genre, questions });
+  }
+
+  // Admin-gated edit (SPECV3 §3.1): instant apply via PUT, same body shape as
+  // create per pool (bank/risk included once their backend exists).
+  update(pool: Pool, id: number, body: unknown): Observable<unknown> {
+    return this.http.put<unknown>(`${BASE}/${pool}/${id}`, body, this.adminHeaders());
   }
 }

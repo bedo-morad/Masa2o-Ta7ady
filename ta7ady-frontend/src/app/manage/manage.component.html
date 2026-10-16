@@ -19,7 +19,7 @@
   <ng-template #adminModal let-modal>
     <div class="admin-popup">
       <div class="admin-popup-head">
-        <h3><i class="fa-solid fa-lock"></i> وضع الإدارة (للحذف فقط)</h3>
+        <h3><i class="fa-solid fa-lock"></i> وضع الإدارة (تعديل وحذف)</h3>
         <button type="button" class="x" (click)="modal.dismiss()" aria-label="إغلاق">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -41,7 +41,7 @@
           <button type="submit" class="unlock"><i class="fa-solid fa-lock-open"></i> فتح</button>
         </form>
       } @else {
-        <p class="admin-state"><i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار الحذف ظاهرة.</p>
+        <p class="admin-state"><i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار التعديل والحذف ظاهرة.</p>
         @if (adminError()) {
           <div class="admin-error" role="alert">{{ adminError() }}</div>
         }
@@ -64,10 +64,16 @@
       <i class="fa-solid fa-flag"></i> أوفسايد
     </button>
     <button type="button" [class.active]="pool() === 'top10'" (click)="select('top10')">
-      <i class="fa-solid fa-list-ol"></i> التوب 10
+      <i class="fa-solid fa-list-ol"></i> توب 10
     </button>
     <button type="button" [class.active]="pool() === 'scoresheet'" (click)="select('scoresheet')">
-      <i class="fa-solid fa-clipboard-list"></i> ورقة المباراة
+      <i class="fa-solid fa-clipboard-list"></i> سكور شيت
+    </button>
+    <button type="button" [class.active]="pool() === 'bank'" (click)="select('bank')">
+      <i class="fa-solid fa-coins"></i> بنك
+    </button>
+    <button type="button" [class.active]="pool() === 'risk'" (click)="select('risk')">
+      <i class="fa-solid fa-dice"></i> ريسك
     </button>
   </div>
 
@@ -166,6 +172,42 @@
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة مباراة</button>
     </form>
   }
+  @if (pool() === 'bank') {
+    <form class="add column" (ngSubmit)="addBank()">
+      <input [(ngModel)]="newQuestion" name="nbq" placeholder="السؤال" />
+      <input [(ngModel)]="newAnswer" name="nba" placeholder="الجواب (قصير)" />
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة سؤال</button>
+    </form>
+  }
+  @if (pool() === 'risk') {
+    <form class="add column" (ngSubmit)="addRisk()">
+      <input [(ngModel)]="newGenre" name="ngr" placeholder="النوع — مثال: ريال مدريد" />
+      <ol class="tiers">
+        @for (tier of riskTiers; track tier; let i = $index) {
+          <li>
+            <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
+            <div class="tier-fields">
+              <input
+                [ngModel]="newRisk()[i].question"
+                (ngModelChange)="setNewRisk(i, 'question', $event)"
+                [name]="'nrq' + tier"
+                placeholder="السؤال"
+                [attr.aria-label]="'سؤال فئة ' + tier"
+              />
+              <input
+                [ngModel]="newRisk()[i].answer"
+                (ngModelChange)="setNewRisk(i, 'answer', $event)"
+                [name]="'nra' + tier"
+                placeholder="الجواب"
+                [attr.aria-label]="'جواب فئة ' + tier"
+              />
+            </div>
+          </li>
+        }
+      </ol>
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة حزمة</button>
+    </form>
+  }
 
   <app-import-panel [pool]="pool()" (imported)="onImported()" />
 
@@ -179,11 +221,31 @@
     @if (pool() === 'players') {
       @for (p of playerRows(); track p.id) {
         <li>
-          <span>{{ p.playerName }}</span>
-          @if (adminOn()) {
-            <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
-              <i class="fa-solid fa-trash"></i> حذف
-            </button>
+          @if (adminOn() && editingId() === p.id) {
+            <form class="edit" (ngSubmit)="saveEditPlayer(p.id)">
+              <input
+                [(ngModel)]="editText"
+                name="editPlayer"
+                placeholder="اسم اللاعب"
+                aria-label="تعديل اسم اللاعب"
+              />
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <span>{{ p.playerName }}</span>
+            @if (adminOn()) {
+              <div class="row-actions">
+                <button type="button" class="edit-btn" (click)="startEditPlayer(p)" aria-label="تعديل" title="تعديل">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
+                  <i class="fa-solid fa-trash"></i> حذف
+                </button>
+              </div>
+            }
           }
         </li>
       }
@@ -191,14 +253,30 @@
     @if (pool() === 'ihbid') {
       @for (q of ihbidRows(); track q.id) {
         <li class="wide ihbid-row">
-          <span class="qa">
-            <span class="q">{{ q.questionText }}</span>
-            <span class="answer-chip">{{ q.answerText }}</span>
-          </span>
-          @if (adminOn()) {
-            <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
-              <i class="fa-solid fa-trash"></i> حذف
-            </button>
+          @if (adminOn() && editingId() === q.id) {
+            <form class="edit column" (ngSubmit)="saveEditIhbid(q.id)">
+              <input [(ngModel)]="editQ" name="editIhbidQ" placeholder="السؤال" aria-label="تعديل السؤال" />
+              <input [(ngModel)]="editA" name="editIhbidA" placeholder="الجواب (رقم أو تاريخ)" aria-label="تعديل الجواب" />
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <span class="qa">
+              <span class="q">{{ q.questionText }}</span>
+              <span class="answer-chip">{{ q.answerText }}</span>
+            </span>
+            @if (adminOn()) {
+              <div class="row-actions">
+                <button type="button" class="edit-btn" (click)="startEditIhbid(q)" aria-label="تعديل" title="تعديل">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
+                  <i class="fa-solid fa-trash"></i> حذف
+                </button>
+              </div>
+            }
           }
         </li>
       }
@@ -206,11 +284,31 @@
     @if (pool() === 'offside') {
       @for (r of offsideRows(); track r.id) {
         <li>
-          <span>{{ r.ruleText }}</span>
-          @if (adminOn()) {
-            <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
-              <i class="fa-solid fa-trash"></i> حذف
-            </button>
+          @if (adminOn() && editingId() === r.id) {
+            <form class="edit" (ngSubmit)="saveEditOffside(r.id)">
+              <input
+                [(ngModel)]="editText"
+                name="editRule"
+                placeholder="القاعدة"
+                aria-label="تعديل القاعدة"
+              />
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <span>{{ r.ruleText }}</span>
+            @if (adminOn()) {
+              <div class="row-actions">
+                <button type="button" class="edit-btn" (click)="startEditOffside(r)" aria-label="تعديل" title="تعديل">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
+                  <i class="fa-solid fa-trash"></i> حذف
+                </button>
+              </div>
+            }
           }
         </li>
       }
@@ -218,32 +316,66 @@
     @if (pool() === 'top10') {
       @for (t of top10Rows(); track t.id) {
         <li class="wide managed-row" [class.open]="isOpen(t.id)">
-          <div class="row-head">
-            <button
-              type="button"
-              class="row-main"
-              (click)="toggle(t.id)"
-              [attr.aria-expanded]="isOpen(t.id)"
-              [attr.aria-label]="(isOpen(t.id) ? 'إخفاء الإجابات: ' : 'عرض الإجابات: ') + t.prompt"
-            >
-              <span class="prompt"><strong>{{ t.prompt }}</strong></span>
-              <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(t.id)" aria-hidden="true"></i>
-            </button>
-            @if (adminOn()) {
-              <button type="button" class="del" (click)="removeTop10(t.id)" aria-label="حذف">
-                <i class="fa-solid fa-trash"></i> حذف
+          @if (adminOn() && editingId() === t.id) {
+            <form class="edit column" (ngSubmit)="saveEditTop10(t.id)">
+              <input
+                [(ngModel)]="editPrompt"
+                name="editPrompt"
+                placeholder="عنوان القائمة"
+                aria-label="تعديل عنوان القائمة"
+              />
+              <ol class="ranks">
+                @for (rank of top10Ranks; track rank; let i = $index) {
+                  <li>
+                    <span class="rank tabular-nums" aria-hidden="true">{{ rank }}</span>
+                    <input
+                      [ngModel]="editAnswers()[i]"
+                      (ngModelChange)="setEditTop10Answer(i, $event)"
+                      [name]="'eans' + rank"
+                      [placeholder]="'الإجابة رقم ' + rank"
+                      [attr.aria-label]="'تعديل الإجابة رقم ' + rank"
+                    />
+                  </li>
+                }
+              </ol>
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <div class="row-head">
+              <button
+                type="button"
+                class="row-main"
+                (click)="toggle(t.id)"
+                [attr.aria-expanded]="isOpen(t.id)"
+                [attr.aria-label]="(isOpen(t.id) ? 'إخفاء الإجابات: ' : 'عرض الإجابات: ') + t.prompt"
+              >
+                <span class="prompt"><strong>{{ t.prompt }}</strong></span>
+                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(t.id)" aria-hidden="true"></i>
               </button>
-            }
-          </div>
-          @if (isOpen(t.id)) {
-            <ol class="reveal">
-              @for (a of t.answers; track $index) {
-                <li>
-                  <span class="rank tabular-nums" aria-hidden="true">{{ $index + 1 }}</span>
-                  <span>{{ a }}</span>
-                </li>
+              @if (adminOn()) {
+                <div class="row-actions">
+                  <button type="button" class="edit-btn" (click)="startEditTop10(t)" aria-label="تعديل" title="تعديل">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button type="button" class="del" (click)="removeTop10(t.id)" aria-label="حذف">
+                    <i class="fa-solid fa-trash"></i> حذف
+                  </button>
+                </div>
               }
-            </ol>
+            </div>
+            @if (isOpen(t.id)) {
+              <ol class="reveal">
+                @for (a of t.answers; track $index) {
+                  <li>
+                    <span class="rank tabular-nums" aria-hidden="true">{{ $index + 1 }}</span>
+                    <span>{{ a }}</span>
+                  </li>
+                }
+              </ol>
+            }
           }
         </li>
       }
@@ -251,42 +383,220 @@
     @if (pool() === 'scoresheet') {
       @for (m of scoresheetRows(); track m.id) {
         <li class="wide managed-row" [class.open]="isOpen(m.id)">
-          <div class="row-head">
-            <button
-              type="button"
-              class="row-main"
-              (click)="toggle(m.id)"
-              [attr.aria-expanded]="isOpen(m.id)"
-              [attr.aria-label]="(isOpen(m.id) ? 'إخفاء التشكيلتين: ' : 'عرض التشكيلتين: ') + m.matchLabel"
-            >
-              <span class="prompt"><strong>{{ m.matchLabel }}</strong></span>
-              <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(m.id)" aria-hidden="true"></i>
-            </button>
-            @if (adminOn()) {
-              <button type="button" class="del" (click)="removeScoresheet(m.id)" aria-label="حذف">
-                <i class="fa-solid fa-trash"></i> حذف
+          @if (adminOn() && editingId() === m.id) {
+            <form class="edit column" (ngSubmit)="saveEditScoresheet(m.id)">
+              <input
+                [(ngModel)]="editMatch"
+                name="editMatch"
+                placeholder="اسم المباراة"
+                aria-label="تعديل اسم المباراة"
+              />
+              <div class="teams">
+                <fieldset class="team">
+                  <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الأول</legend>
+                  <input
+                    class="team-name"
+                    [(ngModel)]="editTeamA"
+                    name="editTeamA"
+                    placeholder="اسم الفريق الأول"
+                    aria-label="تعديل اسم الفريق الأول"
+                  />
+                  <ol class="lineup">
+                    @for (slot of lineupSlots; track slot; let i = $index) {
+                      <li>
+                        <input
+                          class="player-box"
+                          [ngModel]="editLineupA()[i]"
+                          (ngModelChange)="setEditLineupA(i, $event)"
+                          [name]="'ela' + slot"
+                          placeholder="اسم لاعب"
+                          aria-label="لاعب في الفريق الأول"
+                        />
+                      </li>
+                    }
+                  </ol>
+                </fieldset>
+                <fieldset class="team">
+                  <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الثاني</legend>
+                  <input
+                    class="team-name"
+                    [(ngModel)]="editTeamB"
+                    name="editTeamB"
+                    placeholder="اسم الفريق الثاني"
+                    aria-label="تعديل اسم الفريق الثاني"
+                  />
+                  <ol class="lineup">
+                    @for (slot of lineupSlots; track slot; let i = $index) {
+                      <li>
+                        <input
+                          class="player-box"
+                          [ngModel]="editLineupB()[i]"
+                          (ngModelChange)="setEditLineupB(i, $event)"
+                          [name]="'elb' + slot"
+                          placeholder="اسم لاعب"
+                          aria-label="لاعب في الفريق الثاني"
+                        />
+                      </li>
+                    }
+                  </ol>
+                </fieldset>
+              </div>
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <div class="row-head">
+              <button
+                type="button"
+                class="row-main"
+                (click)="toggle(m.id)"
+                [attr.aria-expanded]="isOpen(m.id)"
+                [attr.aria-label]="(isOpen(m.id) ? 'إخفاء التشكيلتين: ' : 'عرض التشكيلتين: ') + m.matchLabel"
+              >
+                <span class="prompt"><strong>{{ m.matchLabel }}</strong></span>
+                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(m.id)" aria-hidden="true"></i>
               </button>
-            }
-          </div>
-          @if (isOpen(m.id)) {
-            <div class="reveal lineups">
-              <div class="lineup-side">
-                <h4>{{ m.teamA }}</h4>
-                <ul>
-                  @for (p of m.lineupA; track $index) {
-                    <li>{{ p }}</li>
-                  }
-                </ul>
-              </div>
-              <div class="lineup-side">
-                <h4>{{ m.teamB }}</h4>
-                <ul>
-                  @for (p of m.lineupB; track $index) {
-                    <li>{{ p }}</li>
-                  }
-                </ul>
-              </div>
+              @if (adminOn()) {
+                <div class="row-actions">
+                  <button type="button" class="edit-btn" (click)="startEditScoresheet(m)" aria-label="تعديل" title="تعديل">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button type="button" class="del" (click)="removeScoresheet(m.id)" aria-label="حذف">
+                    <i class="fa-solid fa-trash"></i> حذف
+                  </button>
+                </div>
+              }
             </div>
+            @if (isOpen(m.id)) {
+              <div class="reveal lineups">
+                <div class="lineup-side">
+                  <h4>{{ m.teamA }}</h4>
+                  <ul>
+                    @for (p of m.lineupA; track $index) {
+                      <li>{{ p }}</li>
+                    }
+                  </ul>
+                </div>
+                <div class="lineup-side">
+                  <h4>{{ m.teamB }}</h4>
+                  <ul>
+                    @for (p of m.lineupB; track $index) {
+                      <li>{{ p }}</li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            }
+          }
+        </li>
+      }
+    }
+    @if (pool() === 'bank') {
+      @for (b of bankRows(); track b.id) {
+        <li class="wide bank-row">
+          @if (adminOn() && editingId() === b.id) {
+            <form class="edit column" (ngSubmit)="saveEditBank(b.id)">
+              <input [(ngModel)]="editQ" name="editBankQ" placeholder="السؤال" aria-label="تعديل السؤال" />
+              <input [(ngModel)]="editA" name="editBankA" placeholder="الجواب" aria-label="تعديل الجواب" />
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <span class="qa">
+              <span class="q">{{ b.question }}</span>
+              <span class="answer-chip">{{ b.answer }}</span>
+            </span>
+            @if (adminOn()) {
+              <div class="row-actions">
+                <button type="button" class="edit-btn" (click)="startEditBank(b)" aria-label="تعديل" title="تعديل">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="del" (click)="removeBank(b.id)" aria-label="حذف">
+                  <i class="fa-solid fa-trash"></i> حذف
+                </button>
+              </div>
+            }
+          }
+        </li>
+      }
+    }
+    @if (pool() === 'risk') {
+      @for (p of riskRows(); track p.id) {
+        <li class="wide managed-row" [class.open]="isOpen(p.id)">
+          @if (adminOn() && editingId() === p.id) {
+            <form class="edit column" (ngSubmit)="saveEditRisk(p.id)">
+              <input
+                [(ngModel)]="editGenre"
+                name="editGenre"
+                placeholder="النوع"
+                aria-label="تعديل نوع الحزمة"
+              />
+              <ol class="tiers">
+                @for (tier of riskTiers; track tier; let i = $index) {
+                  <li>
+                    <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
+                    <div class="tier-fields">
+                      <input
+                        [ngModel]="editRisk()[i].question"
+                        (ngModelChange)="setEditRisk(i, 'question', $event)"
+                        [name]="'erq' + tier"
+                        placeholder="السؤال"
+                        [attr.aria-label]="'تعديل سؤال فئة ' + tier"
+                      />
+                      <input
+                        [ngModel]="editRisk()[i].answer"
+                        (ngModelChange)="setEditRisk(i, 'answer', $event)"
+                        [name]="'era' + tier"
+                        placeholder="الجواب"
+                        [attr.aria-label]="'تعديل جواب فئة ' + tier"
+                      />
+                    </div>
+                  </li>
+                }
+              </ol>
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <div class="row-head">
+              <button
+                type="button"
+                class="row-main"
+                (click)="toggle(p.id)"
+                [attr.aria-expanded]="isOpen(p.id)"
+                [attr.aria-label]="(isOpen(p.id) ? 'إخفاء الأسئلة: ' : 'عرض الأسئلة: ') + p.genre"
+              >
+                <span class="prompt"><strong>{{ p.genre }}</strong></span>
+                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(p.id)" aria-hidden="true"></i>
+              </button>
+              @if (adminOn()) {
+                <div class="row-actions">
+                  <button type="button" class="edit-btn" (click)="startEditRisk(p)" aria-label="تعديل" title="تعديل">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button type="button" class="del" (click)="removeRisk(p.id)" aria-label="حذف">
+                    <i class="fa-solid fa-trash"></i> حذف
+                  </button>
+                </div>
+              }
+            </div>
+            @if (isOpen(p.id)) {
+              <ol class="reveal risk-reveal">
+                @for (q of p.questions; track $index) {
+                  <li>
+                    <span class="tier tabular-nums" aria-hidden="true">{{ riskTiers[$index] }}</span>
+                    <span class="rq">{{ q.question }}</span>
+                    <span class="answer-chip">{{ q.answer }}</span>
+                  </li>
+                }
+              </ol>
+            }
           }
         </li>
       }

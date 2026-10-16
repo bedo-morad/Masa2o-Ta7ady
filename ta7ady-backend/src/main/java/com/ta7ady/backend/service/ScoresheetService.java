@@ -2,9 +2,10 @@ package com.ta7ady.backend.service;
 
 import com.ta7ady.backend.entity.ScoresheetMatch;
 import com.ta7ady.backend.repository.ScoresheetMatchRepository;
+import com.ta7ady.backend.web.BulkHelper;
 import com.ta7ady.backend.web.BulkRowResult;
+import com.ta7ady.backend.web.ScoresheetBulkRow;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +20,6 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @RequiredArgsConstructor
 public class ScoresheetService {
-    // Bodies larger than this are rejected with 413 instead of being processed.
-    public static final int MAX_BULK_ROWS = 1000;
 
     private final ScoresheetMatchRepository repo;
 
@@ -53,6 +52,25 @@ public class ScoresheetService {
         if (m == null) m = body.get("matchLabel");
         if (m == null) m = body.get("match_label");
         return m == null ? null : m.toString();
+    }
+
+    // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
+    public ScoresheetMatch update(Long id, String matchLabel, String teamA, String teamB,
+            List<?> lineupA, List<?> lineupB) {
+        ScoresheetMatch e = repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "not found"));
+        List<String> errors = validate(matchLabel, teamA, teamB, lineupA, lineupB);
+        if (!errors.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
+        }
+        e.setMatchLabel(matchLabel.trim());
+        e.setTeamA(teamA.trim());
+        e.setTeamB(teamB.trim());
+        e.getLineupA().clear();
+        e.getLineupA().addAll(cleaned(lineupA));
+        e.getLineupB().clear();
+        e.getLineupB().addAll(cleaned(lineupB));
+        return repo.save(e);
     }
 
     // Pure validation shared by single POST and bulk (AUTHORING.md §3.5:
@@ -98,50 +116,14 @@ public class ScoresheetService {
 
     // Bulk import (SPECV2 §2.1): dryRun=true previews without saving anything;
     // dryRun=false saves only valid rows. In-batch duplicate match labels rejected.
-    public List<BulkRowResult> bulk(List<Map<String, Object>> rows, boolean dryRun) {
-        if (rows == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "body must be a JSON array");
-        }
-        if (rows.size() > MAX_BULK_ROWS) {
-            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
-                    "bulk body too large (max " + MAX_BULK_ROWS + " rows)");
-        }
-        Map<String, Integer> firstSeen = new HashMap<>();
-        List<ScoresheetMatch> toSave = new ArrayList<>();
-        List<Integer> saveIndex = new ArrayList<>();
-        List<BulkRowResult> results = new ArrayList<>();
-        for (int i = 0; i < rows.size(); i++) {
-            Map<String, Object> row = rows.get(i);
-            String matchLabel = matchOf(row);
-            String teamA = str(row == null ? null : row.get("teamA"));
-            String teamB = str(row == null ? null : row.get("teamB"));
-            List<?> lineupA = list(row == null ? null : row.get("lineupA"));
-            List<?> lineupB = list(row == null ? null : row.get("lineupB"));
-            List<String> errors = validate(matchLabel, teamA, teamB, lineupA, lineupB);
-            String key = matchLabel == null ? "" : matchLabel.trim().toLowerCase();
-            if (!key.isEmpty()) {
-                if (firstSeen.containsKey(key)) {
-                    errors.add("duplicate of row " + firstSeen.get(key) + " in batch");
-                } else {
-                    firstSeen.put(key, i);
-                }
-            }
-            if (errors.isEmpty() && !dryRun) {
-                toSave.add(toEntity(matchLabel, teamA, teamB, lineupA, lineupB));
-                saveIndex.add(i);
-                results.add(null); // placeholder, filled with id after save
-            } else {
-                results.add(new BulkRowResult(i, errors.isEmpty(), errors, null));
-            }
-        }
-        if (!dryRun) {
-            for (int k = 0; k < toSave.size(); k++) {
-                ScoresheetMatch saved = repo.save(toSave.get(k));
-                int i = saveIndex.get(k);
-                results.set(i, new BulkRowResult(i, true, List.of(), saved.getId()));
-            }
-        }
-        return results;
+    public List<BulkRowResult> bulk(List<ScoresheetBulkRow> rows, boolean dryRun) {
+        return BulkHelper.run(rows, dryRun,
+                r -> validate(r == null ? null : r.match(), r == null ? null : r.teamA(),
+                        r == null ? null : r.teamB(), r == null ? null : r.lineupA(),
+                        r == null ? null : r.lineupB()),
+                r -> r == null ? null : r.match(),
+                r -> toEntity(r.match(), r.teamA(), r.teamB(), r.lineupA(), r.lineupB()),
+                e -> repo.save(e).getId());
     }
 
     public void delete(Long id) {
@@ -168,13 +150,5 @@ public class ScoresheetService {
             clean.add(raw == null ? "" : raw.toString().trim());
         }
         return clean;
-    }
-
-    private static String str(Object raw) {
-        return raw == null ? null : raw.toString();
-    }
-
-    private static List<?> list(Object raw) {
-        return raw instanceof List ? (List<?>) raw : null;
     }
 }

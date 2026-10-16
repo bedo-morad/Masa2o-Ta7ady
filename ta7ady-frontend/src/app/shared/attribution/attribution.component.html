@@ -1,5 +1,7 @@
-<div class="attrib">
-  <span class="pts tabular-nums" [class.neg]="points() < 0">{{ fmt(points()) }}</span>
+<div class="attrib" [class.stretch]="stretch()">
+  @if (showPoints()) {
+    <span class="pts tabular-nums" [class.neg]="points() < 0">{{ fmt(points()) }}</span>
+  }
   <div class="teams" role="group" [attr.aria-label]="label()">
     <button
       type="button"

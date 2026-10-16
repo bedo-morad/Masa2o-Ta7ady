@@ -8,8 +8,10 @@ const POOL_LABEL: Record<Pool, string> = {
   players: 'أسماء اللاعبين',
   ihbid: 'اهبد صح',
   offside: 'أوفسايد',
-  top10: 'التوب 10',
-  scoresheet: 'ورقة المباراة',
+  top10: 'توب 10',
+  scoresheet: 'سكور شيت',
+  bank: 'بنك',
+  risk: 'ريسك',
 };
 
 const SCHEMA_EXAMPLE: Record<Pool, string> = {
@@ -23,6 +25,13 @@ const SCHEMA_EXAMPLE: Record<Pool, string> = {
     '[\n  {\n    "match": "نهائي كأس العالم 2022",\n    "teamA": "الأرجنتين",\n    "teamB": "فرنسا",\n'
     + '    "lineupA": ["أ1", "أ2", "أ3", "أ4", "أ5", "أ6", "أ7", "أ8", "أ9", "أ10", "أ11"],\n'
     + '    "lineupB": ["ب1", "ب2", "ب3", "ب4", "ب5", "ب6", "ب7", "ب8", "ب9", "ب10", "ب11"]\n  }\n]',
+  bank: '[\n  { "question": "من فاز بكأس العالم 2022؟", "answer": "الأرجنتين" }\n]',
+  risk:
+    '[\n  {\n    "genre": "ريال مدريد",\n    "questions": [\n'
+    + '      { "points": 5, "question": "...", "answer": "..." },\n'
+    + '      { "points": 10, "question": "...", "answer": "..." },\n'
+    + '      { "points": 20, "question": "...", "answer": "..." },\n'
+    + '      { "points": 40, "question": "...", "answer": "..." }\n    ]\n  }\n]',
 };
 
 const SCHEMA_NOTE: Record<Pool, string> = {
@@ -32,6 +41,8 @@ const SCHEMA_NOTE: Record<Pool, string> = {
   top10: 'كل صف: {"prompt", "answers"} — الإجابات 13 بالترتيب تمامًا (الأولى = المركز الأول).',
   scoresheet:
     'كل صف: {"match", "teamA", "teamB", "lineupA", "lineupB"} — كل تشكيلة 11 اسمًا تمامًا.',
+  bank: 'كل صف: {"question", "answer"} — سؤال سريع بإجابة قصيرة.',
+  risk: 'كل صف: {"genre", "questions"} — 4 أسئلة بترتيب الدرجات 5/10/20/40.',
 };
 
 @Component({

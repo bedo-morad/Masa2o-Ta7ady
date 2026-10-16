@@ -56,8 +56,9 @@ The stored file stays schema-pure, so the ladder and the local flag live in auth
 that never ship:
 
 - `seeds/_review/risk_data.mjs` — source of truth: packs with `type`, `local`, `kind`, and each
-  question's `band` (`modern-obvious`/`modern-deep`/`mid`/`old`) or `ob` obscurity rank (season
-  packs only).
+  question's `band` (`modern-obvious`/`modern-deep`/`mid`/`old`) or `ob` obscurity rank. Season
+  packs (`kind:"season"`) cover a single season *or* a single subject (one player/coach, one fixed
+  era); they rise by obscurity `[1,2,3,4]` instead of by era.
 - `seeds/_review/risk.sample.json` — generated, importer-ready (the review sample).
 - `seeds/_review/risk.sample.meta.json` — parallel `{type, local, kind, bands, obscurity}` tags.
 
@@ -85,7 +86,8 @@ pass (see `seeds/_review/RISK_PLAN.md` §5).
 
 ## 6. Rollout
 
-- **Now (this pass): 25% sample = 13 packs / 52 Qs** → `seeds/_review/risk.sample.json`, plus the
-  mix/local summary posted for review. Nothing committed to the pool.
-- **After approval: remaining 75% = 37 packs** → full `seeds/risk.json` (50 packs), verified with
-  the same script against the 50-pack target, then imported through the bulk importer's dry-run.
+- **Sample (approved as-is): 13 packs / 52 Qs** → `seeds/_review/risk.sample.json`, reviewed and
+  accepted, including the season-obscurity ladder and the 3/13 local slice.
+- **Full pool (this delivery): 50 packs / 200 Qs** → `seeds/risk.json`, all 200 Qs uniquely
+  authored, verified PASS against the 50-pack target (13/50 = 26.0% local), then imported through
+  the bulk importer's dry-run. Only `seeds/risk.json` is committed; no app code changes.

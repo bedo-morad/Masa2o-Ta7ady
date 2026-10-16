@@ -20,6 +20,7 @@ export interface RiskPack { id: number; genre: string; questions: RiskQuestion[]
 export interface BulkRowResult { index: number; ok: boolean; errors: string[]; id?: number; }
 
 // v3 adds 'bank' + 'risk' to the pool list; their /all pagination and game routes are available in the frontend.
+export type Pool = 'players' | 'ihbid' | 'offside' | 'top10' | 'scoresheet' | 'bank' | 'risk';
 
 export interface Page<T> {
   content: T[];

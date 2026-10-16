@@ -4,16 +4,16 @@
     <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
   </div>
 
-  <h2>التوب 10</h2>
+  <h2>توب 10</h2>
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-  <app-timer timerKey="top10" [defaultSeconds]="10" label="مؤقت القائمة" />
+  <app-timer timerKey="top10" [defaultSeconds]="10" label="مؤقت المحاولة" />
 
   @if (current(); as hintList) {
     <div class="dead-row" [class.due]="hintDue(hintList.id)">
-      <span class="dead-label">أدوار ميتة</span>
-      <div class="stepper" role="group" aria-label="أدوار ميتة">
+      <span class="dead-label">محاولات بدون اجابة</span>
+      <div class="stepper" role="group" aria-label="محاولات بدون اجابة">
         <button
           type="button"
           class="step"
@@ -52,7 +52,6 @@
     <label for="t10-count">عدد القوائم</label>
     <select id="t10-count" [(ngModel)]="count">
       <option [ngValue]="1">1</option>
-      <option [ngValue]="2">2</option>
       <option [ngValue]="3">3</option>
       <option [ngValue]="5">5</option>
     </select>

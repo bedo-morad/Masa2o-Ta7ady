@@ -4,7 +4,7 @@
     <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
   </div>
 
-  <h2>ورقة المباراة</h2>
+  <h2>سكور شيت</h2>
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
@@ -13,7 +13,7 @@
       <i class="fa-solid fa-arrow-right-arrow-left"></i> تبديل الاسمين
     </button>
   </div>
-  <app-timer timerKey="scoresheet" [defaultSeconds]="10" label="مؤقت المباراة" />
+  <app-timer timerKey="scoresheet" [defaultSeconds]="10" label="مؤقت المحاولة" />
 
   @if (current(); as strikeMatch) {
     <section class="strikes" aria-label="الأخطاء">

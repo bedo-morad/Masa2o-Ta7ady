@@ -27,7 +27,7 @@ import {
 
 export const RISK_TIERS = [5, 10, 20, 40] as const; // row order == tier order
 export const RISK_COUNT = 4; // one board == one draw of 4 packs
-export const RISK_CARDS = ['خطف', 'وقت إضافي', 'اختيار متعدد', 'مكالمة'] as const;
+export const RISK_CARDS = ['سرقة سؤال', 'وقت إضافي', 'اختيارات', 'الاتصال بصديق'] as const;
 
 /** Face value for a tier row (out of range → 0). */
 export function tierPoints(tier: number): number {

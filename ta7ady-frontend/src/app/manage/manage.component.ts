@@ -471,8 +471,8 @@ export class ManageComponent {
       this.top10Answers.set(Array(TOP10_SIZE).fill(''));
       if (this.page() === 0) this.reloadActive();
       else this.page.set(0);
-      this.msg.set('تمت إضافة قائمة التوب 10.');
-      this.toast.success('تمت إضافة قائمة التوب 10.');
+      this.msg.set('تمت إضافة قائمة توب 10.');
+      this.toast.success('تمت إضافة قائمة توب 10.');
     } catch (e: unknown) {
       const reason = this.apiMsg(e) ?? 'خطأ — يلزم عنوان و13 إجابة مميزة.';
       this.msg.set(reason);

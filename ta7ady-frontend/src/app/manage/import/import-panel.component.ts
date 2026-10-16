@@ -8,10 +8,10 @@ const POOL_LABEL: Record<Pool, string> = {
   players: 'أسماء اللاعبين',
   ihbid: 'اهبد صح',
   offside: 'أوفسايد',
-  top10: 'التوب 10',
-  scoresheet: 'ورقة المباراة',
-  bank: 'البنك',
-  risk: 'الريسك',
+  top10: 'توب 10',
+  scoresheet: 'سكور شيت',
+  bank: 'بنك',
+  risk: 'ريسك',
 };
 
 const SCHEMA_EXAMPLE: Record<Pool, string> = {

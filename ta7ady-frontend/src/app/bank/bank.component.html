@@ -4,7 +4,7 @@
     <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
   </div>
 
-  <h2>البنك</h2>
+  <h2>بنك</h2>
 
 
   @if (startTeam(); as starter) {
@@ -85,18 +85,18 @@
 
       <div class="chain-actions">
         <button type="button" class="act correct" (click)="correct()">
-          <i class="fa-solid fa-check" aria-hidden="true"></i> صح — يضاعف
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
         </button>
         <button type="button" class="act miss" (click)="miss()">
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i> خطأ — يمسح
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
         <button type="button" class="act bank" (click)="bank()" [disabled]="chainOf(idx()) <= 0">
-          <i class="fa-solid fa-vault" aria-hidden="true"></i> حصّن
+          <i class="fa-solid fa-vault" aria-hidden="true"></i> بنك
         </button>
       </div>
 
       <p class="chain-saved">
-        محصّن هذا الدور
+        نقاط الدور
         <span class="tabular-nums">{{ bankedOf(idx()) }}</span>
       </p>
     </section>
@@ -160,7 +160,7 @@
     <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()"/>
   } @else {
     <section class="gate" aria-label="اختيار الفريق البادئ">
-      <h3 class="gate-title">من يبدأ؟</h3>
+      <h3 class="gate-title">مين يبدأ؟</h3>
       <div class="gate-buttons">
         <button type="button" class="gate-btn team-a" (click)="pickStart('A')">
           {{ nameOf('A') }}

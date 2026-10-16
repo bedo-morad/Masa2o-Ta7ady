@@ -4,7 +4,7 @@
     <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
   </div>
 
-  <h2>الريسك</h2>
+  <h2>ريسك</h2>
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
@@ -31,7 +31,7 @@
               class="reroll"
               (click)="rerollColumn(c)"
               [disabled]="rerolling() !== null"
-              [attr.aria-label]="'تبديل جانب ' + p.genre"
+              [attr.aria-label]="'تغيير المجموعة ' + p.genre"
             >
               <i
                 class="fa-solid"

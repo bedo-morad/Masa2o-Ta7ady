@@ -46,9 +46,10 @@ The stored file stays schema-pure, so each row also carries `band` + `local` (+ 
 authoring-only files that never ship:
 
 - `seeds/_review/bank_data.py` — the 125-question review sample, `(question, answer, band, local)` tuples.
-- `seeds/_review/bank_data2.py` — the final 375, same tuples plus `FEAR_QUESTIONS` (the fear texts).
+- `seeds/_review/bank_data2.py` — the first batch's 375, same tuples plus `FEAR_QUESTIONS` (the fear texts).
+- `seeds/_review/bank_data3.py` — the second batch's 500, same tuples (5th item = fear flag).
 - `seeds/_review/bank_tool.py` — builds `seeds/bank.json` + `bank.meta.json`, then verifies.
-- `seeds/bank.json` — the committed, importer-ready pool (500).
+- `seeds/bank.json` — the committed, importer-ready pool (1000).
 - `seeds/_review/bank.meta.json` — parallel `{band, local, fear}` tags for mix review.
 
 `seeds/_review/` is **git-ignored**: the sample and the tooling are for authoring/review, and only
@@ -75,8 +76,12 @@ Exit code is non-zero on any failure, so it can gate a batch before import.
 ## 5. Rollout
 
 - **Sample: 125 questions** (25%) reviewed and approved.
-- **Final: 500** — `seeds/bank.json`, verified with the tool against the 500 targets
+- **First 500** — `seeds/bank.json`, verified with the tool against the 500 targets
   (mix **250 / 175 / 75**, local **125**, fear **26**, dedupe clean), then imported through the
   bulk importer's dry-run.
-- **Later: 1000.** Add batches of new angles; re-run dedupe against the whole pool and keep the
-  50 / 35 / 15 mix, ~25% local and ~5% fear at the larger size.
+- **Then 1000** — a second, non-overlapping 500 questions (new angles: league-by-season winners,
+  cup-final scorers, club founding years, career-start clubs, continental top scorers, Egyptian
+  legends/loan history). The build keeps the first 500 byte-identical and reconciles the new 500
+  for the doubled targets: mix **500 / 350 / 150**, local **~250**, fear **~50**, and a normalized
+  dedupe pass over the whole 1000 with **zero** old↔new overlap. Verified clean, then imported
+  through the bulk importer's dry-run.

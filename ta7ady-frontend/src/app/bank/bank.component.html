@@ -6,7 +6,6 @@
 
   <h2>البنك</h2>
 
-  <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
   @if (startTeam(); as starter) {
     <section class="order-row" aria-label="الفريق البادئ">
@@ -17,6 +16,58 @@
       <button type="button" class="new-game" (click)="newGame()" [disabled]="loading()">
         <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> لعبة جديدة
       </button>
+    </section>
+    <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB"/>
+
+    <app-timer timerKey="bank" [defaultSeconds]="120" label="مؤقت الدور"/>
+
+    <section class="qcard" aria-label="سؤال الدور">
+      <header class="qcard-head">
+        <span class="qcard-pos tabular-nums">{{ qIdx() + 1 }}/{{ qCount() }}</span>
+        @if (currentQuestion(); as q) {
+          <a
+            class="gq"
+            [href]="googleUrl(q.question)"
+            target="_blank"
+            rel="noopener"
+            aria-label="بحث عن السؤال"
+            title="بحث"
+          >
+            <i class="fa-brands fa-google"></i>
+          </a>
+        }
+      </header>
+
+      @if (currentQuestion(); as q) {
+        <p class="q">{{ q.question }}</p>
+        <p class="answer">
+          <span class="answer-label">الجواب</span>
+          <span class="answer-value">{{ q.answer }}</span>
+        </p>
+      } @else {
+        <p class="qempty">لم تُسحب أسئلة هذا الدور بعد.</p>
+      }
+
+      <footer class="qcard-foot">
+        <button
+          type="button"
+          class="qnav"
+          (click)="qPrev()"
+          [disabled]="qIdx() === 0"
+          aria-label="السؤال السابق"
+        >
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+        <button
+          type="button"
+          class="qnav"
+          (click)="qNext()"
+          [disabled]="qIdx() >= qCount() - 1"
+          aria-label="السؤال التالي"
+        >
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+      </footer>
     </section>
 
     <section class="chain" [class.maxed]="chainOf(idx()) >= maxChain" aria-label="تسلسل النقاط">
@@ -89,57 +140,6 @@
       </button>
     </div>
 
-    <section class="qcard" aria-label="سؤال الدور">
-      <header class="qcard-head">
-        <span class="qcard-pos tabular-nums">{{ qIdx() + 1 }}/{{ qCount() }}</span>
-        @if (currentQuestion(); as q) {
-          <a
-            class="gq"
-            [href]="googleUrl(q.question)"
-            target="_blank"
-            rel="noopener"
-            aria-label="بحث عن السؤال"
-            title="بحث"
-          >
-            <i class="fa-brands fa-google"></i>
-          </a>
-        }
-      </header>
-
-      @if (currentQuestion(); as q) {
-        <p class="q">{{ q.question }}</p>
-        <p class="answer">
-          <span class="answer-label">الجواب</span>
-          <span class="answer-value">{{ q.answer }}</span>
-        </p>
-      } @else {
-        <p class="qempty">لم تُسحب أسئلة هذا الدور بعد.</p>
-      }
-
-      <footer class="qcard-foot">
-        <button
-          type="button"
-          class="qnav"
-          (click)="qPrev()"
-          [disabled]="qIdx() === 0"
-          aria-label="السؤال السابق"
-        >
-          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-        </button>
-        <button
-          type="button"
-          class="qnav"
-          (click)="qNext()"
-          [disabled]="qIdx() >= qCount() - 1"
-          aria-label="السؤال التالي"
-        >
-          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-        </button>
-      </footer>
-    </section>
-
-    <app-timer timerKey="bank" [defaultSeconds]="120" label="مؤقت الدور" />
-
     <section class="history" aria-label="محصّن الأدوار">
       <h3 class="history-title">محصّن الأدوار</h3>
       <ol class="history-list">
@@ -157,7 +157,7 @@
       </ol>
     </section>
 
-    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
+    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()"/>
   } @else {
     <section class="gate" aria-label="اختيار الفريق البادئ">
       <h3 class="gate-title">من يبدأ؟</h3>

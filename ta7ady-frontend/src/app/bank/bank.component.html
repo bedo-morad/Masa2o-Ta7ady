@@ -9,12 +9,11 @@
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
   @if (startTeam(); as starter) {
-    <section class="order-row" aria-label="ترتيب الأدوار">
+    <section class="order-row" aria-label="الفريق البادئ">
       <span class="order-chip">
         <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
-        البداية: {{ nameOf(starter) }}
+        {{ nameOf(starter) }}
       </span>
-      <span class="order-note">يتناوبان تلقائيًا · ٣ أدوار لكل فريق</span>
       <button type="button" class="new-game" (click)="newGame()" [disabled]="loading()">
         <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> لعبة جديدة
       </button>
@@ -22,23 +21,18 @@
 
     <app-timer timerKey="bank" [defaultSeconds]="120" label="مؤقت الدور" />
 
-    <section
-      class="chain"
-      [class.wiped]="chainOf(idx()) === 0"
-      [class.maxed]="chainOf(idx()) >= maxChain"
-      aria-label="تسلسل النقاط"
-    >
+    <section class="chain" [class.maxed]="chainOf(idx()) >= maxChain" aria-label="تسلسل النقاط">
       <header class="chain-head">
-        <span class="chain-label">التسلسل الحالي</span>
-        @if (chainOf(idx()) === 0) {
-          <span class="chain-flag danger">انمسح</span>
-        } @else if (chainOf(idx()) >= maxChain) {
-          <span class="chain-flag gold">الحد الأقصى</span>
+        <span class="chain-label">التسلسل</span>
+        @if (chainOf(idx()) >= maxChain) {
+          <span class="chain-flag">الحد الأقصى</span>
         }
         <span class="chain-team">{{ nameOf(teamOfRound(idx())) }}</span>
       </header>
 
-      <div class="chain-hero tabular-nums" aria-live="polite">{{ chainOf(idx()) }}</div>
+      <div class="chain-hero tabular-nums" [class.zero]="chainOf(idx()) === 0" aria-live="polite">
+        {{ chainOf(idx()) }}
+      </div>
 
       <ol class="ladder" aria-label="سلّم التسلسل">
         @for (v of ladder; track v) {
@@ -59,12 +53,7 @@
         <button type="button" class="act miss" (click)="miss()">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i> خطأ — يمسح
         </button>
-        <button
-          type="button"
-          class="act bank"
-          (click)="bank()"
-          [disabled]="chainOf(idx()) <= 0"
-        >
+        <button type="button" class="act bank" (click)="bank()" [disabled]="chainOf(idx()) <= 0">
           <i class="fa-solid fa-vault" aria-hidden="true"></i> حصّن
         </button>
       </div>
@@ -114,39 +103,53 @@
       </button>
     </div>
 
-    <section class="board">
-      <div class="round-head">
-        <span class="round-no tabular-nums">الدور {{ idx() + 1 }} من {{ rounds.length }}</span>
-        <span class="round-team">{{ nameOf(teamOfRound(idx())) }}</span>
-        <span class="round-count tabular-nums">{{ perRound }} سؤالًا · ١٢٠ ث</span>
-      </div>
-
-      <ol class="qlist">
-        @for (q of currentRoundQuestions(); track q.id; let i = $index) {
-          <li class="qitem">
-            <div class="qtext">
-              <span class="qnum tabular-nums">{{ i + 1 }}</span>
-              <span class="qbody">{{ q.question }}</span>
-            </div>
-            <div class="qactions">
-              @if (revealed().has(q.id)) {
-                <div class="answer">
-                  <span class="value">{{ q.answer }}</span>
-                  <button type="button" class="mini" (click)="toggle(q.id)">
-                    <i class="fa-solid fa-eye-slash" aria-hidden="true"></i> إخفاء
-                  </button>
-                </div>
-              } @else {
-                <button type="button" class="mini ghost" (click)="toggle(q.id)">
-                  <i class="fa-solid fa-eye" aria-hidden="true"></i> إظهار الجواب للحكم
-                </button>
-              }
-            </div>
-          </li>
-        } @empty {
-          <li class="qempty">لم تُسحب أسئلة هذا الدور بعد.</li>
+    <section class="qcard" aria-label="سؤال الدور">
+      <header class="qcard-head">
+        <span class="qcard-pos tabular-nums">د{{ idx() + 1 }} · {{ qIdx() + 1 }}/{{ qCount() }}</span>
+        @if (currentQuestion(); as q) {
+          <a
+            class="gq"
+            [href]="googleUrl(q.question)"
+            target="_blank"
+            rel="noopener"
+            aria-label="بحث عن السؤال"
+            title="بحث"
+          >
+            <i class="fa-brands fa-google"></i>
+          </a>
         }
-      </ol>
+      </header>
+
+      @if (currentQuestion(); as q) {
+        <p class="q">{{ q.question }}</p>
+        <p class="answer">
+          <span class="answer-label">الجواب</span>
+          <span class="answer-value">{{ q.answer }}</span>
+        </p>
+      } @else {
+        <p class="qempty">لم تُسحب أسئلة هذا الدور بعد.</p>
+      }
+
+      <footer class="qcard-foot">
+        <button
+          type="button"
+          class="qnav"
+          (click)="qPrev()"
+          [disabled]="qIdx() === 0"
+          aria-label="السؤال السابق"
+        >
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+        <button
+          type="button"
+          class="qnav"
+          (click)="qNext()"
+          [disabled]="qIdx() >= qCount() - 1"
+          aria-label="السؤال التالي"
+        >
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+      </footer>
     </section>
 
     <section class="history" aria-label="محصّن الأدوار">
@@ -170,9 +173,6 @@
   } @else {
     <section class="gate" aria-label="اختيار الفريق البادئ">
       <h3 class="gate-title">من يبدأ؟</h3>
-      <p class="gate-note">
-        اختر الفريق الذي يفتح الدور الأول؛ بقية الأدوار تتبادل تلقائيًا — ٣ أدوار لكل فريق.
-      </p>
       <div class="gate-buttons">
         <button type="button" class="gate-btn team-a" (click)="pickStart('A')">
           {{ nameOf('A') }}
@@ -181,10 +181,6 @@
           {{ nameOf('B') }}
         </button>
       </div>
-      <p class="gate-hint">
-        <i class="fa-solid fa-shuffle" aria-hidden="true"></i>
-        {{ total }} سؤالًا تُسحب مرة واحدة في بداية اللعبة — {{ perRound }} لكل دور، بلا تكرار.
-      </p>
     </section>
   }
 

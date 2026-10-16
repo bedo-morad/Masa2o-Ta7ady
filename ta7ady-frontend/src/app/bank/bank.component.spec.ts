@@ -49,12 +49,12 @@ describe('BankComponent', () => {
     return fixture.componentInstance;
   }
 
-  it('creates with no start team and an armed chain', () => {
+  it('creates with no start team and an empty chain', () => {
     const c = setup();
     expect(c).toBeTruthy();
     expect(c.startTeam()).toBeNull();
     expect(c.teamOfRound(0)).toBeNull();
-    expect(c.chainOf(0)).toBe(1);
+    expect(c.chainOf(0)).toBe(0);
     expect(c.bankedOf(0)).toBe(0);
     expect(c.audit().length).toBe(0);
   });
@@ -79,8 +79,10 @@ describe('BankComponent', () => {
     expect(c.teamOfRound(5)).toBe('A');
   });
 
-  it('Correct doubles the displayed chain (1 → 2 → 4 → 8)', () => {
+  it('Correct sets 1 on a zeroed chain, then doubles (0 → 1 → 2 → 4 → 8)', () => {
     const c = setup();
+    expect(c.chainOf(0)).toBe(0);
+    c.correct();
     expect(c.chainOf(0)).toBe(1);
     c.correct();
     expect(c.chainOf(0)).toBe(2);
@@ -96,11 +98,11 @@ describe('BankComponent', () => {
     expect(c.chainOf(0)).toBe(BANK_CHAIN_MAX);
   });
 
-  it('Miss zeroes the unbanked chain; the next Correct restarts it', () => {
+  it('Miss zeroes the unbanked chain; the next Correct sets 1 again', () => {
     const c = setup();
     c.correct();
     c.correct();
-    expect(c.chainOf(0)).toBe(4);
+    expect(c.chainOf(0)).toBe(2);
     c.miss();
     expect(c.chainOf(0)).toBe(0);
     c.correct();
@@ -119,10 +121,11 @@ describe('BankComponent', () => {
     expect(c.audit().length).toBe(0);
   });
 
-  it('BANK is the only writer: scoreboard delta + audit, then chain resets to 1', () => {
+  it('BANK is the only writer: scoreboard delta + audit, then chain resets to 0', () => {
     const c = setup();
     c.pickStart('A');
     c.correct();
+    c.correct(); // chain 2
     c.correct(); // chain 4
     c.bank();
     expect(c.scoreA()).toBe(4);
@@ -131,37 +134,38 @@ describe('BankComponent', () => {
       expect.objectContaining({ team: 'A', delta: 4, label: 'بنك الدور 1' }),
     );
     expect(c.bankedOf(0)).toBe(4);
-    expect(c.chainOf(0)).toBe(1);
+    expect(c.chainOf(0)).toBe(0);
   });
 
   it('BANK credits the round owner, not always team A', () => {
     const c = setup();
     c.pickStart('A');
     c.go(1); // round 2 belongs to team B
+    c.correct();
     c.correct(); // chain 2
     c.bank();
     expect(c.scoreA()).toBe(0);
     expect(c.scoreB()).toBe(2);
     expect(c.bankedOf(1)).toBe(2);
+    expect(c.chainOf(1)).toBe(0);
   });
 
   it('BANK accumulates across the same round', () => {
     const c = setup();
     c.pickStart('A');
+    c.correct(); // 1
+    c.bank();
+    c.correct(); // 1
     c.correct(); // 2
     c.bank();
-    c.correct();
-    c.correct(); // 4
-    c.bank();
-    expect(c.scoreA()).toBe(6);
-    expect(c.bankedOf(0)).toBe(6);
+    expect(c.scoreA()).toBe(3);
+    expect(c.bankedOf(0)).toBe(3);
   });
 
-  it('BANK on a wiped chain writes nothing', () => {
+  it('BANK on a zeroed chain writes nothing', () => {
     const c = setup();
     c.pickStart('A');
-    c.miss(); // chain 0
-    c.bank();
+    c.bank(); // chain still 0
     expect(c.scoreA()).toBe(0);
     expect(c.audit().length).toBe(0);
     expect(c.bankedOf(0)).toBe(0);
@@ -169,7 +173,7 @@ describe('BankComponent', () => {
 
   it('BANK before the start team is picked writes nothing', () => {
     const c = setup();
-    c.correct();
+    c.correct(); // chain 1, but no round owner yet
     c.bank();
     expect(c.scoreA()).toBe(0);
     expect(c.scoreB()).toBe(0);
@@ -179,13 +183,13 @@ describe('BankComponent', () => {
   it('keeps a separate chain per round', () => {
     const c = setup();
     c.pickStart('A');
-    c.correct(); // round 1 → 2
+    c.correct(); // round 1 → 1
     c.go(2);
-    expect(c.chainOf(2)).toBe(1);
-    c.correct(); // round 3 → 2
+    expect(c.chainOf(2)).toBe(0);
+    c.correct(); // round 3 → 1
     c.go(0);
-    expect(c.chainOf(0)).toBe(2);
-    expect(c.chainOf(2)).toBe(2);
+    expect(c.chainOf(0)).toBe(1);
+    expect(c.chainOf(2)).toBe(1);
   });
 
   it('navigation stays in bounds', () => {
@@ -201,29 +205,69 @@ describe('BankComponent', () => {
     expect(c.idx()).toBe(BANK_ROUNDS - 2);
   });
 
-  it('reveals and re-hides one answer at a time', () => {
+  it('shows one card at a time with the answer open', () => {
     const c = setup();
-    c.toggle(7);
-    expect(c.revealed().has(7)).toBe(true);
-    c.toggle(7);
-    expect(c.revealed().has(7)).toBe(false);
+    c.questions.set(draw(72));
+    const q = c.currentQuestion();
+    expect(q?.question).toBe('سؤال 1');
+    expect(q?.answer).toBe('جواب 1');
+  });
+
+  it('pages the round cards and stops at both ends', () => {
+    const c = setup();
+    c.questions.set(draw(72));
+    expect(c.qCount()).toBe(12);
+    c.qPrev();
+    expect(c.qIdx()).toBe(0); // greyed at the first card
+    c.qNext();
+    expect(c.currentQuestion()?.id).toBe(2);
+    c.qIdx.set(11);
+    c.qNext();
+    expect(c.qIdx()).toBe(11); // greyed at the last card
+    c.qPrev();
+    expect(c.currentQuestion()?.id).toBe(11);
+  });
+
+  it('a round change resets the question cursor to the first card', () => {
+    const c = setup();
+    c.questions.set(draw(72));
+    c.pickStart('A');
+    c.qNext();
+    c.qNext();
+    expect(c.qIdx()).toBe(2);
+    c.next();
+    expect(c.qIdx()).toBe(0);
+    c.qNext();
+    expect(c.qIdx()).toBe(1);
+    c.prev();
+    expect(c.qIdx()).toBe(0);
+    c.go(3);
+    expect(c.qIdx()).toBe(0);
+  });
+
+  it('builds an encoded google search url per question', () => {
+    const c = setup();
+    expect(c.googleUrl('من فاز 1990؟')).toBe(
+      `https://www.google.com/search?q=${encodeURIComponent('من فاز 1990؟')}`,
+    );
   });
 
   it('newGame re-gates the start team and clears every tally', () => {
     const c = setup();
+    c.questions.set(draw(72));
     c.pickStart('A');
     c.correct();
     c.bank();
     c.go(3);
-    c.toggle(5);
+    c.qNext();
     c.newGame();
     expect(c.startTeam()).toBeNull();
     expect(c.idx()).toBe(0);
-    expect(c.chainOf(0)).toBe(1);
+    expect(c.qIdx()).toBe(0);
+    expect(c.chainOf(0)).toBe(0);
     expect(c.bankedOf(0)).toBe(0);
     expect(c.scoreA()).toBe(0);
     expect(c.scoreB()).toBe(0);
     expect(c.audit().length).toBe(0);
-    expect(c.revealed().size).toBe(0);
   });
 });

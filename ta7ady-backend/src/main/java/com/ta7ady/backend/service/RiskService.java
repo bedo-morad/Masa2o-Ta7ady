@@ -96,8 +96,8 @@ public class RiskService {
             } else if (!seen.add(text.toLowerCase())) {
                 errors.add("tier " + tier + " question is a duplicate");
             }
-            if (answer.isEmpty()) {
-                errors.add("tier " + tier + " answer must not be empty");
+            if (answer.length() < 3) {
+                errors.add("tier " + tier + " answer must be at least 3 characters");
             }
         }
         return errors;

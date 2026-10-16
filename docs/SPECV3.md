@@ -48,7 +48,7 @@ attribution patterns). Terms: `CONTEXT.md`. Rules: `RULES.md`. Authoring: `AUTHO
   120s timer, rapid-fire; one question card at a time showing question + answer openly
   (no hidden/reveal — referee-visible by design), with Prev/Next question buttons
   (greyed at first/last). Card counter is a styled pill showing question number only
-  (`N/12`, no round tag). Layout order per round: chain box → question card → timer.
+  (`N/12`, no round tag). Layout order per round: timer → question card → chain box.
   No explanatory/rules text on the page. Each card has a Google
   search icon (Ihbid pattern) for on-the-fly fact-check. No redraw button inside a round,
   no per-question dice (luck of the draw is the game). Answered rounds stay reviewable.

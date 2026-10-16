@@ -5,7 +5,47 @@ import {
   attributionDeltas,
   signed,
 } from './attribution.component';
+import { rankValue, teamContribution, trioHolder } from './rank-points';
 import { SettingsService } from '../settings/settings.service';
+
+describe('rankValue', () => {
+  it('ranks 1-10 score their rank', () => {
+    expect(rankValue(1)).toBe(1);
+    expect(rankValue(5)).toBe(5);
+    expect(rankValue(10)).toBe(10);
+  });
+
+  it('ranks 11/12/13 score negative', () => {
+    expect(rankValue(11)).toBe(-1);
+    expect(rankValue(12)).toBe(-2);
+    expect(rankValue(13)).toBe(-3);
+  });
+});
+
+describe('trioHolder + teamContribution', () => {
+  it('no trio without all three negative ranks', () => {
+    expect(trioHolder({ 11: 'A', 12: 'A' })).toBeNull();
+    expect(trioHolder({ 11: 'A', 12: 'A', 13: 'B' })).toBeNull();
+  });
+
+  it('holding 11+12+13 flips the trio to +6', () => {
+    const m = { 11: 'A', 12: 'A', 13: 'A' } as const;
+    expect(trioHolder(m)).toBe('A');
+    expect(teamContribution(m, 'A')).toBe(6);
+    expect(teamContribution(m, 'B')).toBe(0);
+  });
+
+  it('trio bonus stacks with positive ranks', () => {
+    const m = { 10: 'B', 11: 'B', 12: 'B', 13: 'B' } as const;
+    expect(teamContribution(m, 'B')).toBe(16);
+  });
+
+  it('split negatives score naive values only', () => {
+    const m = { 11: 'A', 12: 'B', 13: 'A' } as const;
+    expect(teamContribution(m, 'A')).toBe(-4);
+    expect(teamContribution(m, 'B')).toBe(-2);
+  });
+});
 
 describe('attributionDeltas', () => {
   it('assigns full points to the picked team', () => {
@@ -82,6 +122,25 @@ describe('AttributionComponent', () => {
     expect(last).toEqual(
       expect.objectContaining({ picked: 'B', from: 'A', to: 'B' }),
     );
+  });
+
+  it('fixed mode (default) books the flat points value', () => {
+    const fixture = TestBed.createComponent(AttributionComponent);
+    fixture.componentRef.setInput('points', 7);
+    expect(fixture.componentInstance.displayPoints()).toBe(7);
+  });
+
+  it('mode: rank derives the points from the rank', () => {
+    const fixture = TestBed.createComponent(AttributionComponent);
+    fixture.componentRef.setInput('mode', 'rank');
+    fixture.componentRef.setInput('rank', 11);
+    expect(fixture.componentInstance.displayPoints()).toBe(-1);
+    const seen: { picked: 'A' | 'B'; points: number }[] = [];
+    fixture.componentInstance.change.subscribe((c) =>
+      seen.push({ picked: c.picked, points: c.points }),
+    );
+    fixture.componentInstance.tap('A');
+    expect(seen).toEqual([{ picked: 'A', points: -1 }]);
   });
 });
 

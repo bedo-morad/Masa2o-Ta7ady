@@ -11,6 +11,14 @@ import {
   AuditEntry,
   AuditStripComponent,
 } from '../shared/attribution/attribution.component';
+import {
+  StrikeBump,
+  StrikeRename,
+  StrikeSlot,
+  StrikeTrackerComponent,
+  clampMistakes,
+  isEliminated,
+} from '../shared/strike-tracker/strike-tracker.component';
 
 // Score Sheet (RULES.md): each correct player name = 1 point, attributed by
 // referee tap. Both full lineups are referee-visible from the start.
@@ -23,11 +31,6 @@ import {
 
 export type Side = 'A' | 'B';
 export type PlayerMap = Record<string, AssignedTeam>; // "A:3" / "B:7" -> team
-
-export interface StrikeSlot {
-  name: string;
-  mistakes: number;
-}
 
 export function playerKey(side: Side, index: number): string {
   return `${side}:${index}`;
@@ -48,6 +51,7 @@ function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
     ScoreboardComponent,
     TimerComponent,
     AuditStripComponent,
+    StrikeTrackerComponent,
   ],
   templateUrl: './scoresheet.component.html',
   styleUrl: './scoresheet.component.scss',
@@ -219,8 +223,9 @@ export class ScoresheetComponent {
     this.teamB.set(oldA);
   }
 
+  /** Display-only: the shared tracker flags it, the referee enforces. */
   isOut(slot: StrikeSlot): boolean {
-    return slot.mistakes >= 3;
+    return isEliminated(slot, 3);
   }
 
   setSlotName(matchId: number, i: number, name: string): void {
@@ -237,7 +242,7 @@ export class ScoresheetComponent {
       const cur = ss[matchId];
       if (!cur) return ss;
       const next = cur.map((s, j) =>
-        j === i ? { ...s, mistakes: Math.min(3, Math.max(0, s.mistakes + d)) } : s,
+        j === i ? { ...s, mistakes: clampMistakes(s.mistakes + d, 3) } : s,
       );
       return { ...ss, [matchId]: next };
     });
@@ -250,5 +255,18 @@ export class ScoresheetComponent {
       const next = cur.map((s, j) => (j === i ? { ...s, mistakes: 0 } : s));
       return { ...ss, [matchId]: next };
     });
+  }
+
+  // Event forwarders for the shared strike tracker (state stays page-owned).
+  onSlotBump(matchId: number, b: StrikeBump): void {
+    this.bumpMistake(matchId, b.index, b.delta);
+  }
+
+  onSlotReset(matchId: number, i: number): void {
+    this.resetSlot(matchId, i);
+  }
+
+  onSlotRename(matchId: number, r: StrikeRename): void {
+    this.setSlotName(matchId, r.index, r.name);
   }
 }

@@ -16,51 +16,13 @@
   <app-timer timerKey="scoresheet" [defaultSeconds]="10" label="مؤقت المحاولة" />
 
   @if (current(); as strikeMatch) {
-    <section class="strikes" aria-label="الأخطاء">
-      @for (s of slotsOf(strikeMatch); track $index; let i = $index) {
-        <div class="slot" [class.out]="isOut(s)">
-          <input
-            class="sname"
-            [ngModel]="s.name"
-            (ngModelChange)="setSlotName(strikeMatch.id, i, $event)"
-            [attr.aria-label]="'اسم اللاعب ' + (i + 1)"
-          />
-          <div class="stepper" role="group" [attr.aria-label]="'أخطاء ' + s.name">
-            <button
-              type="button"
-              class="step"
-              (click)="bumpMistake(strikeMatch.id, i, -1)"
-              [disabled]="s.mistakes <= 0"
-              aria-label="إنقاص الأخطاء"
-            >
-              <i class="fa-solid fa-minus"></i>
-            </button>
-            <span class="mcount tabular-nums">{{ s.mistakes }}</span>
-            <button
-              type="button"
-              class="step"
-              (click)="bumpMistake(strikeMatch.id, i, 1)"
-              [disabled]="s.mistakes >= 3"
-              aria-label="زيادة الأخطاء"
-            >
-              <i class="fa-solid fa-plus"></i>
-            </button>
-            <button
-              type="button"
-              class="step ghost"
-              (click)="resetSlot(strikeMatch.id, i)"
-              [disabled]="s.mistakes <= 0"
-              aria-label="تصفير الأخطاء"
-            >
-              <i class="fa-solid fa-rotate-left"></i>
-            </button>
-          </div>
-          @if (isOut(s)) {
-            <span class="out-chip">مستبعد</span>
-          }
-        </div>
-      }
-    </section>
+    <app-strike-tracker
+      [slots]="slotsOf(strikeMatch)"
+      [eliminationThreshold]="3"
+      (bump)="onSlotBump(strikeMatch.id, $event)"
+      (reset)="onSlotReset(strikeMatch.id, $event)"
+      (rename)="onSlotRename(strikeMatch.id, $event)"
+    />
   }
 
   <div class="draw-row">

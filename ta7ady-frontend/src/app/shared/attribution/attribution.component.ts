@@ -1,5 +1,6 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { SettingsService } from '../settings/settings.service';
+import { rankValue } from './rank-points';
 
 // Shared attribution interaction (SPECV2 §2.3): the referee taps team A or B
 // for an answer. The component owns the toggle math (tap again unassigns)
@@ -8,6 +9,10 @@ import { SettingsService } from '../settings/settings.service';
 // auto-score only: no turn order, no eligibility checks, no locks.
 
 export type AssignedTeam = 'A' | 'B' | null;
+
+/** 'fixed': the host passes a flat `points` value (Score-sheet, Whopicture).
+ * 'rank': the host passes a `rank` and the component owns the rank math. */
+export type AttributionMode = 'fixed' | 'rank';
 
 export interface AttributionChange {
   label: string;
@@ -53,6 +58,8 @@ export function signed(n: number): string {
 export class AttributionComponent {
   readonly label = input('');
   readonly points = input(0);
+  readonly mode = input<AttributionMode>('fixed');
+  readonly rank = input(0);
   readonly assigned = input<AssignedTeam>(null);
   readonly teamA = input('');
   readonly teamB = input('');
@@ -63,10 +70,15 @@ export class AttributionComponent {
   readonly stretch = input(false);
   readonly change = output<AttributionChange>();
 
+  /** Fixed mode books the host's flat value; rank mode books rankValue(rank). */
+  readonly displayPoints = computed(() =>
+    this.mode() === 'rank' ? rankValue(this.rank()) : this.points(),
+  );
+
   tap(picked: 'A' | 'B'): void {
     const from = this.assigned();
     const to: AssignedTeam = from === picked ? null : picked;
-    this.change.emit({ label: this.label(), points: this.points(), picked, from, to });
+    this.change.emit({ label: this.label(), points: this.displayPoints(), picked, from, to });
   }
 
   fmt(n: number): string {

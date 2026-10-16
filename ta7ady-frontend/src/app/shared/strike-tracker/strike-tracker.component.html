@@ -1,0 +1,47 @@
+@if (anySlot()) {
+  <section class="strikes" aria-label="الأخطاء">
+    @for (s of slots(); track $index; let i = $index) {
+      <div class="slot" [class.out]="out(i)">
+        <input
+          class="sname"
+          [ngModel]="s.name"
+          (ngModelChange)="retitle(i, $event)"
+          [attr.aria-label]="'اسم اللاعب ' + (i + 1)"
+        />
+        <div class="stepper" role="group" [attr.aria-label]="'أخطاء ' + s.name">
+          <button
+            type="button"
+            class="step"
+            (click)="bumpDown(i)"
+            [disabled]="!canGoDown(i)"
+            aria-label="إنقاص الأخطاء"
+          >
+            <i class="fa-solid fa-minus"></i>
+          </button>
+          <span class="mcount tabular-nums">{{ s.mistakes }}</span>
+          <button
+            type="button"
+            class="step"
+            (click)="bumpUp(i)"
+            [disabled]="!canGoUp(i)"
+            aria-label="زيادة الأخطاء"
+          >
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <button
+            type="button"
+            class="step ghost"
+            (click)="resetSlot(i)"
+            [disabled]="!canGoDown(i)"
+            aria-label="تصفير الأخطاء"
+          >
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+        @if (out(i)) {
+          <span class="out-chip">مستبعد</span>
+        }
+      </div>
+    }
+  </section>
+}

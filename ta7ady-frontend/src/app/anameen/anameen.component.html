@@ -1,0 +1,171 @@
+<div class="challenge">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
+  </div>
+
+  <h2>من أنا؟</h2>
+
+  @if (startTeam(); as starter) {
+    <section class="order-row" aria-label="الفريق البادئ">
+      <span class="order-chip">
+        <i class="fa-solid fa-user-secret" aria-hidden="true"></i>
+        {{ nameOf(starter) }}
+      </span>
+      <button type="button" class="new-game" (click)="newGame()" [disabled]="loading()">
+        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> لعبة جديدة
+      </button>
+    </section>
+    <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
+
+    <app-timer timerKey="anameen" [defaultSeconds]="60" label="مؤقت التلميح" />
+
+    <div class="draw-row">
+      <label for="am-count">عدد المجهولين</label>
+      <select id="am-count" [(ngModel)]="count">
+        @for (n of counts; track n) {
+          <option [ngValue]="n">{{ n }}</option>
+        }
+      </select>
+      <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
+        <i class="fa-solid fa-shuffle"></i> سحب جديد
+      </button>
+    </div>
+
+    @if (current(); as subject) {
+      @if (subjects().length > 1) {
+        <div class="nav-row">
+          <button type="button" class="navbtn" (click)="prev()" [disabled]="idx() === 0" aria-label="الموضوع السابق">
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+          </button>
+          <div class="dots" role="group" aria-label="المجهولون">
+            @for (s of subjects(); track s.id; let i = $index) {
+              <button
+                type="button"
+                class="dot tabular-nums"
+                [class.on]="i === idx()"
+                [class.team-a]="teamOf(i) === 'A'"
+                [class.team-b]="teamOf(i) === 'B'"
+                (click)="go(i)"
+                [attr.aria-label]="'المجهول ' + (i + 1)"
+              >
+                {{ i + 1 }}
+              </button>
+            }
+          </div>
+          <button
+            type="button"
+            class="navbtn"
+            (click)="next()"
+            [disabled]="idx() >= subjects().length - 1"
+            aria-label="الموضوع التالي"
+          >
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
+
+      <section class="dossier" aria-label="ملف اللاعب المجهول">
+        <header class="dossier-head">
+          <span class="pos tabular-nums">{{ idx() + 1 }}/{{ subjects().length }}</span>
+          <span class="owner">{{ nameOf(teamOf(idx())) }}</span>
+          <button
+            type="button"
+            class="dice"
+            (click)="reroll(idx())"
+            [disabled]="rerolling()"
+            [attr.aria-label]="'دسّة لاعب جديد للمجهول ' + (idx() + 1)"
+          >
+            <i
+              class="fa-solid"
+              [class.fa-dice]="!rerolling()"
+              [class.fa-spinner]="rerolling()"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </header>
+
+        <div class="mystery" aria-hidden="true">؟</div>
+
+        <ol class="slats">
+          @for (k of clueSlots; track k) {
+            @if (k <= openedOf(subject.id)) {
+              <li class="slat open">
+                <span class="no tabular-nums">{{ k }}</span>
+                <p class="text">{{ clueAt(subject, k) }}</p>
+              </li>
+            } @else {
+              <li class="slat closed">
+                <span class="seal">
+                  <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                  التلميح {{ k }}
+                </span>
+              </li>
+            }
+          }
+        </ol>
+
+        <button
+          type="button"
+          class="open-next"
+          (click)="revealNext()"
+          [disabled]="!canOpenMore(subject)"
+          [attr.aria-label]="canOpenMore(subject) ? 'فتح التلميح التالي' : 'كل التلميحات مفتوحة'"
+        >
+          @if (canOpenMore(subject)) {
+            <i class="fa-solid fa-lock-open" aria-hidden="true"></i> افتح التلميح التالي
+          } @else {
+            <i class="fa-solid fa-door-open" aria-hidden="true"></i> الملف كامل — حكم الجواب
+          }
+        </button>
+
+        <p class="answer">
+          <span class="answer-label">اللاعب</span>
+          <span class="answer-value">{{ subject.player }}</span>
+          <a
+            class="gq"
+            [href]="googleUrl(subject.player)"
+            target="_blank"
+            rel="noopener"
+            aria-label="بحث عن اللاعب"
+            title="بحث"
+          >
+            <i class="fa-brands fa-google"></i>
+          </a>
+        </p>
+      </section>
+
+      <section class="solve" aria-label="احتساب الإجابة">
+        <p class="solve-label">مين؟</p>
+        <app-attribution
+          [label]="subject.player"
+          [points]="1"
+          [assigned]="assigned(subject.id)"
+          [teamA]="teamA() || 'الفريق الأول'"
+          [teamB]="teamB() || 'الفريق الثاني'"
+          [showPoints]="false"
+          [stretch]="true"
+          (change)="onAssign($event)"
+        />
+      </section>
+
+      <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
+    }
+  } @else {
+    <section class="gate" aria-label="اختيار الفريق البادئ">
+      <h3 class="gate-title">مين يبدأ؟</h3>
+      <div class="gate-buttons">
+        <button type="button" class="gate-btn team-a" (click)="pickStart('A')">
+          {{ nameOf('A') }}
+        </button>
+        <button type="button" class="gate-btn team-b" (click)="pickStart('B')">
+          {{ nameOf('B') }}
+        </button>
+      </div>
+    </section>
+  }
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+</div>

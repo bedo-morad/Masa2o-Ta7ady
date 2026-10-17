@@ -1,0 +1,465 @@
+.challenge {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  a {
+    color: var(--pitch-ink-dim);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+
+    i {
+      margin-inline-end: 0.3rem;
+    }
+  }
+}
+
+h2 {
+  font-size: 1.9rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.notice {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.8rem 1rem;
+  color: var(--pitch-ink-dim);
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--pitch-gold);
+  outline-offset: 2px;
+}
+
+// ── Start gate + opening-team chip (chrome pattern) ───────────
+.gate {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 1.2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  text-align: center;
+}
+
+.gate-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.gate-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.gate-btn {
+  min-height: 84px;
+  border-radius: 14px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 900;
+  padding: 0.6rem;
+  cursor: pointer;
+
+  &.team-a {
+    background: color-mix(in srgb, var(--pitch-accent-deep) 32%, var(--pitch-surface-2));
+    border-color: var(--pitch-accent);
+  }
+
+  &.team-b {
+    background: color-mix(in srgb, var(--pitch-gold) 22%, var(--pitch-surface-2));
+    border-color: var(--pitch-gold);
+  }
+}
+
+.order-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--pitch-surface-2);
+  border: 1px solid var(--pitch-line);
+  border-radius: 12px;
+  padding: 0.5rem 0.7rem;
+}
+
+.order-chip {
+  font-weight: 900;
+
+  i {
+    margin-inline-end: 0.3rem;
+    color: var(--pitch-gold);
+  }
+}
+
+.new-game {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: 1px solid var(--pitch-line);
+  color: var(--pitch-ink-dim);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.85rem;
+  min-height: 44px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+// ── Draw row ──────────────────────────────────────────────────
+.draw-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  label {
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--pitch-ink-dim);
+  }
+
+  select {
+    min-height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--pitch-line);
+    background: var(--pitch-surface);
+    color: var(--pitch-ink);
+    font-family: inherit;
+    font-weight: 800;
+    padding: 0 0.6rem;
+  }
+}
+
+.redraw {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+// ── Subject rail ──────────────────────────────────────────────
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.navbtn {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+.dots {
+  display: flex;
+  gap: 0.4rem;
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dot {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+  font-family: inherit;
+  font-weight: 900;
+  cursor: pointer;
+
+  &.team-a {
+    box-shadow: inset 0 3px 0 var(--pitch-accent);
+  }
+
+  &.team-b {
+    box-shadow: inset 0 3px 0 var(--pitch-gold);
+  }
+
+  &.on {
+    background: var(--pitch-accent-deep);
+    border-color: var(--pitch-accent-deep);
+    color: #fff;
+  }
+}
+
+// ── Signature: the dossier (؟ + five clue slats, hard → easy) ─
+.dossier {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.dossier-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pos {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.15rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-weight: 900;
+  font-size: 0.9rem;
+}
+
+.owner {
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dice {
+  margin-inline-start: auto;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.mystery {
+  text-align: center;
+  font-size: clamp(3.2rem, 16vw, 4.6rem);
+  font-weight: 900;
+  line-height: 1.05;
+  color: var(--pitch-gold);
+  // The hidden identity floats behind the slats as a single interrogation mark.
+  text-shadow: 0 0 0.35em color-mix(in srgb, var(--pitch-gold) 35%, transparent);
+}
+
+.slats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.slat {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--pitch-line);
+  border-radius: 10px;
+  background: var(--pitch-surface-2);
+  padding: 0.35rem 0.55rem;
+  min-height: 48px;
+
+  .no {
+    flex: none;
+    font-weight: 900;
+    color: var(--pitch-gold);
+    border-inline-end: 2px solid var(--pitch-line);
+    padding-inline-end: 0.55rem;
+  }
+
+  .text {
+    margin: 0;
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  // Sealed clue: a hatched strip, descending order = harder clues sit sealed.
+  .seal {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+    min-height: 38px;
+    border-radius: 8px;
+    padding: 0.45rem 0.7rem;
+    font-weight: 800;
+    font-size: 0.88rem;
+    color: var(--pitch-ink-dim);
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent 0 7px,
+      color-mix(in srgb, var(--pitch-line) 55%, transparent) 7px 9px
+    );
+
+    i {
+      color: var(--pitch-line);
+    }
+  }
+
+  &.open {
+    border-inline-start: 3px solid var(--pitch-gold);
+    background: var(--pitch-surface);
+    animation: seal-off 0.3s ease-out;
+  }
+}
+
+@keyframes seal-off {
+  from {
+    transform: translateY(-3px) scale(0.985, 0.94);
+    opacity: 0.55;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.open-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--pitch-gold);
+  background: var(--pitch-gold);
+  color: #000;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 0.95rem;
+  cursor: pointer;
+
+  &:disabled {
+    background: none;
+    color: var(--pitch-ink-dim);
+    border-color: var(--pitch-line);
+    cursor: default;
+  }
+}
+
+.answer {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: color-mix(in srgb, var(--pitch-gold) 12%, var(--pitch-surface-2));
+  border: 1px solid color-mix(in srgb, var(--pitch-gold) 42%, var(--pitch-line));
+  border-radius: 12px;
+  padding: 0.55rem 0.8rem;
+}
+
+.answer-label {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: var(--pitch-ink-dim);
+}
+
+.answer-value {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--pitch-gold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gq {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-block: -0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink-dim);
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+// ── The solve: shared attribution, +1 flat ────────────────────
+.solve {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.solve-label {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--pitch-ink-dim);
+}
+
+@media (max-width: 360px) {
+  .gate-btn {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slat.open {
+    animation: none;
+  }
+}

@@ -236,7 +236,8 @@
   }
   @if (pool() === 'whopicture') {
     <form class="add column" (ngSubmit)="addWhopicture()">
-      <input [(ngModel)]="newPhotoUrl" name="nurl" placeholder="رابط الصورة — https://…" />
+      <input [(ngModel)]="newPhotoTitle" name="ntitle" placeholder="العنوان — الأهلي 2021 نهائي دوري أبطال أفريقيا" aria-label="عنوان الصورة" />
+      <input [(ngModel)]="newPhotoUrl" name="nurl" placeholder="رابط الصورة — https://…" aria-label="رابط الصورة" />
       <ol class="lineup">
         @for (slot of lineupSlots; track slot; let i = $index) {
           <li>
@@ -720,6 +721,12 @@
           @if (adminOn() && editingId() === w.id) {
             <form class="edit column" (ngSubmit)="saveEditWhopicture(w.id)">
               <input
+                [(ngModel)]="editPhotoTitle"
+                name="editPhotoTitle"
+                placeholder="العنوان"
+                aria-label="تعديل عنوان الصورة"
+              />
+              <input
                 [(ngModel)]="editPhotoUrl"
                 name="editPhotoUrl"
                 placeholder="رابط الصورة"
@@ -751,9 +758,12 @@
                 class="row-main"
                 (click)="toggle(w.id)"
                 [attr.aria-expanded]="isOpen(w.id)"
-                [attr.aria-label]="(isOpen(w.id) ? 'إخفاء الأسماء: ' : 'عرض الأسماء: ') + w.photoUrl"
+                [attr.aria-label]="(isOpen(w.id) ? 'إخفاء الصورة والأسماء: ' : 'عرض الصورة والأسماء: ') + w.title"
               >
-                <span class="prompt"><strong>{{ w.photoUrl }}</strong></span>
+                <span class="prompt">
+                  <strong>{{ w.title }}</strong>
+                  <span class="pill-quiet">{{ w.photoUrl }}</span>
+                </span>
                 <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(w.id)" aria-hidden="true"></i>
               </button>
               @if (adminOn()) {
@@ -768,6 +778,9 @@
               }
             </div>
             @if (isOpen(w.id)) {
+              <figure class="wp-preview" aria-label="معاينة الصورة">
+                <img [src]="w.photoUrl" [alt]="w.title" loading="lazy" />
+              </figure>
               <ol class="reveal">
                 @for (n of w.players; track $index) {
                   <li>

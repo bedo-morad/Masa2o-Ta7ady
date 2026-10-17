@@ -56,7 +56,8 @@ export class ManageComponent {
   // Ana Meen (SPECV4 §4.1): subject name + 5 clues, hard -> easy.
   readonly newSubject = signal('');
   readonly newClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
-  // Who-in-Picture (SPECV4 §4.3): one hotlinked photo + 11 pictured names.
+  // Who-in-Picture (SPECV4 §4.3): title + hotlinked photo + 11 pictured names.
+  readonly newPhotoTitle = signal('');
   readonly newPhotoUrl = signal('');
   readonly newPhotoPlayers = signal<string[]>(Array(LINEUP_SIZE).fill(''));
 
@@ -84,6 +85,7 @@ export class ManageComponent {
   readonly editRisk = signal<RiskQuestion[]>(blankRisk());
   readonly editSubject = signal('');
   readonly editClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
+  readonly editPhotoTitle = signal('');
   readonly editPhotoUrl = signal('');
   readonly editPhotoPlayers = signal<string[]>(Array(LINEUP_SIZE).fill(''));
 
@@ -360,6 +362,7 @@ export class ManageComponent {
   }
 
   startEditWhopicture(w: WhoPicturePhoto): void {
+    this.editPhotoTitle.set(w.title);
     this.editPhotoUrl.set(w.photoUrl);
     this.editPhotoPlayers.set([...w.players]);
     this.expandedId.set(null);
@@ -473,16 +476,17 @@ export class ManageComponent {
 
   async saveEditWhopicture(id: number): Promise<void> {
     this.msg.set('');
+    const title = this.editPhotoTitle().trim();
     const photoUrl = this.editPhotoUrl().trim();
     const players = this.editPhotoPlayers().map((p) => p.trim());
-    if (!photoUrl || players.some((p) => !p)) {
-      const reason = 'أكمل رابط الصورة وأسماء اللاعبين الـ11 قبل الحفظ.';
+    if (!title || !photoUrl || players.some((p) => !p)) {
+      const reason = 'أكمل العنوان ورابط الصورة وأسماء اللاعبين الـ11 قبل الحفظ.';
       this.msg.set(reason);
       this.toast.error(reason);
       return;
     }
-    await this.applyEdit('whopicture', id, { photoUrl, players },
-      `تم حفظ تعديل الصورة (#${id}).`, 'خطأ — يلزم رابط صالح و11 اسمًا مميزًا.');
+    await this.applyEdit('whopicture', id, { title, photoUrl, players },
+      `تم حفظ تعديل الصورة (#${id}).`, 'خطأ — يلزم عنوان ورابط صالح و11 اسمًا مميزًا.');
   }
 
   private reloadActive(): void {
@@ -673,16 +677,18 @@ export class ManageComponent {
 
   async addWhopicture(): Promise<void> {
     this.msg.set('');
+    const title = this.newPhotoTitle().trim();
     const photoUrl = this.newPhotoUrl().trim();
     const players = this.newPhotoPlayers().map((p) => p.trim());
-    if (!photoUrl || players.some((p) => !p)) {
-      const reason = 'أكمل رابط الصورة وأسماء اللاعبين الـ11 قبل الإضافة.';
+    if (!title || !photoUrl || players.some((p) => !p)) {
+      const reason = 'أكمل العنوان ورابط الصورة وأسماء اللاعبين الـ11 قبل الإضافة.';
       this.msg.set(reason);
       this.toast.error(reason);
       return;
     }
     try {
-      const saved = await firstValueFrom(this.api.addWhopicture(photoUrl, players));
+      const saved = await firstValueFrom(this.api.addWhopicture(title, photoUrl, players));
+      this.newPhotoTitle.set('');
       this.newPhotoUrl.set('');
       this.newPhotoPlayers.set(Array(LINEUP_SIZE).fill(''));
       if (this.page() === 0) this.reloadActive();

@@ -694,6 +694,7 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
 describe('ManageComponent v4 pools (anameen + whopicture)', () => {
   const clues5 = Array.from({ length: 5 }, (_, i) => `تلميح ${i + 1}`);
   const names11 = Array.from({ length: 11 }, (_, i) => `لاعب ${i + 1}`);
+  const TITLE = 'الأهلي 2021 نهائي دوري أبطال أفريقيا';
 
   async function setupV4() {
     const adminPassword = signal<string | null>('pw');
@@ -709,7 +710,7 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
       update: vi.fn(() => of({})),
       del: vi.fn(() => of(undefined)),
       addAnameen: vi.fn(() => of({ id: 7, player: 'x', clues: [] })),
-      addWhopicture: vi.fn(() => of({ id: 9, photoUrl: 'https://x', players: [] })),
+      addWhopicture: vi.fn(() => of({ id: 9, title: 'أهلي 2021', photoUrl: 'https://x', players: [] })),
     };
     await TestBed.configureTestingModule({
       imports: [ManageComponent],
@@ -780,20 +781,24 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     expect(reveal.textContent).toContain('تلميح 5');
   });
 
-  it('lists whopicture rows and expands to the 11 pictured names', async () => {
+  it('lists whopicture rows and expands to the 11 pictured names and preview', async () => {
     const { fixture, httpMock } = await setupV4();
     const c = fixture.componentInstance;
     await showV4(fixture, httpMock, 'whopicture', [
-      { id: 11, photoUrl: 'https://example.com/p.jpg', players: names11 },
+      { id: 11, title: TITLE, photoUrl: 'https://example.com/p.jpg', players: names11 },
     ]);
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.rows')?.textContent).toContain('https://example.com/p.jpg');
+    expect(el.querySelector('.rows')?.textContent).toContain(TITLE);
+    expect(el.querySelector('.wp-preview')).toBeNull(); // preview is hidden while collapsed
     (el.querySelector('.row-main') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(c.expandedId()).toBe(11);
     const reveal = el.querySelector('.reveal') as HTMLElement;
     expect(reveal.querySelectorAll('li').length).toBe(11);
     expect(reveal.textContent).toContain('لاعب 11');
+    expect(el.querySelector('.wp-preview img')?.getAttribute('src')).toBe(
+      'https://example.com/p.jpg',
+    );
   });
 
   it('blocks an anameen add until the name and all 5 clues are filled', async () => {
@@ -848,7 +853,7 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     expect(toast.error).toHaveBeenCalledWith('المستخدم موجود بالفعل');
   });
 
-  it('blocks a whopicture add until the URL and all 11 names are filled', async () => {
+  it('blocks a whopicture add until the title, URL and all 11 names are filled', async () => {
     const { fixture, apiStub, toast, httpMock } = await setupV4();
     const c = fixture.componentInstance;
     c.select('whopicture');
@@ -857,10 +862,14 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
       .expectOne((r) => r.url.includes('/whopicture/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
     c.newPhotoUrl.set('https://example.com/p.jpg');
-    c.newPhotoPlayers.set([...names11].map((v, i) => (i === 10 ? '' : v)));
-    await c.addWhopicture();
+    c.newPhotoPlayers.set([...names11]);
+    await c.addWhopicture(); // title missing → blocked
     expect(apiStub.addWhopicture).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
+    c.newPhotoTitle.set(TITLE);
+    c.newPhotoPlayers.set([...names11].map((v, i) => (i === 10 ? '' : v)));
+    await c.addWhopicture(); // 11th name missing → blocked
+    expect(apiStub.addWhopicture).not.toHaveBeenCalled();
     expect(c.msg()).toContain('11');
   });
 
@@ -872,11 +881,13 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/whopicture/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    c.newPhotoTitle.set(TITLE);
     c.newPhotoUrl.set('https://example.com/p.jpg');
     c.newPhotoPlayers.set([...names11]);
     await c.addWhopicture();
-    expect(apiStub.addWhopicture).toHaveBeenCalledWith('https://example.com/p.jpg', names11);
+    expect(apiStub.addWhopicture).toHaveBeenCalledWith(TITLE, 'https://example.com/p.jpg', names11);
     expect(toast.success).toHaveBeenCalledWith('تمت إضافة الصورة (#9).');
+    expect(c.newPhotoTitle()).toBe('');
     expect(c.newPhotoUrl()).toBe('');
     expect(c.newPhotoPlayers().every((v) => v === '')).toBe(true);
     await drainList(httpMock, 'whopicture');
@@ -936,21 +947,24 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     expect(c.msg()).toContain('خمس');
   });
 
-  it('edits a whopicture row prefilled and PUTs url + 11 names', async () => {
+  it('edits a whopicture row prefilled and PUTs title + url + 11 names', async () => {
     const { fixture, apiStub, toast, httpMock } = await setupV4();
     const c = fixture.componentInstance;
     await showV4(fixture, httpMock, 'whopicture', [
-      { id: 11, photoUrl: 'https://example.com/p.jpg', players: names11 },
+      { id: 11, title: TITLE, photoUrl: 'https://example.com/p.jpg', players: names11 },
     ]);
     (fixture.nativeElement.querySelector('.edit-btn') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(c.editingId()).toBe(11);
+    expect(c.editPhotoTitle()).toBe(TITLE);
     expect(c.editPhotoUrl()).toBe('https://example.com/p.jpg');
     expect(c.editPhotoPlayers()).toEqual(names11);
 
+    c.editPhotoTitle.set('ريال مدريد 2022');
     c.editPhotoUrl.set('https://example.com/new.jpg');
     await c.saveEditWhopicture(11);
     expect(apiStub.update).toHaveBeenCalledWith('whopicture', 11, {
+      title: 'ريال مدريد 2022',
       photoUrl: 'https://example.com/new.jpg',
       players: names11,
     });
@@ -958,7 +972,7 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     await drainList(httpMock, 'whopicture');
   });
 
-  it('blocks a whopicture edit until all 11 names are filled', async () => {
+  it('blocks a whopicture edit until the title and all 11 names are filled', async () => {
     const { fixture, apiStub, toast, httpMock } = await setupV4();
     const c = fixture.componentInstance;
     c.select('whopicture');
@@ -966,7 +980,12 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/whopicture/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.startEditWhopicture({ id: 11, photoUrl: 'https://example.com/p.jpg', players: names11 });
+    c.startEditWhopicture({ id: 11, title: TITLE, photoUrl: 'https://example.com/p.jpg', players: names11 });
+    c.editPhotoTitle.set('');
+    await c.saveEditWhopicture(11);
+    expect(apiStub.update).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalled();
+    c.editPhotoTitle.set(TITLE);
     c.setEditPhotoPlayer(0, '');
     await c.saveEditWhopicture(11);
     expect(apiStub.update).not.toHaveBeenCalled();

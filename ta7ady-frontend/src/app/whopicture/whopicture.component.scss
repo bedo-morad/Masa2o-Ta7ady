@@ -89,7 +89,7 @@ a:focus-visible {
   }
 }
 
-// ── Photo card: the one big screen the room is asked about ──
+// ── Photo card: title above, image always fully visible, two shares ──
 .photo-card {
   background: var(--pitch-surface);
   border: 1px solid var(--pitch-line);
@@ -100,17 +100,62 @@ a:focus-visible {
   gap: 0.7rem;
 }
 
-// Signature element: the photo framed as a widened screen with a
-// deep film-border, so the page reads "one projector slide" at a glance.
-.shot {
-  width: 100%;
-  min-height: 200px;
-  max-height: 46vh;
-  object-fit: cover;
+.title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+// Signature element: the question stage. The image keeps its proportions and
+// stays uncropped whatever the host serves; the skeleton holds the frame until
+// the bytes arrive.
+.shot-frame {
+  position: relative;
+  min-height: 220px;
   border-radius: 12px;
   background: var(--pitch-surface-2);
   border: 6px solid var(--pitch-surface-2);
   box-shadow: 0 0 0 1px var(--pitch-line);
+}
+
+.shot-skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pitch-ink-dim);
+  font-size: 2rem;
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  max-height: 52vh;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.25s ease-out;
+
+  &.is-ready {
+    opacity: 1;
+  }
+}
+
+// While loading (or after the frame settled) the image defined the height:
+// once visible it fills its contain-box. Absolute skeleton only until ready.
+.shot-frame.is-ready {
+  min-height: 0;
+}
+
+.shot-frame.is-ready .shot-skeleton {
+  display: none;
+}
+
+.share-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
 }
 
 .share {
@@ -125,15 +170,26 @@ a:focus-visible {
   color: var(--pitch-ink);
   font-family: inherit;
   font-weight: 900;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
 
   i {
     color: var(--pitch-gold);
   }
+
+  // Link share is the secondary action: same tap target, quieter paint.
+  &.link {
+    background: var(--pitch-surface-2);
+    border-color: var(--pitch-line);
+    color: var(--pitch-ink-dim);
+
+    i {
+      color: var(--pitch-accent);
+    }
+  }
 }
 
-// ── The covered board: 11 stubs that lift when a name is found ──
+// ── The board: 11 rows, one column, names visible from the start ──
 .names {
   background: var(--pitch-surface);
   border: 1px solid var(--pitch-line);
@@ -167,8 +223,8 @@ a:focus-visible {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.45rem;
 }
 
@@ -179,12 +235,7 @@ a:focus-visible {
   background: var(--pitch-surface-2);
   border: 1px solid var(--pitch-line);
   border-radius: 12px;
-  padding: 0.35rem 0.55rem;
-  transition: border-color 0.2s ease-out;
-
-  &.open {
-    border-color: var(--pitch-gold);
-  }
+  padding: 0.4rem 0.55rem;
 }
 
 .no {
@@ -210,34 +261,11 @@ a:focus-visible {
   white-space: nowrap;
   font-weight: 900;
   color: var(--pitch-ink);
-
-  .name-row:not(.open) & {
-    color: var(--pitch-ink-dim);
-    font-weight: 800;
-  }
-}
-
-// Authored motion: a found name lifts into place once. Off for readers
-// who prefer reduced motion — the reveal itself is instant either way.
-.name-row.open .nm {
-  animation: lift 0.25s ease-out;
-}
-
-@keyframes lift {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .name-row.open .nm {
-    animation: none;
+  .shot {
+    transition: none;
   }
 }
 

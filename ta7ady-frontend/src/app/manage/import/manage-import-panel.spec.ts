@@ -52,11 +52,12 @@ describe('ImportPanelComponent', () => {
       expect(text).toContain('clues');
     });
 
-    it('shows the whopicture URL + 11-name schema', () => {
+    it('shows the whopicture title + URL + 11-name schema', () => {
       const { fixture } = setup('whopicture');
       fixture.detectChanges();
       const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
       expect(text).toContain('مين في الصورة');
+      expect(text).toContain('title');
       expect(text).toContain('photoUrl');
       expect(text).toContain('11');
     });

@@ -8,12 +8,13 @@ import { TimerComponent } from '../shared/timer/timer.component';
 import { SettingsService } from '../shared/settings/settings.service';
 
 // Who-in-Picture (SPECV4 §4.4): referee screen over one hotlinked team photo.
-// The 11 pictured names stay covered until attributed; the shared attribution
-// books a flat +1 per name (tap again unassigns + reverses + audit entry).
-// Four players carry the shared strike-tracker (2 per team) and sit out at
-// 2 strikes — display-only, the referee enforces while the teammate continues.
-// The room sees the photo through the share button (native sheet with the
-// photo URL, clipboard copy as fallback) — no second-screen mode in v4.
+// All 11 names stay visible from the start in ONE column; the shared
+// attribution books a flat +1 per name (tap again unassigns + reverses +
+// audit entry). Four players carry the shared strike-tracker (2 per team) and
+// sit out at 2 strikes — display-only, the referee enforces. The photo loads
+// fully visible (contain, never cropped) behind a skeleton while the external
+// host answers, the title sits above it, and the room gets the photo through
+// EITHER share button — link or image file — real native share, copy last-ish.
 // Scoring is booked-effective like Top-10: per photo, `booked` tracks the net
 // attributed amount actually in the score, so reversals always land exactly.
 
@@ -22,6 +23,7 @@ export {
   WHO_STRIKES_OUT,
   nameKey,
   sharePayload,
+  sharePhotoImage,
   sharePhotoUrl,
   type NameMap,
   type SharePath,
@@ -29,6 +31,7 @@ export {
 import {
   countAssigned,
   nameKey,
+  sharePhotoImage,
   sharePhotoUrl,
   WHO_MAX_PHOTOS,
   type NameMap,
@@ -77,6 +80,8 @@ export class WhopictureComponent {
   readonly booked = signal<Record<number, { A: number; B: number }>>({});
   readonly audit = signal<AuditEntry[]>([]);
   readonly strikes = signal<Record<number, StrikeSlot[]>>({});
+  // Per-photo load state of the hotlinked image: skeleton → ready / failed-ish.
+  readonly imageState = signal<Record<number, 'loading' | 'ready'>>({});
   readonly msg = signal('');
   readonly maxPhotos = WHO_MAX_PHOTOS;
   private seq = 0;
@@ -106,8 +111,13 @@ export class WhopictureComponent {
     return this.assignments()[photoId]?.[nameKey(i)] ?? null;
   }
 
-  revealed(photoId: number, i: number): boolean {
-    return this.assigned(photoId, i) !== null;
+  /** Hotlinked image lifecycle per photo: starts on 'loading' at first sight. */
+  imageOf(photoId: number): 'loading' | 'ready' {
+    return this.imageState()[photoId] ?? 'loading';
+  }
+
+  markLoaded(photoId: number): void {
+    this.imageState.update((st) => (st[photoId] === 'ready' ? st : { ...st, [photoId]: 'ready' }));
   }
 
   prev(): void {
@@ -124,6 +134,7 @@ export class WhopictureComponent {
 
   reload(): void {
     this.strikes.set({});
+    this.imageState.set({});
     this.res.reload();
   }
 
@@ -209,20 +220,22 @@ export class WhopictureComponent {
     ];
   }
 
+  /** Pure read: a photo's stored slots, or the prefilled defaults while it is
+   * still unmaterialized. Never writes — the template calls this while
+   * rendering (NG0600), so lazily materializing here is not an option. */
   slotsOf(photo: WhoPicturePhoto): StrikeSlot[] {
-    const existing = this.strikes()[photo.id];
-    if (existing) return existing;
+    return this.strikes()[photo.id] ?? this.freshSlots();
+  }
+
+  private freshSlots(): StrikeSlot[] {
     const a = this.teamA() || 'الفريق الأول';
     const b = this.teamB() || 'الفريق الثاني';
-    const fresh = this.defaultSlotNames(a, b).map((name) => ({ name, mistakes: 0 }));
-    this.strikes.update((ss) => ({ ...ss, [photo.id]: fresh }));
-    return fresh;
+    return this.defaultSlotNames(a, b).map((name) => ({ name, mistakes: 0 }));
   }
 
   setSlotName(photoId: number, i: number, name: string): void {
     this.strikes.update((ss) => {
-      const cur = ss[photoId];
-      if (!cur) return ss;
+      const cur = ss[photoId] ?? this.freshSlots();
       const next = cur.map((s, j) => (j === i ? { ...s, name } : s));
       return { ...ss, [photoId]: next };
     });
@@ -230,8 +243,7 @@ export class WhopictureComponent {
 
   bumpSlot(photoId: number, i: number, d: number): void {
     this.strikes.update((ss) => {
-      const cur = ss[photoId];
-      if (!cur) return ss;
+      const cur = ss[photoId] ?? this.freshSlots();
       const next = cur.map((s, j) =>
         j === i ? { ...s, mistakes: clampMistakes(s.mistakes + d, 2) } : s,
       );
@@ -241,8 +253,7 @@ export class WhopictureComponent {
 
   resetSlot(photoId: number, i: number): void {
     this.strikes.update((ss) => {
-      const cur = ss[photoId];
-      if (!cur) return ss;
+      const cur = ss[photoId] ?? this.freshSlots();
       const next = cur.map((s, j) => (j === i ? { ...s, mistakes: 0 } : s));
       return { ...ss, [photoId]: next };
     });
@@ -261,12 +272,23 @@ export class WhopictureComponent {
     this.setSlotName(photoId, r.index, r.name);
   }
 
-  /** Shares the open photo with the room; copies the link when there is no
-   * native share sheet (already reported to the referee via the notice). */
-  async shareCurrent(): Promise<void> {
-    const url = this.current()?.photoUrl;
-    if (!url) return;
-    const path = await sharePhotoUrl(url, navigator as ShareCapableNavigator);
+  /** Shares the open photo's link with the room: real native sheet first,
+   * the clipboard only when the browser has no share API. */
+  async shareUrl(): Promise<void> {
+    const p = this.current();
+    if (!p) return;
+    const path = await sharePhotoUrl(p.photoUrl, p.title, navigator as ShareCapableNavigator);
     if (path === 'copied') this.msg.set('تم نسخ رابط الصورة — شاركه مع الصالة.');
+    else if (path === 'failed') this.msg.set('تعذّرت المشاركة — انسخ الرابط من شريط العنوان.');
+  }
+
+  /** Shares the image itself when the device can carry files; a refusal or a
+   * failed fetch falls back to copying the link (last resort, never silent). */
+  async shareImage(): Promise<void> {
+    const p = this.current();
+    if (!p) return;
+    const path = await sharePhotoImage(p.photoUrl, p.title, navigator as ShareCapableNavigator);
+    if (path === 'copied') this.msg.set('مشاركة الصورة غير مدعومة — تم نسخ الرابط بدلًا منها.');
+    else if (path === 'failed') this.msg.set('تعذّر إرسال الصورة — افتح الرابط وشاركه يدويًا.');
   }
 }

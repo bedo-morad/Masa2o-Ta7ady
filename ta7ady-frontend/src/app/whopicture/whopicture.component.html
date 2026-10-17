@@ -60,39 +60,59 @@
     }
 
     <section class="photo-card" aria-label="الصورة">
-      <img class="shot" [src]="photo.photoUrl" alt="صورة الفريق" loading="lazy" />
-      <button
-        type="button"
-        class="share"
-        (click)="shareCurrent()"
-        aria-label="مشاركة الصورة مع الصالة"
-      >
-        <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> مشاركة مع الصالة
-      </button>
+      <h3 class="title">{{ photo.title }}</h3>
+      <div class="shot-frame" [class.is-ready]="imageOf(photo.id) === 'ready'">
+        @if (imageOf(photo.id) !== 'ready') {
+          <div class="shot-skeleton" aria-hidden="true">
+            <i class="fa-regular fa-image"></i>
+          </div>
+        }
+        <img
+          class="shot"
+          [src]="photo.photoUrl"
+          alt="صورة تشكيلة الفريق"
+          loading="lazy"
+          [class.is-ready]="imageOf(photo.id) === 'ready'"
+          (load)="markLoaded(photo.id)"
+        />
+      </div>
+      <div class="share-row">
+        <button
+          type="button"
+          class="share"
+          (click)="shareImage()"
+          aria-label="مشاركة صورة الفريق نفسها"
+        >
+          <i class="fa-solid fa-images" aria-hidden="true"></i> مشاركة الصورة
+        </button>
+        <button
+          type="button"
+          class="share link"
+          (click)="shareUrl()"
+          aria-label="مشاركة رابط الصورة"
+        >
+          <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> مشاركة الرابط
+        </button>
+      </div>
     </section>
 
     <section class="names" aria-label="الأسماء المصورة">
       <header class="names-head">
         <h3 class="names-title">الأسماء</h3>
-        <span class="hint">كل اسم مكتشف = نقطة</span>
+        <span class="hint">كل اسم = نقطة</span>
       </header>
       <ol class="name-list">
         @for (n of photo.players; track $index; let i = $index) {
-          <li class="name-row" [class.open]="revealed(photo.id, i)">
+          <li class="name-row">
             <span class="no tabular-nums">{{ i + 1 }}</span>
-            <span class="nm">
-              @if (revealed(photo.id, i)) {
-                {{ n }}
-              } @else {
-                ؟
-              }
-            </span>
+            <span class="nm">{{ n }}</span>
             <app-attribution
               [label]="n"
               mode="fixed"
               [points]="1"
-              [short]="true"
               [showPoints]="false"
+              [teamA]="teamA()"
+              [teamB]="teamB()"
               [assigned]="assigned(photo.id, i)"
               (change)="onName(photo, i, $event)"
             />

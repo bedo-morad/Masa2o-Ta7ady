@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import {
@@ -6,6 +6,7 @@ import {
   WhopictureComponent,
   nameKey,
   sharePayload,
+  sharePhotoImage,
   sharePhotoUrl,
 } from './whopicture.component';
 import { WhoPicturePhoto } from '../api.service';
@@ -19,19 +20,21 @@ describe('nameKey', () => {
 });
 
 describe('sharePayload', () => {
-  it('carries the hotlink only, never the covered names', () => {
-    const p = sharePayload('https://example.com/team.jpg');
-    expect(p).toEqual({ title: 'مين في الصورة؟', url: 'https://example.com/team.jpg' });
+  it('carries the photo title + hotlink, never the 11 names', () => {
+    const p = sharePayload('الأهلي 2021', 'https://example.com/team.jpg');
+    expect(p.title).toBe('مين في الصورة؟ — الأهلي 2021');
+    expect(p.url).toBe('https://example.com/team.jpg');
     expect(Object.values(p)).not.toContain('لاعب');
   });
 });
 
 describe('sharePhotoUrl', () => {
+  const TITLE = 'الأهلي 2021';
   const clipboard = { writeText: (t: string) => Promise.resolve() };
 
   it('uses the native sheet when the API exists', async () => {
     const shared: unknown[] = [];
-    const out = await sharePhotoUrl('u1', {
+    const out = await sharePhotoUrl('u1', TITLE, {
       share: (d) => (shared.push(d), Promise.resolve()),
       clipboard,
     });
@@ -41,7 +44,7 @@ describe('sharePhotoUrl', () => {
 
   it('copies the link when there is no native share API', async () => {
     const copied: string[] = [];
-    const out = await sharePhotoUrl('u2', {
+    const out = await sharePhotoUrl('u2', TITLE, {
       clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
     });
     expect(out).toBe('copied');
@@ -49,7 +52,7 @@ describe('sharePhotoUrl', () => {
   });
 
   it('still shares (back-out) when the referee dismisses the sheet', async () => {
-    const out = await sharePhotoUrl('u3', {
+    const out = await sharePhotoUrl('u3', TITLE, {
       share: () => Promise.reject(Object.assign(new Error('x'), { name: 'AbortError' })),
       clipboard,
     });
@@ -58,18 +61,83 @@ describe('sharePhotoUrl', () => {
 
   it('falls back to the clipboard when the sheet fails to open', async () => {
     const copied: string[] = [];
-    const out = await sharePhotoUrl('u4', {
+    const out = await sharePhotoUrl('u4', TITLE, {
       share: () => Promise.reject(new Error('denied')),
       clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
     });
     expect(out).toBe('copied');
     expect(copied).toEqual(['u4']);
   });
+
+  it('reports failed when neither share nor clipboard exists', async () => {
+    const out = await sharePhotoUrl('u5', TITLE, {});
+    expect(out).toBe('failed');
+  });
+});
+
+describe('sharePhotoImage', () => {
+  const TITLE = 'الأهلي 2021';
+  const blob = new Blob([new Uint8Array(4)], { type: 'image/jpeg' });
+  const okFetch = () => Promise.resolve({ ok: true, blob: () => Promise.resolve(blob) } as Response);
+
+  it('opens the native sheet with the image file when canShare accepts files', async () => {
+    const shared: unknown[] = [];
+    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
+      share: (d) => (shared.push(d), Promise.resolve()),
+      canShare: (d) => Array.isArray(d.files) && d.files.length === 1,
+      clipboard: { writeText: () => Promise.resolve() },
+    }, okFetch);
+    expect(out).toBe('sheet');
+    expect((shared[0] as { files?: File[] }).files?.length).toBe(1);
+    expect(shared[0]).toEqual(expect.objectContaining({ title: `مين في الصورة؟ — ${TITLE}` }));
+  });
+
+  it('copies the link when canShare refuses files', async () => {
+    const copied: string[] = [];
+    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
+      share: () => Promise.resolve(),
+      canShare: () => false,
+      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+    }, okFetch);
+    expect(out).toBe('copied');
+    expect(copied).toEqual(['https://x/p.jpg']);
+  });
+
+  it('copies the link when the fetch fails — image share is best-effort', async () => {
+    const copied: string[] = [];
+    const bad = () => Promise.reject(new Error('offline'));
+    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
+      share: () => Promise.resolve(),
+      canShare: () => true,
+      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+    }, bad);
+    expect(out).toBe('copied');
+    expect(copied).toEqual(['https://x/p.jpg']);
+  });
+
+  it('copies when there is no share API at all (feature-detected browser)', async () => {
+    const copied: string[] = [];
+    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
+      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+    }, okFetch);
+    expect(out).toBe('copied');
+    expect(copied).toEqual(['https://x/p.jpg']);
+  });
+
+  it('reports failed when nothing works', async () => {
+    const dead = () => Promise.resolve({ ok: false } as Response);
+    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {}, dead);
+    expect(out).toBe('failed');
+  });
 });
 
 describe('WhopictureComponent', () => {
+  let fixture: ComponentFixture<WhopictureComponent>;
+
+  const el = (): HTMLElement => fixture.nativeElement as HTMLElement;
   const photo = (id: number): WhoPicturePhoto => ({
     id,
+    title: 'الأهلي 2021 نهائي دوري أبطال أفريقيا',
     photoUrl: `https://example.com/${id}.jpg`,
     players: Array.from({ length: 11 }, (_, i) => `لعب${i + 1}`),
   });
@@ -82,10 +150,11 @@ describe('WhopictureComponent', () => {
   });
 
   function setup(): WhopictureComponent {
-    const fixture = TestBed.createComponent(WhopictureComponent);
+    fixture = TestBed.createComponent(WhopictureComponent);
     fixture.detectChanges();
     const c = fixture.componentInstance;
     c.photos.set([photo(1)]);
+    fixture.detectChanges();
     return c;
   }
 
@@ -107,12 +176,47 @@ describe('WhopictureComponent', () => {
     expect(c.maxPhotos).toBe(5);
   });
 
-  it('names stay covered until attributed, then reveal', () => {
+  it('all 11 names are visible from the start — no cover to lift', () => {
     const c = setup();
-    expect(c.revealed(1, 3)).toBe(false);
-    pick(c, 3, 'B');
-    expect(c.revealed(1, 3)).toBe(true);
-    expect(c.assigned(1, 3)).toBe('B');
+    for (let i = 0; i < 11; i += 1) {
+      expect(c.assigned(1, i)).toBeNull();
+    }
+    // Still uncovered right after attribution is booked? No — assignment is
+    // the state; the text itself is rendered regardless from the very start.
+    const view = el();
+    expect(view.textContent).toContain('لعب1');
+    expect(view.textContent).toContain('لعب11');
+    expect((view.textContent ?? '').includes('؟؟')).toBe(false);
+  });
+
+  it('the photo title renders above the image, ready or not', () => {
+    const c = setup();
+    const view = el();
+    expect(view.querySelector('.title')?.textContent).toContain('الأهلي 2021');
+    expect(c.imageOf(1)).toBe('loading');
+    c.markLoaded(1);
+    expect(c.imageOf(1)).toBe('ready');
+  });
+
+  it('award buttons carry the FULL team names, never أ/ب', () => {
+    const c = setup();
+    c.teamA.set('الصقور');
+    c.teamB.set('النمور');
+    fixture.detectChanges();
+    const view = el();
+    const labels = Array.from(view.querySelectorAll('[aria-label]')).map((b) =>
+      (b.getAttribute('aria-label') ?? '') + ' ' + b.textContent,
+    );
+    const joined = labels.join(' ');
+    expect(joined).toContain('الصقور');
+    expect(joined).toContain('النمور');
+  });
+
+  it('both share buttons exist — image and link', () => {
+    const c = setup();
+    const view = el();
+    expect(view.querySelector('[aria-label="مشاركة صورة الفريق نفسها"]')).toBeTruthy();
+    expect(view.querySelector('[aria-label="مشاركة رابط الصورة"]')).toBeTruthy();
   });
 
   it('each attributed name books exactly +1 to the picked team', () => {
@@ -124,13 +228,12 @@ describe('WhopictureComponent', () => {
     expect(c.scoreB()).toBe(1);
   });
 
-  it('tapping the same team again unassigns, re-covers and reverses exactly', () => {
+  it('tapping the same team again unassigns and reverses exactly', () => {
     const c = setup();
     pick(c, 0, 'A');
     pick(c, 0, 'A');
     expect(c.scoreA()).toBe(0);
     expect(c.assigned(1, 0)).toBeNull();
-    expect(c.revealed(1, 0)).toBe(false);
   });
 
   it('moving a name from A to B books the full swap (+1 / −1)', () => {
@@ -207,7 +310,7 @@ describe('WhopictureComponent', () => {
     }
   });
 
-  it('shareCurrent copies the open photo link when no native sheet exists', async () => {
+  it('shareUrl copies the open photo link when no native sheet exists', async () => {
     const c = setup();
     const copied: string[] = [];
     const stub = { value: undefined as unknown };
@@ -220,13 +323,31 @@ describe('WhopictureComponent', () => {
       get: () => stub.value,
     });
     try {
-      await c.shareCurrent();
+      await c.shareUrl();
     } finally {
       delete (navigator as unknown as { share?: unknown; clipboard?: unknown }).share;
       delete (navigator as unknown as { clipboard?: unknown }).clipboard;
     }
     expect(copied).toEqual(['https://example.com/1.jpg']);
     expect(c.msg()).toContain('تم نسخ');
+  });
+
+  it('shareImage falls back to copy + a clear notice when the device refuses files', async () => {
+    const c = setup();
+    const copied: string[] = [];
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      get: () => ({ writeText: (t: string) => (copied.push(t), Promise.resolve()) }),
+    });
+    Object.defineProperty(navigator, 'share', { configurable: true, get: () => undefined });
+    try {
+      await c.shareImage();
+    } finally {
+      delete (navigator as unknown as { share?: unknown; clipboard?: unknown }).share;
+      delete (navigator as unknown as { clipboard?: unknown }).clipboard;
+    }
+    expect(copied).toEqual(['https://example.com/1.jpg']);
+    expect(c.msg()).toContain('بدلًا منها');
   });
 
   it('navigation stays in bounds', () => {

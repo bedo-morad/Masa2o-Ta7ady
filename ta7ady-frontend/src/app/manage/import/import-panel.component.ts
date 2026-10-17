@@ -38,7 +38,8 @@ const SCHEMA_EXAMPLE: Record<Pool, string> = {
     '[\n  {\n    "player": "محمد صلاح",\n'
     + '    "clues": ["تلميح صعب 1", "تلميح صعب 2", "تلميح متوسط", "تلميح واضح", "أسهل تلميح"]\n  }\n]',
   whopicture:
-    '[\n  {\n    "photoUrl": "https://example.com/photo.jpg",\n'
+    '[\n  {\n    "title": "الأهلي 2021 نهائي دوري أبطال أفريقيا",\n'
+    + '    "photoUrl": "https://example.com/photo.jpg",\n'
     + '    "players": ["أ1", "أ2", "أ3", "أ4", "أ5", "أ6", "أ7", "أ8", "أ9", "أ10", "أ11"]\n  }\n]',
 };
 
@@ -54,7 +55,7 @@ const SCHEMA_NOTE: Record<Pool, string> = {
   anameen:
     'كل صف: {"player", "clues"} — 5 تلميحات بالترتيب تمامًا (الأصعب أولًا)، كل واحد 3 أحرف على الأقل.',
   whopicture:
-    'كل صف: {"photoUrl", "players"} — رابط http(s) صحيح + 11 اسمًا للصورة تمامًا.',
+    'كل صف: {"title", "photoUrl", "players"} — عنوان واضح (3 أحرف على الأقل) + رابط http(s) صحيح + 11 اسمًا للصورة تمامًا.',
 };
 
 @Component({
@@ -242,7 +243,7 @@ export class ImportPanelComponent {
     if (p === 'offside') return s(r['ruleText']) || `صف ${i + 1}`;
     if (p === 'top10') return s(r['prompt']) || `صف ${i + 1}`;
     if (p === 'anameen') return s(r['player']) || `صف ${i + 1}`;
-    if (p === 'whopicture') return s(r['photoUrl']) || firstPlayer(r) || `صف ${i + 1}`;
+    if (p === 'whopicture') return s(r['title']) || s(r['photoUrl']) || firstPlayer(r) || `صف ${i + 1}`;
     const m = r['match'] ?? r['matchLabel'] ?? r['match_label'];
     return s(m) || `صف ${i + 1}`;
   }

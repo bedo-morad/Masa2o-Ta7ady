@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  min-width: 0; // grid/flex items default min-width:auto — long names must be allowed to shrink
   background: var(--pitch-surface);
   border: 1px solid var(--pitch-line);
   border-radius: 12px;
@@ -25,6 +26,8 @@
   border-radius: 10px;
   padding: 0.5rem 0.6rem;
   min-height: 44px;
+  width: 100%;
+  min-width: 0; // an input's intrinsic width would otherwise blow the column out at ≤400px
   font-family: inherit;
   font-weight: 800;
   font-size: 0.9rem;
@@ -34,6 +37,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  flex-wrap: wrap;
 }
 
 .step {

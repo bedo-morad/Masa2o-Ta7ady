@@ -12,6 +12,8 @@ const POOL_LABEL: Record<Pool, string> = {
   scoresheet: 'سكور شيت',
   bank: 'بنك',
   risk: 'ريسك',
+  anameen: 'من أنا؟',
+  whopicture: 'مين في الصورة',
 };
 
 const SCHEMA_EXAMPLE: Record<Pool, string> = {
@@ -32,6 +34,12 @@ const SCHEMA_EXAMPLE: Record<Pool, string> = {
     + '      { "points": 10, "question": "...", "answer": "..." },\n'
     + '      { "points": 20, "question": "...", "answer": "..." },\n'
     + '      { "points": 40, "question": "...", "answer": "..." }\n    ]\n  }\n]',
+  anameen:
+    '[\n  {\n    "player": "محمد صلاح",\n'
+    + '    "clues": ["تلميح صعب 1", "تلميح صعب 2", "تلميح متوسط", "تلميح واضح", "أسهل تلميح"]\n  }\n]',
+  whopicture:
+    '[\n  {\n    "photoUrl": "https://example.com/photo.jpg",\n'
+    + '    "players": ["أ1", "أ2", "أ3", "أ4", "أ5", "أ6", "أ7", "أ8", "أ9", "أ10", "أ11"]\n  }\n]',
 };
 
 const SCHEMA_NOTE: Record<Pool, string> = {
@@ -43,6 +51,10 @@ const SCHEMA_NOTE: Record<Pool, string> = {
     'كل صف: {"match", "teamA", "teamB", "lineupA", "lineupB"} — كل تشكيلة 11 اسمًا تمامًا.',
   bank: 'كل صف: {"question", "answer"} — سؤال سريع بإجابة قصيرة.',
   risk: 'كل صف: {"genre", "questions"} — 4 أسئلة بترتيب الدرجات 5/10/20/40.',
+  anameen:
+    'كل صف: {"player", "clues"} — 5 تلميحات بالترتيب تمامًا (الأصعب أولًا)، كل واحد 3 أحرف على الأقل.',
+  whopicture:
+    'كل صف: {"photoUrl", "players"} — رابط http(s) صحيح + 11 اسمًا للصورة تمامًا.',
 };
 
 @Component({
@@ -229,6 +241,8 @@ export class ImportPanelComponent {
     if (p === 'ihbid') return s(r['questionText']) || `صف ${i + 1}`;
     if (p === 'offside') return s(r['ruleText']) || `صف ${i + 1}`;
     if (p === 'top10') return s(r['prompt']) || `صف ${i + 1}`;
+    if (p === 'anameen') return s(r['player']) || `صف ${i + 1}`;
+    if (p === 'whopicture') return s(r['photoUrl']) || firstPlayer(r) || `صف ${i + 1}`;
     const m = r['match'] ?? r['matchLabel'] ?? r['match_label'];
     return s(m) || `صف ${i + 1}`;
   }
@@ -240,4 +254,11 @@ export class ImportPanelComponent {
     }
     return null;
   }
+}
+
+// Fallback label for a whopicture row whose URL is missing: the first pictured name.
+function firstPlayer(r: Record<string, unknown>): string {
+  const list = r['players'];
+  if (Array.isArray(list) && typeof list[0] === 'string') return list[0].trim();
+  return '';
 }

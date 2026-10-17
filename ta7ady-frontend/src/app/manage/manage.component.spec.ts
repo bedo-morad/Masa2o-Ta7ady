@@ -50,6 +50,23 @@ describe('ManageComponent', () => {
     }
   });
 
+  it('supports the v4 pools: anameen + whopicture', () => {
+    const fixture = TestBed.createComponent(ManageComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const tabs = [...el.querySelectorAll('.pools button')] as HTMLButtonElement[];
+    expect(tabs.find((b) => b.textContent?.includes('من أنا؟'))).toBeTruthy();
+    expect(tabs.find((b) => b.textContent?.includes('مين في الصورة'))).toBeTruthy();
+    const c = fixture.componentInstance;
+    for (const p of ['anameen', 'whopicture'] as const) {
+      c.select(p);
+      expect(c.pool()).toBe(p);
+      expect(c.page()).toBe(0);
+      expect(c.expandedId()).toBeNull();
+      expect(c.editingId()).toBeNull();
+    }
+  });
+
   it('shows a lock icon-button in the topbar that opens the admin modal', () => {
     const modal = modalStub();
     TestBed.overrideProvider(NgbModal, { useValue: modal });
@@ -668,5 +685,301 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
       { points: 40, question: 'سؤال 3', answer: 'جواب 3' },
     ]);
     await drainList(httpMock, 'risk');
+  });
+});
+
+// SPECV4 §4.6: /manage parity for the two v4 pools — list/add/bulk/dry-run
+// (generic import panel) /delete + inline prefilled edit, same validation as
+// create, duplicates surfacing the backend message, toasts carrying the row id.
+describe('ManageComponent v4 pools (anameen + whopicture)', () => {
+  const clues5 = Array.from({ length: 5 }, (_, i) => `تلميح ${i + 1}`);
+  const names11 = Array.from({ length: 11 }, (_, i) => `لاعب ${i + 1}`);
+
+  async function setupV4() {
+    const adminPassword = signal<string | null>('pw');
+    const toast = toastStub();
+    const apiStub = {
+      adminPassword,
+      get unlocked(): boolean {
+        return adminPassword() !== null;
+      },
+      unlock: vi.fn((pw: string) => adminPassword.set(pw)),
+      lock: vi.fn(() => adminPassword.set(null)),
+      bulk: vi.fn(() => of([])),
+      update: vi.fn(() => of({})),
+      del: vi.fn(() => of(undefined)),
+      addAnameen: vi.fn(() => of({ id: 7, player: 'x', clues: [] })),
+      addWhopicture: vi.fn(() => of({ id: 9, photoUrl: 'https://x', players: [] })),
+    };
+    await TestBed.configureTestingModule({
+      imports: [ManageComponent],
+      providers: [
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ApiService, useValue: apiStub },
+        { provide: NgbModal, useValue: modalStub() },
+        { provide: HotToastService, useValue: toast },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ManageComponent);
+    fixture.detectChanges();
+    const httpMock = TestBed.inject(HttpTestingController);
+    httpMock.expectOne((r) => r.url.includes('/players/all')).flush({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      number: 0,
+      size: 20,
+    });
+    fixture.detectChanges();
+    return { fixture, apiStub, toast, httpMock };
+  }
+
+  async function showV4(
+    fixture: ComponentFixture<ManageComponent>,
+    httpMock: HttpTestingController,
+    pool: 'anameen' | 'whopicture',
+    content: unknown[],
+  ): Promise<void> {
+    fixture.componentInstance.select(pool);
+    fixture.detectChanges();
+    httpMock
+      .expectOne((r) => r.url.includes(`/${pool}/all`))
+      .flush({ content, totalElements: content.length, totalPages: 1, number: 0, size: 20 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function drainList(
+    httpMock: HttpTestingController,
+    pool = 'players',
+  ): Promise<void> {
+    await new Promise((r) => setTimeout(r, 0));
+    for (const req of httpMock.match((r) => r.url.includes(`/${pool}/all`))) {
+      req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    }
+  }
+
+  afterEach(() => {
+    TestBed.inject(HttpTestingController).verify();
+  });
+
+  it('lists anameen rows and expands to the 5 clues in hard→easy order', async () => {
+    const { fixture, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    await showV4(fixture, httpMock, 'anameen', [{ id: 4, player: 'محمد صلاح', clues: clues5 }]);
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.rows')?.textContent).toContain('محمد صلاح');
+    expect(el.querySelector('.reveal')).toBeNull();
+
+    (el.querySelector('.row-main') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(c.expandedId()).toBe(4);
+    const reveal = el.querySelector('.reveal') as HTMLElement;
+    expect(reveal.querySelectorAll('li').length).toBe(5);
+    expect(reveal.textContent).toContain('تلميح 5');
+  });
+
+  it('lists whopicture rows and expands to the 11 pictured names', async () => {
+    const { fixture, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    await showV4(fixture, httpMock, 'whopicture', [
+      { id: 11, photoUrl: 'https://example.com/p.jpg', players: names11 },
+    ]);
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.rows')?.textContent).toContain('https://example.com/p.jpg');
+    (el.querySelector('.row-main') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(c.expandedId()).toBe(11);
+    const reveal = el.querySelector('.reveal') as HTMLElement;
+    expect(reveal.querySelectorAll('li').length).toBe(11);
+    expect(reveal.textContent).toContain('لاعب 11');
+  });
+
+  it('blocks an anameen add until the name and all 5 clues are filled', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    c.select('anameen');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((r) => r.url.includes('/anameen/all'))
+      .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    c.newSubject.set('محمد صلاح');
+    c.newClues.set([...clues5].map((v, i) => (i === 4 ? '' : v)));
+    await c.addAnameen();
+    expect(apiStub.addAnameen).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalled();
+    expect(c.msg()).toContain('خمس');
+  });
+
+  it('adds an anameen subject and toasts the new id', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    c.select('anameen');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((r) => r.url.includes('/anameen/all'))
+      .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    c.newSubject.set('محمد صلاح');
+    c.newClues.set([...clues5]);
+    await c.addAnameen();
+    expect(apiStub.addAnameen).toHaveBeenCalledWith('محمد صلاح', clues5);
+    expect(toast.success).toHaveBeenCalledWith('تمت إضافة الشخصية (#7).');
+    expect(c.newSubject()).toBe('');
+    expect(c.newClues().every((v) => v === '')).toBe(true);
+    await drainList(httpMock, 'anameen');
+  });
+
+  it('surfaces the backend duplicate message on an anameen add', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    c.select('anameen');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((r) => r.url.includes('/anameen/all'))
+      .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    c.newSubject.set('محمد صلاح');
+    c.newClues.set([...clues5]);
+    apiStub.addAnameen.mockReturnValueOnce(
+      throwError(() => ({ error: { message: 'المستخدم موجود بالفعل' } })),
+    );
+    await c.addAnameen();
+    expect(c.msg()).toBe('المستخدم موجود بالفعل');
+    expect(toast.error).toHaveBeenCalledWith('المستخدم موجود بالفعل');
+  });
+
+  it('blocks a whopicture add until the URL and all 11 names are filled', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    c.select('whopicture');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((r) => r.url.includes('/whopicture/all'))
+      .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    c.newPhotoUrl.set('https://example.com/p.jpg');
+    c.newPhotoPlayers.set([...names11].map((v, i) => (i === 10 ? '' : v)));
+    await c.addWhopicture();
+    expect(apiStub.addWhopicture).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalled();
+    expect(c.msg()).toContain('11');
+  });
+
+  it('adds a whopicture photo and toasts the new id', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    c.select('whopicture');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((r) => r.url.includes('/whopicture/all'))
+      .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    c.newPhotoUrl.set('https://example.com/p.jpg');
+    c.newPhotoPlayers.set([...names11]);
+    await c.addWhopicture();
+    expect(apiStub.addWhopicture).toHaveBeenCalledWith('https://example.com/p.jpg', names11);
+    expect(toast.success).toHaveBeenCalledWith('تمت إضافة الصورة (#9).');
+    expect(c.newPhotoUrl()).toBe('');
+    expect(c.newPhotoPlayers().every((v) => v === '')).toBe(true);
+    await drainList(httpMock, 'whopicture');
+  });
+
+  it('edits an anameen row prefilled and PUTs the same body shape as create', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    await showV4(fixture, httpMock, 'anameen', [{ id: 4, player: 'محمد صلاح', clues: clues5 }]);
+    const el = fixture.nativeElement as HTMLElement;
+    (el.querySelector('.edit-btn') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(c.editingId()).toBe(4);
+    expect(c.editSubject()).toBe('محمد صلاح');
+    expect(c.editClues()).toEqual(clues5);
+
+    c.editSubject.set('منصور');
+    await c.saveEditAnameen(4);
+    expect(apiStub.update).toHaveBeenCalledWith('anameen', 4, { player: 'منصور', clues: clues5 });
+    expect(toast.success).toHaveBeenCalledWith('تم حفظ تعديل الشخصية (#4).');
+    expect(c.editingId()).toBeNull();
+    await drainList(httpMock, 'anameen');
+  });
+
+  it('rejects an anameen duplicate-of-another via the backend message and stays open', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    apiStub.update.mockReturnValueOnce(
+      throwError(() => ({ error: { message: 'المستخدم موجود بالفعل' } })),
+    );
+    c.startEditAnameen({ id: 4, player: 'محمد صلاح', clues: clues5 });
+    c.editSubject.set('اسم مستخدم آخر');
+    await c.saveEditAnameen(4);
+    expect(apiStub.update).toHaveBeenCalledWith('anameen', 4, {
+      player: 'اسم مستخدم آخر',
+      clues: clues5,
+    });
+    expect(c.msg()).toBe('المستخدم موجود بالفعل');
+    expect(toast.error).toHaveBeenCalledWith('المستخدم موجود بالفعل');
+    expect(c.editingId()).toBe(4);
+    await drainList(httpMock, 'anameen');
+  });
+
+  it('blocks an anameen edit until all 5 clues are filled', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    c.select('anameen');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((r) => r.url.includes('/anameen/all'))
+      .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    c.startEditAnameen({ id: 4, player: 'محمد صلاح', clues: clues5 });
+    c.setEditClue(4, '');
+    await c.saveEditAnameen(4);
+    expect(apiStub.update).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalled();
+    expect(c.msg()).toContain('خمس');
+  });
+
+  it('edits a whopicture row prefilled and PUTs url + 11 names', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    await showV4(fixture, httpMock, 'whopicture', [
+      { id: 11, photoUrl: 'https://example.com/p.jpg', players: names11 },
+    ]);
+    (fixture.nativeElement.querySelector('.edit-btn') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(c.editingId()).toBe(11);
+    expect(c.editPhotoUrl()).toBe('https://example.com/p.jpg');
+    expect(c.editPhotoPlayers()).toEqual(names11);
+
+    c.editPhotoUrl.set('https://example.com/new.jpg');
+    await c.saveEditWhopicture(11);
+    expect(apiStub.update).toHaveBeenCalledWith('whopicture', 11, {
+      photoUrl: 'https://example.com/new.jpg',
+      players: names11,
+    });
+    expect(toast.success).toHaveBeenCalledWith('تم حفظ تعديل الصورة (#11).');
+    await drainList(httpMock, 'whopicture');
+  });
+
+  it('blocks a whopicture edit until all 11 names are filled', async () => {
+    const { fixture, apiStub, toast, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    c.select('whopicture');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((r) => r.url.includes('/whopicture/all'))
+      .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+    c.startEditWhopicture({ id: 11, photoUrl: 'https://example.com/p.jpg', players: names11 });
+    c.setEditPhotoPlayer(0, '');
+    await c.saveEditWhopicture(11);
+    expect(apiStub.update).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalled();
+    expect(c.msg()).toContain('11');
+  });
+
+  it('deletes through the generic admin-gated del(pool, id)', async () => {
+    const { fixture, apiStub, httpMock } = await setupV4();
+    const c = fixture.componentInstance;
+    await showV4(fixture, httpMock, 'anameen', [{ id: 4, player: 'محمد صلاح', clues: clues5 }]);
+    await c.removeAnameen(4);
+    expect(apiStub.del).toHaveBeenCalledWith('anameen', 4);
+    await drainList(httpMock, 'anameen');
   });
 });

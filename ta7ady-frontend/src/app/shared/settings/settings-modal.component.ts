@@ -40,6 +40,8 @@ export class SettingsModalComponent {
     { key: 'scoresheet', label: 'سكور شيت' },
     { key: 'bank', label: 'بنك' },
     { key: 'risk', label: 'ريسك' },
+    { key: 'anameen', label: 'من أنا؟' },
+    { key: 'whopicture', label: 'مين في الصورة' },
   ];
 
   // In-game defaults per timerKey (must match each game's defaultSeconds).
@@ -54,6 +56,8 @@ export class SettingsModalComponent {
     scoresheet: 10,
     bank: 120,
     risk: 30,
+    anameen: 60,
+    whopicture: 10,
   };
 
   defaultPlaceholder(key: TimerKey): string {

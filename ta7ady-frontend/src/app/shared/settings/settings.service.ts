@@ -12,7 +12,9 @@ export type TimerKey =
   | 'top10'
   | 'scoresheet'
   | 'bank'
-  | 'risk';
+  | 'risk'
+  | 'anameen'
+  | 'whopicture';
 
 export const TIMER_KEYS: readonly TimerKey[] = [
   'password',
@@ -24,6 +26,8 @@ export const TIMER_KEYS: readonly TimerKey[] = [
   'scoresheet',
   'bank',
   'risk',
+  'anameen',
+  'whopicture',
 ];
 
 export const ALARM_SOUNDS: readonly AlarmSoundId[] = ['classic', 'triplet', 'gong'];

@@ -41,6 +41,27 @@ describe('ImportPanelComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
+  // SPECV4: the two new pools show their own bulk schema hints.
+  describe('v4 pools', () => {
+    it('shows the anameen 5-ordered-clue schema', () => {
+      const { fixture } = setup('anameen');
+      fixture.detectChanges();
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('من أنا؟');
+      expect(text).toContain('5');
+      expect(text).toContain('clues');
+    });
+
+    it('shows the whopicture URL + 11-name schema', () => {
+      const { fixture } = setup('whopicture');
+      fixture.detectChanges();
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('مين في الصورة');
+      expect(text).toContain('photoUrl');
+      expect(text).toContain('11');
+    });
+  });
+
   it('rejects invalid JSON with a clear error', async () => {
     const { fixture } = setup();
     const c = fixture.componentInstance;

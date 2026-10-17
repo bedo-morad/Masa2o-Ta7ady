@@ -127,3 +127,34 @@ h2 {
     opacity: 0.5;
   }
 }
+
+.asked-mark {
+  flex: none;
+  cursor: pointer;
+  border: 1px solid var(--pitch-line);
+  padding: 0;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+
+  &[aria-pressed='true'] {
+    background: var(--pitch-accent-deep);
+    color: #fff;
+    border-color: var(--pitch-accent-deep);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pitch-accent-deep) 18%, transparent);
+  }
+
+  &:focus-visible { outline: 3px solid var(--pitch-gold); outline-offset: 2px; }
+}
+
+.rnum {
+  appearance: none;
+  min-width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: var(--pitch-surface-2);
+  color: var(--pitch-gold);
+  font-size: 0.9rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

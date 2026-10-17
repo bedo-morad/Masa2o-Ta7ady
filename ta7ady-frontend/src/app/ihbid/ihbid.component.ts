@@ -24,6 +24,7 @@ export class IhbidComponent {
   readonly count = signal(10);
   readonly rows = signal<IhbidQuestion[]>([]);
   readonly revealed = signal<Set<number>>(new Set());
+  readonly asked = signal<Set<number>>(new Set());
   readonly msg = signal('');
   readonly rerolling = signal<number | null>(null);
 
@@ -38,6 +39,7 @@ export class IhbidComponent {
       if (rows) {
         this.rows.set(rows);
         this.revealed.set(new Set());
+        this.asked.set(new Set());
         this.msg.set(rows.length ? '' : 'لا توجد أسئلة بعد — أضف من صفحة إدارة الأسئلة.');
       }
       if (this.res.error()) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
@@ -45,7 +47,22 @@ export class IhbidComponent {
   }
 
   reload(): void {
+    this.asked.set(new Set());
     this.res.reload();
+  }
+
+  countChanged(value: number): void {
+    this.count.set(value);
+    this.asked.set(new Set());
+  }
+
+  toggleAsked(index: number): void {
+    this.asked.update((marks) => {
+      const next = new Set(marks);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
   }
 
   googleUrl(text: string): string {
@@ -71,6 +88,11 @@ export class IhbidComponent {
       if (pick) {
         const oldId = this.rows()[i]?.id;
         this.rows.update((rows) => rows.map((q, idx) => (idx === i ? pick : q)));
+        this.asked.update((marks) => {
+          const next = new Set(marks);
+          next.delete(i);
+          return next;
+        });
         this.revealed.update((s) => {
           const next = new Set(s);
           if (oldId !== undefined) next.delete(oldId);

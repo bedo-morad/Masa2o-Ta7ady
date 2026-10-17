@@ -12,7 +12,7 @@
 
   <div class="draw-row">
     <label for="ih-count">عدد الأسئلة</label>
-    <select id="ih-count" [(ngModel)]="count">
+    <select id="ih-count" [ngModel]="count()" (ngModelChange)="countChanged($event)">
       <option [ngValue]="5">5</option>
       <option [ngValue]="10">10</option>
       <option [ngValue]="15">15</option>
@@ -31,7 +31,7 @@
     @for (q of rows(); track q.id; let i = $index) {
       <li class="qitem">
         <div class="qtext">
-          <span class="qnum tabular-nums">{{ i + 1 }}</span>
+          <button type="button" class="qnum asked-mark tabular-nums" (click)="toggleAsked(i)" [attr.aria-pressed]="asked().has(i)" [attr.aria-label]="'تمييز السؤال ' + (i + 1) + ' كسؤال مسـؤول عنه'" title="تمييز السؤال">{{ i + 1 }}</button>
           <span class="qbody">{{ q.questionText }}</span>
           <a
             class="gq"

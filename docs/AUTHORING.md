@@ -163,9 +163,13 @@ them — new facts and angles that still follow §1 (timeless, cut-if-unsure, ~2
 
 ### 3.8 Ana Meen subjects — `{"player": "...", "clues": ["...", ×5]}`
 
-Hidden subject is always a player. Exactly 5 clues, ordered hard → easy (clue 1 hardest,
-clue 5 near-giveaway). Each clue standalone intelligible; later clues narrow, never repeat
-earlier ones. No answer field beyond `player`.
+Hidden subject is always a player. Exactly 5 clues, ordered **hard → easy** as a strict
+ladder: clue 1 **very very hard**, clue 2 **very hard**, clue 3 **hard**, clue 4
+**medium**, clue 5 **easy/near-giveaway**. Each clue standalone intelligible; later
+clues narrow, never repeat earlier ones. Vary the angles across subjects — rotate:
+trophies he won, transfer history, teammates he played with (across clubs/nation),
+leagues he played in (not only the club), career records. No answer field beyond
+`player`. A clue-1 that a casual fan can answer is a rejected row.
 
 ```json
 [
@@ -173,15 +177,26 @@ earlier ones. No answer field beyond `player`.
 ]
 ```
 
-### 3.9 Who-in-picture — `{"photoUrl": "...", "players": ["...", ×11]}`
+### 3.9 Who-in-picture — `{"title": "...", "photoUrl": "...", "players": ["...", ×11]}`
 
+`title` = club or nation + year + competition (+ stage for KO rounds: final /
+semi-final / quarter-final …), e.g. "الأهلي 2021 نهائي دوري أبطال أفريقيا".
 `photoUrl` = hotlink to a pre-match team photo of 11 (v4; uploads come later).
 `players` = exactly the 11 pictured names, any order. Prefer widely-mirrored photos to
 survive link rot; nothing you would not want shared to a room full of phones.
 
+Content rules (v4 revision): prefer club photos over national-team photos — nations
+only when the room would recognize most of the XI (Austria-2023-tier sides are out);
+modern-era lean, nothing decades-old ("Germany 1990"-style is rejected); no charity /
+exhibition matches; the local slice favours Egyptian clubs (Al Ahly, Zamalek, Pyramids'
+two CAF-CL finals) not just the national team; source from the wider web — Wikipedia
+Commons is one source, not the default. Author fast: mechanical verification (schema,
+lengths, dedupe, mix) + one quick visual pass per photo — do not spend hours on
+per-photo provenance.
+
 ```json
 [
-  { "photoUrl": "https://...", "players": ["...", "..."] }
+  { "title": "...", "photoUrl": "https://...", "players": ["...", "..."] }
 ]
 ```
 

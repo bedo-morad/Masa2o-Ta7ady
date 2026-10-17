@@ -40,7 +40,7 @@ export class SettingsModalComponent {
     { key: 'scoresheet', label: 'سكور شيت' },
     { key: 'bank', label: 'بنك' },
     { key: 'risk', label: 'ريسك' },
-    { key: 'anameen', label: 'من أنا؟' },
+    { key: 'anameen', label: 'أنا مين؟' },
     { key: 'whopicture', label: 'مين في الصورة' },
   ];
 

@@ -47,7 +47,7 @@ describe('ImportPanelComponent', () => {
       const { fixture } = setup('anameen');
       fixture.detectChanges();
       const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-      expect(text).toContain('من أنا؟');
+      expect(text).toContain('أنا مين؟');
       expect(text).toContain('5');
       expect(text).toContain('clues');
     });

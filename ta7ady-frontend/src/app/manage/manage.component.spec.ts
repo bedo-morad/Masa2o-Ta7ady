@@ -55,7 +55,7 @@ describe('ManageComponent', () => {
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     const tabs = [...el.querySelectorAll('.pools button')] as HTMLButtonElement[];
-    expect(tabs.find((b) => b.textContent?.includes('من أنا؟'))).toBeTruthy();
+    expect(tabs.find((b) => b.textContent?.includes('أنا مين؟'))).toBeTruthy();
     expect(tabs.find((b) => b.textContent?.includes('مين في الصورة'))).toBeTruthy();
     const c = fixture.componentInstance;
     for (const p of ['anameen', 'whopicture'] as const) {

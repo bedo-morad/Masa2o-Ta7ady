@@ -66,7 +66,7 @@ describe('SettingsModalComponent', () => {
     expect(byLabel('أوفسايد')?.placeholder).toBe('5');
     expect(byLabel('بنك')?.placeholder).toBe('120');
     expect(byLabel('ريسك')?.placeholder).toBe('30');
-    expect(byLabel('من أنا؟')?.placeholder).toBe('60');
+    expect(byLabel('أنا مين؟')?.placeholder).toBe('60');
     expect(byLabel('مين في الصورة')?.placeholder).toBe('10');
     // Empty still means "use default": no override stored.
     const svc = TestBed.inject(SettingsService);

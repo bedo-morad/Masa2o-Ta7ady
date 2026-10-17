@@ -12,7 +12,7 @@ const POOL_LABEL: Record<Pool, string> = {
   scoresheet: 'سكور شيت',
   bank: 'بنك',
   risk: 'ريسك',
-  anameen: 'من أنا؟',
+  anameen: 'أنا مين؟',
   whopicture: 'مين في الصورة',
 };
 

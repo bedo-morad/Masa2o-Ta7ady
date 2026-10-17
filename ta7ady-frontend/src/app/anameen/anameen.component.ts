@@ -1,18 +1,10 @@
-import { Component, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { Component, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { API_BASE, AnameenSubject, ApiService } from '../api.service';
-import {
-  AnameenTeam,
-  ANAMEEN_CLUES,
-  ANAMEEN_COUNTS,
-  ANAMEEN_COUNT_DEFAULT,
-  ANAMEEN_POINTS,
-  canReveal,
-  nextReveal,
-} from './anameen.game';
+import { AnameenTeam, ANAMEEN_COUNTS, ANAMEEN_COUNT_DEFAULT, ANAMEEN_POINTS } from './anameen.game';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { SettingsService } from '../shared/settings/settings.service';
@@ -26,15 +18,14 @@ import {
 } from '../shared/attribution/attribution.component';
 
 // Ana Meen (RULES.md / SPECV4 §4.2): a hidden player, five clues hard → easy,
-// one subject at a time. Clue 1 opens with the 60s clock (`anameen` settings
-// key, beep-only); the next clue reveals on a referee tap OR the clock's
-// timeout — the one agreed auto-move (Q13), never auto-scoring. A correct
-// guess is +1 flat whichever clue cracked it, booked through the shared §2.3
-// attribution; re-tap unassigns, reverses and audits. Subjects alternate
-// between the two teams from the opening pick (bank pattern). Referee tools:
-// full redraw + per-subject dice reroll, both `?count=`. After all five clues
-// are open the clock just expires — the referee judges, the site never
-// declares the subject solved. Pure game shape lives in `anameen.game`.
+// one subject on screen at a time — all five clues visible from the start, the
+// referee reads them aloud one by one and the display never gates him. No
+// "pick who starts": both teams guess the same subject simultaneously and the
+// referee awards whoever solved first by tapping the team (+1 flat, any clue,
+// shared §2.3 attribution; re-tap unassigns, reverses and audits). The 60s
+// clock (`anameen` settings key) beeps and stops — no auto-anything. Referee
+// tools: full redraw, per-subject dice reroll (`?count=`) and a new-game
+// reset that clears every tally. Pure game shape lives in `anameen.game`.
 
 @Component({
   selector: 'app-anameen',
@@ -62,24 +53,22 @@ export class AnameenComponent {
   readonly count = signal<number>(ANAMEEN_COUNT_DEFAULT);
   readonly subjects = signal<AnameenSubject[]>([]);
   readonly idx = signal(0);
-  /** subjectId → clues opened so far; clue 1 ships revealed. */
-  readonly opened = signal<Record<number, number>>({});
   readonly assignments = signal<Record<number, AssignedTeam>>({});
   readonly audit = signal<AuditEntry[]>([]);
   readonly msg = signal('');
   readonly rerolling = signal(false);
   private seq = 0;
 
-  readonly startTeam = signal<AnameenTeam | null>(null);
-  readonly clueSlots = Array.from({ length: ANAMEEN_CLUES }, (_, i) => i + 1);
   readonly counts = ANAMEEN_COUNTS;
+  readonly points = ANAMEEN_POINTS;
 
   private readonly res = httpResource<AnameenSubject[]>(
     () => `${API_BASE}/anameen?count=${this.count()}`,
   );
   readonly loading = this.res.isLoading;
 
-  readonly timer = viewChild(TimerComponent);
+  /** Held so moving between subjects hands the referee a fresh 60s clock. */
+  private readonly timer = viewChild(TimerComponent);
 
   constructor() {
     effect(() => {
@@ -91,29 +80,11 @@ export class AnameenComponent {
       }
       if (this.res.error()) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
     });
-    effect(
-      () => {
-        const t = this.timer();
-        if (t && t.expired()) {
-          untracked(() => this.revealNext());
-        }
-      },
-      { allowSignalWrites: true },
-    );
   }
 
-  /** Subject 0 ships to the opening team, then the two alternate. */
-  teamOf(i: number): AnameenTeam | null {
-    const start = this.startTeam();
-    if (!start) return null;
-    const other: AnameenTeam = start === 'A' ? 'B' : 'A';
-    return i % 2 === 0 ? start : other;
-  }
-
-  nameOf(team: AnameenTeam | null): string {
+  nameOf(team: AnameenTeam): string {
     if (team === 'A') return this.teamA() || this.settings.teamA() || 'الفريق الأول';
-    if (team === 'B') return this.teamB() || this.settings.teamB() || 'الفريق الثاني';
-    return '';
+    return this.teamB() || this.settings.teamB() || 'الفريق الثاني';
   }
 
   current(): AnameenSubject | undefined {
@@ -121,30 +92,8 @@ export class AnameenComponent {
     return ss.length ? ss[Math.min(this.idx(), ss.length - 1)] : undefined;
   }
 
-  openedOf(id: number): number {
-    return this.opened()[id] ?? 1;
-  }
-
   clueAt(subject: AnameenSubject, k: number): string {
     return subject.clues[k - 1] ?? '';
-  }
-
-  canOpenMore(subject: AnameenSubject): boolean {
-    return canReveal(this.openedOf(subject.id));
-  }
-
-  /** Tap or timeout: open the next easier clue on a fresh clock. */
-  revealNext(): void {
-    const subject = this.current();
-    if (!subject) return;
-    const cur = this.openedOf(subject.id);
-    if (!canReveal(cur)) return;
-    this.opened.update((o) => ({ ...o, [subject.id]: nextReveal(cur) }));
-    this.timer()?.reset();
-  }
-
-  pickStart(team: AnameenTeam): void {
-    this.startTeam.set(team);
   }
 
   setCount(n: number): void {
@@ -159,16 +108,13 @@ export class AnameenComponent {
   }
 
   newGame(): void {
-    this.startTeam.set(null);
-    this.idx.set(0);
     this.assignments.set({});
-    this.opened.set({});
     this.scoreA.set(0);
     this.scoreB.set(0);
     this.audit.set([]);
     this.msg.set('');
     this.seq = 0;
-    this.res.reload();
+    this.reload();
   }
 
   assigned(id: number): AssignedTeam {
@@ -218,10 +164,6 @@ export class AnameenComponent {
     }
   }
 
-  googleUrl(name: string): string {
-    return `https://www.google.com/search?q=${encodeURIComponent(name)}`;
-  }
-
   /** Applies a delta directly (scores may go negative); audits the actual
    * amount so the strip always sums to the score. */
   private applyScore(team: AnameenTeam, delta: number, label: string): number {
@@ -230,6 +172,12 @@ export class AnameenComponent {
     else this.scoreB.update((v) => v + delta);
     this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
     return delta;
+  }
+
+  private moveTo(i: number): void {
+    const last = Math.max(0, this.subjects().length - 1);
+    this.idx.set(Math.min(last, Math.max(0, i)));
+    this.timer()?.reset();
   }
 
   prev(): void {
@@ -242,11 +190,5 @@ export class AnameenComponent {
 
   go(i: number): void {
     this.moveTo(i);
-  }
-
-  private moveTo(i: number): void {
-    const last = Math.max(0, this.subjects().length - 1);
-    this.idx.set(Math.min(last, Math.max(0, i)));
-    this.timer()?.reset();
   }
 }

@@ -30,6 +30,9 @@ public class WhoPicturePhoto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "title", length = 200)
+    private String title;
+
     @Column(name = "photo_url", nullable = false)
     private String photoUrl;
 

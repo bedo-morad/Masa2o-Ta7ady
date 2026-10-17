@@ -31,6 +31,7 @@ class WhoPictureWebTest {
 
     private static final String ADMIN = "X-Admin-Password";
     private static final String URL = "https://example.com/team-photo.jpg";
+    private static final String TITLE = "الأهلي 2021 نهائي دوري أبطال أفريقيا";
 
     @Autowired
     MockMvc mvc;
@@ -47,6 +48,7 @@ class WhoPictureWebTest {
 
     static Map<String, Object> row(String url, String prefix) {
         Map<String, Object> m = new LinkedHashMap<>();
+        m.put("title", TITLE);
         m.put("photoUrl", url);
         m.put("players", players11(prefix));
         return m;
@@ -68,9 +70,31 @@ class WhoPictureWebTest {
         mvc.perform(post("/api/whopicture").contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(row(URL, "Valid Player"))))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value(TITLE))
                 .andExpect(jsonPath("$.photoUrl").value(URL))
                 .andExpect(jsonPath("$.players", hasSize(11)))
                 .andExpect(jsonPath("$.players[10]").value("Valid Player 11"));
+    }
+
+    @Test
+    void postRejectsMissingShortOrBlankTitle() throws Exception {
+        Map<String, Object> noTitle = row(URL, "No Title");
+        noTitle.remove("title");
+        mvc.perform(post("/api/whopicture").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(noTitle)))
+                .andExpect(status().isBadRequest());
+
+        Map<String, Object> shortTitle = row(URL, "Short Title");
+        shortTitle.put("title", "ab");
+        mvc.perform(post("/api/whopicture").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(shortTitle)))
+                .andExpect(status().isBadRequest());
+
+        Map<String, Object> blankTitle = row(URL, "Blank Title");
+        blankTitle.put("title", "   ");
+        mvc.perform(post("/api/whopicture").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(blankTitle)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -176,9 +200,11 @@ class WhoPictureWebTest {
     void putWithAdminEditsAndDeleteRemoves() throws Exception {
         long id = createAndId(row(URL, "Edit Player"));
         Map<String, Object> edited = row("https://example.com/edited.jpg", "Edited Player");
+        edited.put("title", "ريال مدريد 2022 نصف نهائي دوري أبطال أوروبا");
         mvc.perform(put("/api/whopicture/" + id).header(ADMIN, "admin")
                         .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(edited)))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("ريال مدريد 2022 نصف نهائي دوري أبطال أوروبا"))
                 .andExpect(jsonPath("$.photoUrl").value("https://example.com/edited.jpg"))
                 .andExpect(jsonPath("$.players[0]").value("Edited Player 01"));
 

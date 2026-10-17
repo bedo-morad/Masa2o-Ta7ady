@@ -42,22 +42,23 @@ public class WhoPictureService {
         return repo.findAll(pageable);
     }
 
-    public WhoPicturePhoto create(String photoUrl, List<String> players) {
-        List<String> errors = validate(photoUrl, players);
+    public WhoPicturePhoto create(String title, String photoUrl, List<String> players) {
+        List<String> errors = validate(title, photoUrl, players);
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        return repo.save(toEntity(photoUrl, players));
+        return repo.save(toEntity(title, photoUrl, players));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
-    public WhoPicturePhoto update(Long id, String photoUrl, List<String> players) {
+    public WhoPicturePhoto update(Long id, String title, String photoUrl, List<String> players) {
         WhoPicturePhoto e = repo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "not found"));
-        List<String> errors = validate(photoUrl, players);
+        List<String> errors = validate(title, photoUrl, players);
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
+        e.setTitle(title.trim());
         e.setPhotoUrl(photoUrl.trim());
         e.getPlayers().clear();
         e.getPlayers().addAll(cleaned(players));
@@ -65,9 +66,14 @@ public class WhoPictureService {
     }
 
     // Pure validation shared by single POST, edit (PUT) and bulk (AUTHORING.md §3.9:
-    // exactly 11 distinct names, each >= 3 chars; hotlink URL, no uploads in v4).
-    public static List<String> validate(String photoUrl, List<?> players) {
+    // non-empty title >= 3 chars; exactly 11 distinct names, each >= 3 chars;
+    // hotlink URL, no uploads in v4).
+    public static List<String> validate(String title, String photoUrl, List<?> players) {
         List<String> errors = new ArrayList<>();
+        String t = title == null ? "" : title.trim();
+        if (t.length() < 3) {
+            errors.add("title must be at least 3 characters");
+        }
         String url = photoUrl == null ? "" : photoUrl.trim();
         if (url.length() < 3) {
             errors.add("photoUrl must be at least 3 characters");
@@ -118,9 +124,10 @@ public class WhoPictureService {
     // so a different crop of the same URL is still a distinct row.
     public List<BulkRowResult> bulk(List<WhoPictureBulkRow> rows, boolean dryRun) {
         return BulkHelper.run(rows, dryRun,
-                r -> validate(r == null ? null : r.photoUrl(), r == null ? null : r.players()),
+                r -> validate(r == null ? null : r.title(), r == null ? null : r.photoUrl(),
+                        r == null ? null : r.players()),
                 r -> signature(r == null ? null : r.photoUrl(), r == null ? null : r.players()),
-                r -> toEntity(r.photoUrl(), r.players()),
+                r -> toEntity(r.title(), r.photoUrl(), r.players()),
                 e -> repo.save(e).getId());
     }
 
@@ -143,8 +150,9 @@ public class WhoPictureService {
         return sb.toString();
     }
 
-    private static WhoPicturePhoto toEntity(String photoUrl, List<?> players) {
+    private static WhoPicturePhoto toEntity(String title, String photoUrl, List<?> players) {
         WhoPicturePhoto e = new WhoPicturePhoto();
+        e.setTitle(title == null ? "" : title.trim());
         e.setPhotoUrl(photoUrl.trim());
         e.setPlayers(cleaned(players));
         return e;

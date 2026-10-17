@@ -1,8 +1,7 @@
 package com.ta7ady.backend.web;
 
 import com.ta7ady.backend.entity.WhoPicturePhoto;
-import com.ta7ady.backend.service.WhoPictureService;
-import java.util.List;
+import com.ta7ady.backend.service.WhoPictureService;import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,10 +33,10 @@ public class WhoPictureController extends BulkAdminController<WhoPictureBulkRow>
         return service.all(pageable);
     }
 
-    // POST JSON: { "photoUrl": "https://...", "players": ["...", x11] }
+    // POST JSON: { "title": "...", "photoUrl": "https://...", "players": ["...", x11] }
     @PostMapping
     public WhoPicturePhoto create(@RequestBody WhoPictureBulkRow body) {
-        return service.create(body.photoUrl(), body.players());
+        return service.create(body.title(), body.photoUrl(), body.players());
     }
 
     @Override
@@ -47,7 +46,7 @@ public class WhoPictureController extends BulkAdminController<WhoPictureBulkRow>
 
     @Override
     protected WhoPicturePhoto updateRow(Long id, WhoPictureBulkRow body) {
-        return service.update(id, body.photoUrl(), body.players());
+        return service.update(id, body.title(), body.photoUrl(), body.players());
     }
 
     @Override

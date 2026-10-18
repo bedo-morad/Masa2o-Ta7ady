@@ -143,7 +143,7 @@
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button type="button" class="del" (click)="catalog.delete('players', p.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
+                <button type="button" class="del" (click)="removeFromCatalog('players', p.id)" aria-label="حذف">
                   <i class="fa-solid fa-trash"></i> حذف
                 </button>
               </div>
@@ -173,7 +173,7 @@
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button type="button" class="del" (click)="catalog.delete('ihbid', q.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
+                <button type="button" class="del" (click)="removeFromCatalog('ihbid', q.id)" aria-label="حذف">
                   <i class="fa-solid fa-trash"></i> حذف
                 </button>
               </div>
@@ -200,7 +200,7 @@
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button type="button" class="del" (click)="catalog.delete('offside', r.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
+                <button type="button" class="del" (click)="removeFromCatalog('offside', r.id)" aria-label="حذف">
                   <i class="fa-solid fa-trash"></i> حذف
                 </button>
               </div>
@@ -245,7 +245,7 @@
                   >
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button type="button" class="del" (click)="catalog.delete('top10', t.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
+                  <button type="button" class="del" (click)="removeFromCatalog('top10', t.id)" aria-label="حذف">
                     <i class="fa-solid fa-trash"></i> حذف
                   </button>
                 </div>
@@ -304,7 +304,7 @@
                   <button
                     type="button"
                     class="del"
-                    (click)="catalog.delete('scoresheet', m.id, deleteUnauthorized, deleteFailed)"
+                    (click)="removeFromCatalog('scoresheet', m.id)"
                     aria-label="حذف"
                   >
                     <i class="fa-solid fa-trash"></i> حذف
@@ -357,7 +357,7 @@
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button type="button" class="del" (click)="catalog.delete('bank', b.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
+                <button type="button" class="del" (click)="removeFromCatalog('bank', b.id)" aria-label="حذف">
                   <i class="fa-solid fa-trash"></i> حذف
                 </button>
               </div>
@@ -400,7 +400,7 @@
                   >
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button type="button" class="del" (click)="catalog.delete('risk', p.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
+                  <button type="button" class="del" (click)="removeFromCatalog('risk', p.id)" aria-label="حذف">
                     <i class="fa-solid fa-trash"></i> حذف
                   </button>
                 </div>
@@ -459,7 +459,7 @@
                   >
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button type="button" class="del" (click)="catalog.delete('anameen', a.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
+                  <button type="button" class="del" (click)="removeFromCatalog('anameen', a.id)" aria-label="حذف">
                     <i class="fa-solid fa-trash"></i> حذف
                   </button>
                 </div>
@@ -519,7 +519,7 @@
                   <button
                     type="button"
                     class="del"
-                    (click)="catalog.delete('whopicture', w.id, deleteUnauthorized, deleteFailed)"
+                    (click)="removeFromCatalog('whopicture', w.id)"
                     aria-label="حذف"
                   >
                     <i class="fa-solid fa-trash"></i> حذف

@@ -155,7 +155,7 @@ describe('ManageComponent admin unlock', () => {
     expect(el.querySelector('.del')).not.toBeNull();
 
     apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 401 })));
-    await c.catalog.delete('players', 1, c.deleteUnauthorized, c.deleteFailed);
+    await c.removeFromCatalog('players', 1);
     fixture.detectChanges();
     expect(apiStub.lock).toHaveBeenCalled();
     expect(c.adminOn()).toBe(false);
@@ -419,18 +419,18 @@ describe('ManageComponent catalog lifecycle', () => {
   it('refreshes after delete and preserves the existing failure and authorization outcomes', async () => {
     const { fixture, apiStub, httpMock } = await setupCatalog();
     const c = fixture.componentInstance;
-    await c.catalog.delete('players', 1, c.deleteUnauthorized, c.deleteFailed);
+    await c.removeFromCatalog('players', 1);
     expect(apiStub.del).toHaveBeenCalledWith('players', 1);
     await new Promise((resolve) => setTimeout(resolve, 0));
     const refresh = httpMock.expectOne((r) => r.url.includes('/players/all'));
     refresh.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
 
     apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 500 })));
-    await c.catalog.delete('players', 1, c.deleteUnauthorized, c.deleteFailed);
+    await c.removeFromCatalog('players', 1);
     expect(c.msg()).toBe('تعذّر الحذف — أعد المحاولة.');
 
     apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 401 })));
-    await c.catalog.delete('players', 1, c.deleteUnauthorized, c.deleteFailed);
+    await c.removeFromCatalog('players', 1);
     expect(apiStub.lock).toHaveBeenCalled();
     expect(c.adminError()).toBe('كلمة المرور غير صحيحة.');
   });
@@ -1332,7 +1332,7 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     const { fixture, apiStub, httpMock } = await setupV4();
     const c = fixture.componentInstance;
     await showV4(fixture, httpMock, 'anameen', [{ id: 4, player: 'محمد صلاح', clues: clues5 }]);
-    await c.catalog.delete('anameen', 4, c.deleteUnauthorized, c.deleteFailed);
+    await c.removeFromCatalog('anameen', 4);
     expect(apiStub.del).toHaveBeenCalledWith('anameen', 4);
     await drainList(httpMock, 'anameen');
   });

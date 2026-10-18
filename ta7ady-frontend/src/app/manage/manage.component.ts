@@ -198,12 +198,17 @@ export class ManageComponent {
     this.msg.set('تم الاستيراد — القائمة محدثة.');
   }
 
-  readonly deleteUnauthorized = (): void => {
-    this.api.lock();
-    this.adminError.set('كلمة المرور غير صحيحة.');
-  };
-  readonly deleteFailed = (): void => this.msg.set('تعذّر الحذف — أعد المحاولة.');
-
+  public removeFromCatalog(pool: Pool, id: number): Promise<void> {
+    return this.catalog.delete(
+      pool,
+      id,
+      () => {
+        this.api.lock();
+        this.adminError.set('كلمة المرور غير صحيحة.');
+      },
+      () => this.msg.set('تعذّر الحذف — أعد المحاولة.'),
+    );
+  }
   private denyIf401(e: unknown): boolean {
     if (typeof e === 'object' && e !== null && 'status' in e) {
       if ((e as { status: unknown }).status === 401) {

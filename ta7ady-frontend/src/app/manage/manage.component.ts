@@ -5,12 +5,13 @@ import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { API_BASE, ApiService, Page, Pool, RiskQuestion } from '../api.service';
+import { API_BASE, ApiService, AnameenSubject, Page, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
 
 const SIZE = 20;
 export const TOP10_SIZE = 13;
 export const LINEUP_SIZE = 11;
+export const ANAMEEN_CLUES = 5;
 export const RISK_TIERS = [5, 10, 20, 40];
 export const RISK_SIZE = RISK_TIERS.length;
 
@@ -52,9 +53,17 @@ export class ManageComponent {
   readonly lineupB = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly newGenre = signal('');
   readonly newRisk = signal<RiskQuestion[]>(blankRisk());
+  // Ana Meen (SPECV4 §4.1): subject name + 5 clues, hard -> easy.
+  readonly newSubject = signal('');
+  readonly newClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
+  // Who-in-Picture (SPECV4 §4.3): title + hotlinked photo + 11 pictured names.
+  readonly newPhotoTitle = signal('');
+  readonly newPhotoUrl = signal('');
+  readonly newPhotoPlayers = signal<string[]>(Array(LINEUP_SIZE).fill(''));
 
   readonly top10Ranks = Array.from({ length: TOP10_SIZE }, (_, i) => i + 1);
   readonly lineupSlots = Array.from({ length: LINEUP_SIZE }, (_, i) => i + 1);
+  readonly clueSlots = Array.from({ length: ANAMEEN_CLUES }, (_, i) => i + 1);
   readonly riskTiers = RISK_TIERS;
 
   // Accordion for managed top-10 / scoresheet / risk rows: one open at a time.
@@ -74,6 +83,11 @@ export class ManageComponent {
   readonly editLineupB = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly editGenre = signal('');
   readonly editRisk = signal<RiskQuestion[]>(blankRisk());
+  readonly editSubject = signal('');
+  readonly editClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
+  readonly editPhotoTitle = signal('');
+  readonly editPhotoUrl = signal('');
+  readonly editPhotoPlayers = signal<string[]>(Array(LINEUP_SIZE).fill(''));
 
   toggle(id: number): void {
     this.expandedId.update((open) => (open === id ? null : id));
@@ -133,6 +147,18 @@ export class ManageComponent {
         ? `${API_BASE}/risk/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
         : undefined,
   );
+  private readonly anameenRes = httpResource<Page<AnameenSubject>>(
+    () =>
+      this.pool() === 'anameen'
+        ? `${API_BASE}/anameen/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
+        : undefined,
+  );
+  private readonly whopictureRes = httpResource<Page<WhoPicturePhoto>>(
+    () =>
+      this.pool() === 'whopicture'
+        ? `${API_BASE}/whopicture/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
+        : undefined,
+  );
 
   readonly playerRows = computed(() => this.playersRes.value()?.content ?? []);
   readonly ihbidRows = computed(() => this.ihbidRes.value()?.content ?? []);
@@ -141,6 +167,8 @@ export class ManageComponent {
   readonly scoresheetRows = computed(() => this.scoresheetRes.value()?.content ?? []);
   readonly bankRows = computed(() => this.bankRes.value()?.content ?? []);
   readonly riskRows = computed(() => this.riskRes.value()?.content ?? []);
+  readonly anameenRows = computed(() => this.anameenRes.value()?.content ?? []);
+  readonly whopictureRows = computed(() => this.whopictureRes.value()?.content ?? []);
 
   readonly totalElements = computed(() => this.activePage()?.totalElements ?? 0);
   readonly totalPages = computed(() => this.activePage()?.totalPages ?? 0);
@@ -152,7 +180,9 @@ export class ManageComponent {
       this.top10Res.isLoading() ||
       this.scoresheetRes.isLoading() ||
       this.bankRes.isLoading() ||
-      this.riskRes.isLoading(),
+      this.riskRes.isLoading() ||
+      this.anameenRes.isLoading() ||
+      this.whopictureRes.isLoading(),
   );
 
   private activePage() {
@@ -162,6 +192,8 @@ export class ManageComponent {
     if (this.pool() === 'scoresheet') return this.scoresheetRes.value();
     if (this.pool() === 'bank') return this.bankRes.value();
     if (this.pool() === 'risk') return this.riskRes.value();
+    if (this.pool() === 'anameen') return this.anameenRes.value();
+    if (this.pool() === 'whopicture') return this.whopictureRes.value();
     return this.offsideRes.value();
   }
 
@@ -247,6 +279,22 @@ export class ManageComponent {
     this.editRisk.update((arr) => arr.map((q, j) => (j === i ? { ...q, [field]: v } : q)));
   }
 
+  setNewClue(i: number, v: string): void {
+    this.newClues.update((arr) => arr.map((old, j) => (j === i ? v : old)));
+  }
+
+  setEditClue(i: number, v: string): void {
+    this.editClues.update((arr) => arr.map((old, j) => (j === i ? v : old)));
+  }
+
+  setNewPhotoPlayer(i: number, v: string): void {
+    this.newPhotoPlayers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
+  }
+
+  setEditPhotoPlayer(i: number, v: string): void {
+    this.editPhotoPlayers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
+  }
+
   // ---- inline edit (admin-unlocked, SPECV3 §3.1) ----
 
   startEditPlayer(p: { id: number; playerName: string }): void {
@@ -304,6 +352,21 @@ export class ManageComponent {
     this.editRisk.set(p.questions.map((q, i) => ({ ...q, points: RISK_TIERS[i] })));
     this.expandedId.set(null);
     this.editingId.set(p.id);
+  }
+
+  startEditAnameen(a: AnameenSubject): void {
+    this.editSubject.set(a.player);
+    this.editClues.set([...a.clues]);
+    this.expandedId.set(null);
+    this.editingId.set(a.id);
+  }
+
+  startEditWhopicture(w: WhoPicturePhoto): void {
+    this.editPhotoTitle.set(w.title);
+    this.editPhotoUrl.set(w.photoUrl);
+    this.editPhotoPlayers.set([...w.players]);
+    this.expandedId.set(null);
+    this.editingId.set(w.id);
   }
 
   cancelEdit(): void {
@@ -397,6 +460,35 @@ export class ManageComponent {
       'تم حفظ تعديل الحزمة.', 'خطأ — يلزم نوع وأربعة أسئلة بفئاتها.');
   }
 
+  async saveEditAnameen(id: number): Promise<void> {
+    this.msg.set('');
+    const player = this.editSubject().trim();
+    const clues = this.editClues().map((c) => c.trim());
+    if (!player || clues.some((c) => !c)) {
+      const reason = 'أكمل اسم الشخصية والتلميحات الخمس قبل الحفظ.';
+      this.msg.set(reason);
+      this.toast.error(reason);
+      return;
+    }
+    await this.applyEdit('anameen', id, { player, clues },
+      `تم حفظ تعديل الشخصية (#${id}).`, 'خطأ — يلزم اسم وخمسة تلميحات مميزة.');
+  }
+
+  async saveEditWhopicture(id: number): Promise<void> {
+    this.msg.set('');
+    const title = this.editPhotoTitle().trim();
+    const photoUrl = this.editPhotoUrl().trim();
+    const players = this.editPhotoPlayers().map((p) => p.trim());
+    if (!title || !photoUrl || players.some((p) => !p)) {
+      const reason = 'أكمل العنوان ورابط الصورة وأسماء اللاعبين الـ11 قبل الحفظ.';
+      this.msg.set(reason);
+      this.toast.error(reason);
+      return;
+    }
+    await this.applyEdit('whopicture', id, { title, photoUrl, players },
+      `تم حفظ تعديل الصورة (#${id}).`, 'خطأ — يلزم عنوان ورابط صالح و11 اسمًا مميزًا.');
+  }
+
   private reloadActive(): void {
     if (this.pool() === 'players') this.playersRes.reload();
     else if (this.pool() === 'ihbid') this.ihbidRes.reload();
@@ -404,6 +496,8 @@ export class ManageComponent {
     else if (this.pool() === 'scoresheet') this.scoresheetRes.reload();
     else if (this.pool() === 'bank') this.bankRes.reload();
     else if (this.pool() === 'risk') this.riskRes.reload();
+    else if (this.pool() === 'anameen') this.anameenRes.reload();
+    else if (this.pool() === 'whopicture') this.whopictureRes.reload();
     else this.offsideRes.reload();
   }
 
@@ -555,6 +649,60 @@ export class ManageComponent {
     }
   }
 
+  async addAnameen(): Promise<void> {
+    this.msg.set('');
+    const player = this.newSubject().trim();
+    const clues = this.newClues().map((c) => c.trim());
+    if (!player || clues.some((c) => !c)) {
+      const reason = 'أكمل اسم الشخصية والتلميحات الخمس قبل الإضافة.';
+      this.msg.set(reason);
+      this.toast.error(reason);
+      return;
+    }
+    try {
+      const saved = await firstValueFrom(this.api.addAnameen(player, clues));
+      this.newSubject.set('');
+      this.newClues.set(Array(ANAMEEN_CLUES).fill(''));
+      if (this.page() === 0) this.reloadActive();
+      else this.page.set(0);
+      const ok = `تمت إضافة الشخصية (#${saved.id}).`;
+      this.msg.set(ok);
+      this.toast.success(ok);
+    } catch (e: unknown) {
+      const reason = this.apiMsg(e) ?? 'خطأ — يلزم اسم وخمسة تلميحات مميزة.';
+      this.msg.set(reason);
+      this.toast.error(reason);
+    }
+  }
+
+  async addWhopicture(): Promise<void> {
+    this.msg.set('');
+    const title = this.newPhotoTitle().trim();
+    const photoUrl = this.newPhotoUrl().trim();
+    const players = this.newPhotoPlayers().map((p) => p.trim());
+    if (!title || !photoUrl || players.some((p) => !p)) {
+      const reason = 'أكمل العنوان ورابط الصورة وأسماء اللاعبين الـ11 قبل الإضافة.';
+      this.msg.set(reason);
+      this.toast.error(reason);
+      return;
+    }
+    try {
+      const saved = await firstValueFrom(this.api.addWhopicture(title, photoUrl, players));
+      this.newPhotoTitle.set('');
+      this.newPhotoUrl.set('');
+      this.newPhotoPlayers.set(Array(LINEUP_SIZE).fill(''));
+      if (this.page() === 0) this.reloadActive();
+      else this.page.set(0);
+      const ok = `تمت إضافة الصورة (#${saved.id}).`;
+      this.msg.set(ok);
+      this.toast.success(ok);
+    } catch (e: unknown) {
+      const reason = this.apiMsg(e) ?? 'خطأ — يلزم رابط صالح و11 اسمًا مميزًا.';
+      this.msg.set(reason);
+      this.toast.error(reason);
+    }
+  }
+
   async removePlayer(id: number): Promise<void> {
     try {
       await firstValueFrom(this.api.del('players', id));
@@ -630,6 +778,28 @@ export class ManageComponent {
       return;
     }
     this.afterDelete(this.riskRes.value()?.content.length ?? 0);
+  }
+
+  async removeAnameen(id: number): Promise<void> {
+    try {
+      await firstValueFrom(this.api.del('anameen', id));
+    } catch (e: unknown) {
+      if (this.denyIf401(e)) return;
+      this.msg.set('تعذّر الحذف — أعد المحاولة.');
+      return;
+    }
+    this.afterDelete(this.anameenRes.value()?.content.length ?? 0);
+  }
+
+  async removeWhopicture(id: number): Promise<void> {
+    try {
+      await firstValueFrom(this.api.del('whopicture', id));
+    } catch (e: unknown) {
+      if (this.denyIf401(e)) return;
+      this.msg.set('تعذّر الحذف — أعد المحاولة.');
+      return;
+    }
+    this.afterDelete(this.whopictureRes.value()?.content.length ?? 0);
   }
 
   private afterDelete(leftOnPage: number): void {

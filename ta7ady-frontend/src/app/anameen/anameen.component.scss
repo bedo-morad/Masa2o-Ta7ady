@@ -1,0 +1,264 @@
+.challenge {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  a {
+    color: var(--pitch-ink-dim);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+
+    i {
+      margin-inline-end: 0.3rem;
+    }
+  }
+}
+
+h2 {
+  font-size: 1.9rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.notice {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.8rem 1rem;
+  color: var(--pitch-ink-dim);
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--pitch-gold);
+  outline-offset: 2px;
+}
+
+// ── Draw row: count gate + redraw + new-game reset ────────────
+.draw-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  label {
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--pitch-ink-dim);
+  }
+
+  select {
+    min-height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--pitch-line);
+    background: var(--pitch-surface);
+    color: var(--pitch-ink);
+    font-family: inherit;
+    font-weight: 800;
+    padding: 0 0.6rem;
+  }
+}
+
+.redraw {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:first-of-type {
+    margin-inline-start: auto;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+// ── Subject rail ──────────────────────────────────────────────
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.navbtn {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+.dots {
+  display: flex;
+  gap: 0.4rem;
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dot {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+  font-family: inherit;
+  font-weight: 900;
+  cursor: pointer;
+
+  &.on {
+    background: var(--pitch-accent-deep);
+    border-color: var(--pitch-accent-deep);
+    color: #fff;
+  }
+}
+
+// ── Signature: the clue dossier (five slats, hard → easy) ─────
+.dossier {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.dossier-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pos {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.15rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-weight: 900;
+  font-size: 0.9rem;
+}
+
+.hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--pitch-ink-dim);
+}
+
+.dice {
+  margin-inline-start: auto;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink);
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.slats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.slat {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--pitch-line);
+  border-radius: 10px;
+  border-inline-start: 3px solid var(--pitch-gold);
+  background: var(--pitch-surface-2);
+  padding: 0.5rem 0.65rem;
+  min-height: 48px;
+
+  .no {
+    flex: none;
+    font-weight: 900;
+    color: var(--pitch-gold);
+    border-inline-end: 2px solid var(--pitch-line);
+    padding-inline-end: 0.55rem;
+  }
+
+  .text {
+    margin: 0;
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+}
+
+// The solved-to identity: the dossier closes on the name, centered and big.
+.answer {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.6rem, 7.5vw, 2.1rem);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--pitch-ink);
+  border-top: 1px dashed var(--pitch-line);
+  padding-top: 0.65rem;
+}
+
+// ── The solve: one card, the award lives inside ───────────────
+.solve {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.8rem 0.9rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.solve-lead {
+  margin: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: var(--pitch-gold);
+}

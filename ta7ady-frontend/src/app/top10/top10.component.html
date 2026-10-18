@@ -114,7 +114,8 @@
             }
             <app-attribution
               [label]="a"
-              [points]="valueOf(r + 1)"
+              [mode]="'rank'"
+              [rank]="r + 1"
               [assigned]="assigned(list.id, r + 1)"
               [teamA]="teamA()"
               [teamB]="teamB()"

@@ -17,10 +17,17 @@ export interface BankQuestion { id: number; question: string; answer: string; }
 // tier from the row position, not the field.
 export interface RiskQuestion { points?: number; question: string; answer: string; }
 export interface RiskPack { id: number; genre: string; questions: RiskQuestion[]; }
+// Ana Meen (SPECV4 §4.1): subject + 5 clues ordered hard -> easy.
+export interface AnameenSubject { id: number; player: string; clues: string[]; }
+// Who-in-Picture (SPECV4 §4.3): title + one hotlinked photo + exactly 11 names.
+export interface WhoPicturePhoto { id: number; title: string; photoUrl: string; players: string[]; }
 export interface BulkRowResult { index: number; ok: boolean; errors: string[]; id?: number; }
 
 // v3 adds 'bank' + 'risk' to the pool list; their /all pagination and game routes are available in the frontend.
-export type Pool = 'players' | 'ihbid' | 'offside' | 'top10' | 'scoresheet' | 'bank' | 'risk';
+// v4 adds 'anameen' + 'whopicture'; page/del/update/bulk stay generic — no per-pool copies.
+export type Pool =
+  | 'players' | 'ihbid' | 'offside' | 'top10' | 'scoresheet'
+  | 'bank' | 'risk' | 'anameen' | 'whopicture';
 
 export interface Page<T> {
   content: T[];
@@ -127,6 +134,21 @@ export class ApiService {
   }
   addBank(question: string, answer: string): Observable<BankQuestion> {
     return this.http.post<BankQuestion>(`${BASE}/bank`, { question, answer });
+  }
+
+  // Ana Meen (SPECV4 §4.1): exactly 5 clues, hard -> easy, enforced by the backend.
+  addAnameen(player: string, clues: string[]): Observable<AnameenSubject> {
+    return this.http.post<AnameenSubject>(`${BASE}/anameen`, { player, clues });
+  }
+
+  // Ana Meen draw: `count` subjects for the game (default 3, clamp 1–10).
+  anameenRandom(count = 3): Observable<AnameenSubject[]> {
+    return this.http.get<AnameenSubject[]>(`${BASE}/anameen?count=${count}`);
+  }
+
+  // Who-in-Picture (SPECV4 §4.3): title + hotlink URL + 11 names; specs per AUTHORING §3.9.
+  addWhopicture(title: string, photoUrl: string, players: string[]): Observable<WhoPicturePhoto> {
+    return this.http.post<WhoPicturePhoto>(`${BASE}/whopicture`, { title, photoUrl, players });
   }
 
   addRisk(genre: string, questions: RiskQuestion[]): Observable<RiskPack> {

@@ -13,34 +13,16 @@ import {
   AuditStripComponent,
 } from '../shared/attribution/attribution.component';
 
-// Frontend scoring (RULES.md Top 10): rank N (1-10) = N pts; 11/12/13 =
-// -1/-2/-3. Holding all three of 11+12+13 flips the trio from -6 to +6.
-// Scoring is booked-effective: per list and team, `booked` tracks the net amount
-// attribution actually added to the score. Each tap steers the booked amount
-// toward the map's target contribution, so completing the trio from zero scores
+// Frontend scoring is booked-effective: per list and team, `booked` tracks the
+// net amount attribution actually added to the score. Each tap steers the
+// booked amount toward the map's target contribution (the shared RankMap math
+// in `shared/attribution/rank-points`), so completing the trio from zero scores
 // exactly +6 (via a +9 catch-up over the booked -3) and the audit always sums
 // to the score. Scores may go below zero. Backend stores no scores.
-export function rankValue(rank: number): number {
-  if (rank <= 10) return rank;
-  if (rank === 11) return -1;
-  if (rank === 12) return -2;
-  return -3;
-}
+// The pure rank math itself lives once in the shared attribution mode:'rank'.
+export { rankValue, teamContribution, trioHolder } from '../shared/attribution/rank-points';
 
-export type RankMap = Record<number, AssignedTeam>;
-
-export function trioHolder(m: RankMap): AssignedTeam {
-  const a = m[11];
-  if (a && a === m[12] && a === m[13]) return a;
-  return null;
-}
-
-export function teamContribution(m: RankMap, team: 'A' | 'B'): number {
-  let s = 0;
-  for (let r = 1; r <= 13; r++) if (m[r] === team) s += rankValue(r);
-  if (trioHolder(m) === team) s += 12;
-  return s;
-}
+import { RankMap, teamContribution, trioHolder } from '../shared/attribution/rank-points';
 
 @Component({
   selector: 'app-top10',
@@ -98,10 +80,6 @@ export class Top10Component {
 
   trioOf(listId: number): AssignedTeam {
     return trioHolder(this.assignments()[listId] ?? {});
-  }
-
-  valueOf(rank: number): number {
-    return rankValue(rank);
   }
 
   prev(): void {

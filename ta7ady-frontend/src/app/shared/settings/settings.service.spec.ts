@@ -69,6 +69,41 @@ describe('SettingsService', () => {
     expect(svc.timerSeconds('ihbid', 90)).toBe(90);
   });
 
+  // SPECV4: the two new timers — anameen's in-game default is 60s, whopicture's 10s.
+  it('wires the anameen (60s) and whopicture (10s) timer keys end to end', () => {
+    expect(svc.timerSeconds('anameen', 60)).toBe(60);
+    expect(svc.timerSeconds('whopicture', 10)).toBe(10);
+    svc.setTimerOverride('anameen', 45);
+    svc.setTimerOverride('whopicture', 15);
+    expect(svc.timerSeconds('anameen', 60)).toBe(45);
+    expect(svc.timerSeconds('whopicture', 10)).toBe(15);
+    // A fresh instance picks up the stored overrides for both keys.
+    const fresh = TestBed.runInInjectionContext(() => new SettingsService());
+    expect(fresh.timerSeconds('anameen', 60)).toBe(45);
+    expect(fresh.timerSeconds('whopicture', 10)).toBe(15);
+    svc.setTimerOverride('anameen', null);
+    expect(svc.timerSeconds('anameen', 60)).toBe(60);
+  });
+
+  // SPECV4 §4.4: the whopicture page prefills its 4 player slots (2 per team)
+  // from these persisted settings; they stay editable on the page itself.
+  it('persists the team/player prefill the whopicture 4 slots draw from', () => {
+    svc.setTeamA('الصقور');
+    svc.setTeamB('النمور');
+    svc.setPlayer('A', 0, 'سامي');
+    svc.setPlayer('A', 1, 'نادر');
+    svc.setPlayer('B', 0, 'فهد');
+    svc.setPlayer('B', 1, 'زيد');
+
+    const fresh = TestBed.runInInjectionContext(() => new SettingsService());
+    expect(fresh.teamA()).toBe('الصقور');
+    expect(fresh.teamB()).toBe('النمور');
+    expect(fresh.playersA()).toEqual(['سامي', 'نادر']);
+    expect(fresh.playersB()).toEqual(['فهد', 'زيد']);
+    // The 4 slots belong to exactly these signals — 2 per team.
+    expect(fresh.playersA().length + fresh.playersB().length).toBe(4);
+  });
+
   it('persists the vibrate toggle and defaults it to on', () => {
     expect(svc.vibrateOnTimeout()).toBe(true);
     svc.setVibrate(false);

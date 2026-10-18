@@ -1,14 +1,18 @@
-# SPECV4.md — Ana Meen + Who-in-Picture + seeds
+# SPECV4.md — Ana Meen + Who-in-Picture + seeds (V4 scope, §4.7 moved to V5)
 
 Target branch: `v4` (branched from `master` after v3 merges) → one big PR via small focused
-commits (one per numbered section). Requires v3 merged (edit, importer, attribution).
-Terms: `CONTEXT.md`. Rules: `RULES.md`. Authoring: `AUTHORING.md`.
+commits. Requires v3 merged (edit, importer, attribution).
+Terms: `CONTEXT.md`. Rules: `RULES.md`. Authoring: `AUTHORING.md`. Standards: `CODE_STANDARDS.md`.
 Picture upload stays a post-v4 future; v4 hotlinks photos (see §4.3).
+Picked draws (§4.7 in older draft) moved verbatim to `SPECV5.md` — not in V4.
 
 ## 4.0 Build order
 
-1. Ana Meen backend (§4.1) — 2. Ana Meen page (§4.2) — 3. Who-in-Picture backend (§4.3) —
-   4. Who-in-Picture page (§4.4) — 5. Seeds (§4.5) — 6. Picked draws (§4.7, ID first then search).
+1. Spec/V5/standards prep (this commit) — 2. Shared components
+   (`shared/strike-tracker`, `shared/attribution`, extracted from Score-sheet + Top-10) —
+   3. Ana Meen backend (§4.1) — 4. Ana Meen page (§4.2) —
+   5. Who-in-Picture backend (§4.3) — 6. Who-in-Picture page (§4.4) — 7. Seeds (§4.5).
+   Backend → page per pool; pages reuse shared components, no copied logic.
 
 ## 4.1 Ana Meen backend
 
@@ -19,106 +23,93 @@ Picture upload stays a post-v4 future; v4 hotlinks photos (see §4.3).
 
 ## 4.2 Ana Meen page (`/anameen`)
 
-- Subjects per challenge adjustable 1 / 3 / 5 / 10 (default 3), teams alternating.
-- One subject at a time: clue 1 shown with the 60s timer; on timeout or referee tap,
-  next clue reveals (progressively easier). Referee reveals clues, judges the guess.
-- Correct guess → attribute team (+1 flat, any clue, §2.3 pattern). No clue-number scoring.
-- Same chrome: scoreboard, 60s timer, full redraw + per-subject dice reroll.
+- Subjects per challenge adjustable 1 / 3 / 5 / 10 (default 3). No "pick who starts" —
+  both teams guess the same subject simultaneously; the referee awards whoever solved first.
+- All 5 clues visible on the subject card from the start (hard→easy top-down, no reveal
+  button, no locked/hatched state — the referee reads clue 1 aloud and gives the next one
+  when nobody solves; the display never gates him). The clue dossier IS the signature
+  element but without the giant "؟" watermark. 60s timer per subject (`anameen` key,
+  beep-only, no auto-anything). Full redraw + per-subject dice reroll.
+- No Google-search icon on the player name (meaningless here).
+- Correct guess → attribution inside a single card titled like «من خمّن صح؟» containing
+  the two big team buttons (+1 flat, any clue, shared attribution component).
+- Player name displayed centered, larger type, no «اللاعب:» prefix label.
 
 ## 4.3 Who-in-Picture backend
 
-- Table `whopicture_photos(id, photo_url, players[11], created_at)`. POST enforces exactly
-  11 distinct names and a non-empty URL. Hotlinking only in v4 — no upload endpoint, no
-  storage (upload UI is a post-v4 future, not this spec).
+- Table `whopicture_photos(id, title, photo_url, players[11], created_at)`. POST enforces
+  exactly 11 distinct names, a non-empty valid URL, and a non-empty title (≥3 chars).
+  Title = club or nation + year + competition (+ stage for KO rounds: final / semi-final /
+  quarter-final etc.), e.g. "الأهلي 2021 نهائي دوري أبطال أفريقيا". Hotlinking only in
+  v4 — no upload endpoint, no storage (upload UI is a post-v4 future, not this spec).
 - `GET /api/whopicture?count=X` (default 1 — one photo is a full game; clamp 1–5),
-  `/all` paged, POST, admin-gated DELETE, edit support.
+  `/all` paged, POST, admin-gated DELETE, edit support (title editable like every field).
+- Clubs-over-nations is an authoring rule (see AUTHORING §3.9), not backend validation —
+  titles carry the context either way.
 
 ## 4.4 Who-in-Picture page (`/whopicture`)
 
-- Referee screen: the photo (answers-adjacent, never shared raw) + 11 name slots covered
-  until attributed + per-team attribution by tap (+1 each, §2.3 pattern) + per-**player**
-  mistake counters.
-- The room must see the photo without the answers: a **share button** opens the native
-  share sheet with the photo URL (fallback: copy link). No second-screen mode in v4.
+- Referee screen: the photo rendered always fully visible (`object-fit: contain`, never
+  cropped) with a loading skeleton/state while it fetches from the external host, the
+  title above it, and two share buttons: share the URL and share the image itself —
+  both must attempt a real native share (navigator.share / files, not just copy; copy is
+  only the last fallback).
+- All 11 names visible uncovered from the start in ONE column (full name + full team
+  name on the award buttons — never short أ/ب), shared `attribution` per name (+1 fixed
+  each, tap again unassigns + reverses + audit entry, §2.3 pattern) + shared
+  `strike-tracker` per player.
 - Player tracking: referee enters 4 player names at game start (2 per team, editable
-  defaults provided). Each player carries a mistake counter (referee taps); at 3 the slot
-  shows eliminated (display-only — the referee enforces, the teammate continues).
-- Same chrome otherwise: scoreboard, no timer by default (guessing is open-ended;
-  referee may still use a manual timer component if desired — optional, default hidden),
-  new-photo redraw.
+  defaults from settings prefill). Each player carries a shared `strike-tracker`
+  (increment / decrement / reset buttons, referee-owned); `eliminationThreshold = 2`
+  here (vs 3 in Score-sheet). At threshold the slot shows eliminated (display-only —
+  the referee enforces, the teammate continues). The tracker must not overflow on
+  narrow screens (fixes the Score-sheet regression too).
+- Same chrome otherwise: scoreboard, 10s timer visible by default (`whopicture`
+  settings key, beep-only on timeout, no auto-penalty), new-photo redraw.
 - Audit strip from §2.3 covers attribution disputes; mistake counters are display-only
   and excluded from it.
+- Reuse rule: extract `strike-tracker` from Score-sheet and `attribution` from Top-10
+  into `shared/` with inputs (`eliminationThreshold`, points value/mode); minimally
+  refactor those two old pages to use the shared components. No other old-page edits.
+- `/manage`: photo visible only when the row is expanded.
 
-## 4.5 v4 seeds
+## 4.5 v4 seeds (files only — owner imports)
 
-`anameen.json` 100 subjects + `whopicture.json` 75 photos, per `AUTHORING.md`
-(5 ordered clues; 11 pictured names; widely-mirrored photo URLs against link rot).
-Imported via the v2 importer with dry-run review.
+`anameen.json` **100 subjects** + `whopicture` **25 photos** (final — owner retired the
+original 75-photo target after approving the 25-row sample; the pool grew 19 → 25 with
+.easy 15 / .medium 7 / .hard 3, local 6, clubs 19/25).
+
+- Ana Meen clue ladder (THE key quality bar — review rejects files that miss it):
+  clue 1 very very hard, clue 2 very hard, clue 3 hard, clue 4 medium, clue 5 easy.
+  Keep the approved sample's clue style, and vary the angles across subjects: trophies
+  won, transfer history, teammates he played with (across clubs / his nation), the
+  leagues he played in (not just the club), career records. No answer field beyond
+  `player` per `AUTHORING.md` §3.8. Delivered as `seeds/anameen.json` (100, verifier
+  PASS: mix 60/30/10, local 23%, 100 distinct clue-1 leads).
+- Who-in-Picture content rules (learned from the rejected first sample): prefer CLUBS
+  over nations (~76% clubs delivered, ≥60% gate); modern-era lean — nothing like
+  Germany 1990 / Iran 2004; no charity / exhibition matches; local slice = Egyptian
+  CLUBS (Al Ahly, Zamalek, + Pyramids' CAF-CL finals) not just the national team;
+  source photos from the wider web (club sites / news galleries / Getty-style
+  sources), Wikipedia Commons is one option, not the only one. Widely-mirrored URLs
+  against link rot. Time-box the authoring: build fast, verify schema/dedupe/mix
+  mechanically, one quick check per photo — no deep per-photo provenance rounds.
+  Delivered as `seeds/who in the picture.json`; 25 rows, verifier PASS, owner-approved.
+- Delivery: 25% sample first for review, then remaining 75% after approval.
+  Committed importer-ready via the v2 importer schema; dry-run reviewed but NOT
+  imported by agents — owner imports manually.
 
 ## 4.6 Tests & acceptance
 
-- Backend: 5-clue enforcement, 11-name enforcement, URL presence, count defaults/clamps,
-  admin gating on edit/delete.
-- Frontend: clue progression + 60s cadence; attribution +1 and unassign; mistake counters
-  incl. the 3-strike eliminated flag; share-button fallback path (no native share API).
-- `ng build` green, detector clean.
+- Backend: 5-clue enforcement, 11-name + title + URL enforcement, count defaults/clamps,
+  admin gating on edit/delete, `/manage` parity (bulk + paged `/all` + PUT/DELETE).
+- Frontend: all-clues-visible + attribution +1 and unassign + audit (no reveal mechanics
+  left in code); photo contain-fit + loading state + both share buttons (native share,
+  copy fallback); uncovered single-column names; shared strike-tracker incl. the
+  2-strike eliminated flag without narrow-screen overflow (3-strike still green in
+  Score-sheet); 10s whopicture timer.
+- `ng build` green, detector clean, `CODE_STANDARDS.md` followed (no duplicated
+  attribution/strike logic).
 - Acceptance: full 3-subject Ana Meen game incl. a clue-5 solve still scoring 1; full
-  11-player photo game incl. an elimination and a shared photo; edit a row in both pools.
-- Picked draws acceptance, see §4.7.
-
-## 4.7 Picked draws — pick-by-ID (Phase 1) + search-to-pick (Phase 2)
-
-Optional opt-in on top of random, which stays the default. Bank is excluded entirely
-(stays fully random, no `?ids=`, no picker). Covers every other pool: player names
-(Password + Acting shared), Ihbid, Offside, Top-10, Score-sheet, Risk packs, Ana Meen,
-Who-in-Picture.
-
-### 4.7.1 Backend (Phase 1)
-
-- `GET /api/{pool}?ids=1,2,3` (comma-separated) on all covered pools. Present `ids`
-  wins over `?count=`; absent/empty `ids` = today's random path unchanged.
-- Response order = request order. Unknown IDs are skipped with a `missing: [...]`
-  note, never a whole-draw 404. Empty entries ignored.
-- Max picked size reuses each pool's existing count clamp (e.g. scoresheet 1–10,
-  whopicture 1–5, top10 1–50). No changes to `/all` or POST schemas.
-- Risk: pack IDs only — inner tier questions are never individually pickable.
-
-### 4.7.2 Play-page UI (Phase 1)
-
-- Each covered play page keeps its existing random-count dropdown untouched and gains
-  a separate same-styled Pick dropdown ("how many picked questions") → N text boxes,
-  one ID per box. N boxes = N questions for one run/round/board.
-- Per-run meaning: Password/Acting/Ihbid/Offside N = run size; Top-10/Scoresheet/
-  AnaMeen/Who-picture N = lists/matches/subjects/photos in this run; Risk N = packs
-  per board (caller uses 4); Bank has no picker (one 12-question round stays random).
-- Starting from Pick plays exactly the filled boxes in box order; empty boxes are
-  ignored (5 boxes + 3 filled = play those 3). Starting from Random ignores boxes.
-  Mode switch never auto-clears. Picked runs keep the same redraw/dice semantics as
-  random (redraw = new random unless still in Pick mode; dice on a picked row
-  re-rolls random).
-- Validation: per-box inline error (non-numeric / duplicate across boxes / not found);
-  Start blocked while any filled box is invalid.
-
-### 4.7.3 ID surfacing (Phase 1)
-
-- `/manage` shows a copyable `#id` per row in all pools; create/edit confirmation
-  states the ID explicitly (e.g. "saved as #42").
-- Play views show a small referee-only `#id` tag per card/row so a random draw can be
-  replayed later by ID.
-
-### 4.7.4 Search-to-pick (Phase 2, after Phase 1 works)
-
-- Same N-box UI — search fills boxes, it does not replace them. One shared search
-  fills the first empty box (or per-box search icon, same effect); typed IDs keep
-  working exactly as in Phase 1.
-- Substring match on each pool's display field(s) via paged
-  `GET /api/{pool}/search?q=`. No fuzzy ranking in v4.
-
-### 4.7.5 Tests & acceptance (Phase 1 gates Phase 2)
-
-- Backend: `ids` wins over `count`, order = request order, `missing` list, max-size
-  clamp per pool, Bank has no `ids` path.
-- Frontend: N boxes from Pick dropdown, invalid-blocks-start, `#id` visible in
-  `/manage` + create-toast + play views, random default untouched.
-- Acceptance: replay a just-added question by its ID with friends; picked run with
-  one bad box blocked, then fixed and played.
+  11-player photo game incl. a 2-consecutive-strike elimination and a shared photo;
+  edit a row in both pools.

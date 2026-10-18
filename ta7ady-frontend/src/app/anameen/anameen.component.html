@@ -1,0 +1,111 @@
+<div class="challenge">
+  <div class="topbar">
+    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
+  </div>
+
+  <h2>أنا مين؟</h2>
+
+  <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
+
+  <app-timer timerKey="anameen" [defaultSeconds]="60" label="مؤقت التلميح" />
+
+  <div class="draw-row">
+    <label for="am-count">عدد المجهولين</label>
+    <select id="am-count" [(ngModel)]="count">
+      @for (n of counts; track n) {
+        <option [ngValue]="n">{{ n }}</option>
+      }
+    </select>
+    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
+      <i class="fa-solid fa-shuffle"></i> سحب جديد
+    </button>
+    <button type="button" class="redraw" (click)="newGame()" [disabled]="loading()">
+      <i class="fa-solid fa-rotate-left"></i> لعبة جديدة
+    </button>
+  </div>
+
+  @if (msg()) {
+    <div class="notice">{{ msg() }}</div>
+  }
+
+  @if (current(); as subject) {
+    @if (subjects().length > 1) {
+      <div class="nav-row">
+        <button type="button" class="navbtn" (click)="prev()" [disabled]="idx() === 0" aria-label="المجهول السابق">
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+        <div class="dots" role="group" aria-label="المجهولون">
+          @for (s of subjects(); track s.id; let i = $index) {
+            <button
+              type="button"
+              class="dot tabular-nums"
+              [class.on]="i === idx()"
+              (click)="go(i)"
+              [attr.aria-label]="'المجهول ' + (i + 1)"
+            >
+              {{ i + 1 }}
+            </button>
+          }
+        </div>
+        <button
+          type="button"
+          class="navbtn"
+          (click)="next()"
+          [disabled]="idx() >= subjects().length - 1"
+          aria-label="المجهول التالي"
+        >
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+      </div>
+    }
+
+    <section class="dossier" aria-label="ملف اللاعب المجهول">
+      <header class="dossier-head">
+        <span class="pos tabular-nums">{{ idx() + 1 }}/{{ subjects().length }}</span>
+        <span class="hint">{{ subject.clues.length }} تلميحات — أصعب أولًا</span>
+        <button
+          type="button"
+          class="dice"
+          (click)="reroll(idx())"
+          [disabled]="rerolling()"
+          [attr.aria-label]="'دسّة لاعب جديد للمجهول ' + (idx() + 1)"
+        >
+          <i
+            class="fa-solid"
+            [class.fa-dice]="!rerolling()"
+            [class.fa-spinner]="rerolling()"
+            aria-hidden="true"
+          ></i>
+        </button>
+      </header>
+
+      <ol class="slats">
+        @for (clue of subject.clues; track $index; let k = $index) {
+          <li class="slat">
+            <span class="no tabular-nums">{{ k + 1 }}</span>
+            <p class="text">{{ clue }}</p>
+          </li>
+        }
+      </ol>
+
+      <p class="answer" aria-label="اسم اللاعب">{{ subject.player }}</p>
+    </section>
+
+    <section class="solve" aria-label="احتساب الإجابة">
+      <p class="solve-lead">من خمّن صح؟</p>
+      <app-attribution
+        [label]="subject.player"
+        [points]="points"
+        [assigned]="assigned(subject.id)"
+        [teamA]="teamA() || 'الفريق الأول'"
+        [teamB]="teamB() || 'الفريق الثاني'"
+        [showPoints]="false"
+        [stretch]="true"
+        (change)="onAssign($event)"
+      />
+    </section>
+
+    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
+  }
+</div>

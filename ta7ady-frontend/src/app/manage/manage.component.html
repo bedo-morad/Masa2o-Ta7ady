@@ -75,6 +75,12 @@
     <button type="button" [class.active]="pool() === 'risk'" (click)="select('risk')">
       <i class="fa-solid fa-dice"></i> ريسك
     </button>
+    <button type="button" [class.active]="pool() === 'anameen'" (click)="select('anameen')">
+      <i class="fa-solid fa-mask"></i> أنا مين؟
+    </button>
+    <button type="button" [class.active]="pool() === 'whopicture'" (click)="select('whopicture')">
+      <i class="fa-solid fa-image"></i> مين في الصورة
+    </button>
   </div>
 
   @if (pool() === 'players') {
@@ -206,6 +212,47 @@
         }
       </ol>
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة حزمة</button>
+    </form>
+  }
+  @if (pool() === 'anameen') {
+    <form class="add column" (ngSubmit)="addAnameen()">
+      <input [(ngModel)]="newSubject" name="nsubj" placeholder="اسم الشخصية — مثال: محمد صلاح" />
+      <ol class="ranks">
+        @for (clue of clueSlots; track clue; let i = $index) {
+          <li>
+            <span class="rank tabular-nums" aria-hidden="true">{{ clue }}</span>
+            <input
+              [ngModel]="newClues()[i]"
+              (ngModelChange)="setNewClue(i, $event)"
+              [name]="'nclue' + clue"
+              [placeholder]="'التلميح رقم ' + clue"
+              [attr.aria-label]="'التلميح رقم ' + clue"
+            />
+          </li>
+        }
+      </ol>
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة شخصية</button>
+    </form>
+  }
+  @if (pool() === 'whopicture') {
+    <form class="add column" (ngSubmit)="addWhopicture()">
+      <input [(ngModel)]="newPhotoTitle" name="ntitle" placeholder="العنوان — الأهلي 2021 نهائي دوري أبطال أفريقيا" aria-label="عنوان الصورة" />
+      <input [(ngModel)]="newPhotoUrl" name="nurl" placeholder="رابط الصورة — https://…" aria-label="رابط الصورة" />
+      <ol class="lineup">
+        @for (slot of lineupSlots; track slot; let i = $index) {
+          <li>
+            <input
+              class="player-box"
+              [ngModel]="newPhotoPlayers()[i]"
+              (ngModelChange)="setNewPhotoPlayer(i, $event)"
+              [name]="'nwp' + slot"
+              placeholder="اسم لاعب"
+              [attr.aria-label]="'اللاعب رقم ' + slot + ' في الصورة'"
+            />
+          </li>
+        }
+      </ol>
+      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة صورة</button>
     </form>
   }
 
@@ -593,6 +640,152 @@
                     <span class="tier tabular-nums" aria-hidden="true">{{ riskTiers[$index] }}</span>
                     <span class="rq">{{ q.question }}</span>
                     <span class="answer-chip">{{ q.answer }}</span>
+                  </li>
+                }
+              </ol>
+            }
+          }
+        </li>
+      }
+    }
+    @if (pool() === 'anameen') {
+      @for (a of anameenRows(); track a.id) {
+        <li class="wide managed-row" [class.open]="isOpen(a.id)">
+          @if (adminOn() && editingId() === a.id) {
+            <form class="edit column" (ngSubmit)="saveEditAnameen(a.id)">
+              <input
+                [(ngModel)]="editSubject"
+                name="editSubject"
+                placeholder="اسم الشخصية"
+                aria-label="تعديل اسم الشخصية"
+              />
+              <ol class="ranks">
+                @for (clue of clueSlots; track clue; let i = $index) {
+                  <li>
+                    <span class="rank tabular-nums" aria-hidden="true">{{ clue }}</span>
+                    <input
+                      [ngModel]="editClues()[i]"
+                      (ngModelChange)="setEditClue(i, $event)"
+                      [name]="'eclue' + clue"
+                      [placeholder]="'التلميح رقم ' + clue"
+                      [attr.aria-label]="'تعديل التلميح رقم ' + clue"
+                    />
+                  </li>
+                }
+              </ol>
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <div class="row-head">
+              <button
+                type="button"
+                class="row-main"
+                (click)="toggle(a.id)"
+                [attr.aria-expanded]="isOpen(a.id)"
+                [attr.aria-label]="(isOpen(a.id) ? 'إخفاء التلميحات: ' : 'عرض التلميحات: ') + a.player"
+              >
+                <span class="prompt"><strong>{{ a.player }}</strong></span>
+                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(a.id)" aria-hidden="true"></i>
+              </button>
+              @if (adminOn()) {
+                <div class="row-actions">
+                  <button type="button" class="edit-btn" (click)="startEditAnameen(a)" aria-label="تعديل" title="تعديل">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button type="button" class="del" (click)="removeAnameen(a.id)" aria-label="حذف">
+                    <i class="fa-solid fa-trash"></i> حذف
+                  </button>
+                </div>
+              }
+            </div>
+            @if (isOpen(a.id)) {
+              <ol class="reveal">
+                @for (c of a.clues; track $index) {
+                  <li>
+                    <span class="rank tabular-nums" aria-hidden="true">{{ $index + 1 }}</span>
+                    <span>{{ c }}</span>
+                  </li>
+                }
+              </ol>
+            }
+          }
+        </li>
+      }
+    }
+    @if (pool() === 'whopicture') {
+      @for (w of whopictureRows(); track w.id) {
+        <li class="wide managed-row" [class.open]="isOpen(w.id)">
+          @if (adminOn() && editingId() === w.id) {
+            <form class="edit column" (ngSubmit)="saveEditWhopicture(w.id)">
+              <input
+                [(ngModel)]="editPhotoTitle"
+                name="editPhotoTitle"
+                placeholder="العنوان"
+                aria-label="تعديل عنوان الصورة"
+              />
+              <input
+                [(ngModel)]="editPhotoUrl"
+                name="editPhotoUrl"
+                placeholder="رابط الصورة"
+                aria-label="تعديل رابط الصورة"
+              />
+              <ol class="lineup">
+                @for (slot of lineupSlots; track slot; let i = $index) {
+                  <li>
+                    <input
+                      class="player-box"
+                      [ngModel]="editPhotoPlayers()[i]"
+                      (ngModelChange)="setEditPhotoPlayer(i, $event)"
+                      [name]="'ewp' + slot"
+                      placeholder="اسم لاعب"
+                      [attr.aria-label]="'تعديل اللاعب رقم ' + slot + ' في الصورة'"
+                    />
+                  </li>
+                }
+              </ol>
+              <div class="edit-actions">
+                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
+              </div>
+            </form>
+          } @else {
+            <div class="row-head">
+              <button
+                type="button"
+                class="row-main"
+                (click)="toggle(w.id)"
+                [attr.aria-expanded]="isOpen(w.id)"
+                [attr.aria-label]="(isOpen(w.id) ? 'إخفاء الصورة والأسماء: ' : 'عرض الصورة والأسماء: ') + w.title"
+              >
+                <span class="prompt">
+                  <strong>{{ w.title }}</strong>
+                  <span class="pill-quiet">{{ w.photoUrl }}</span>
+                </span>
+                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(w.id)" aria-hidden="true"></i>
+              </button>
+              @if (adminOn()) {
+                <div class="row-actions">
+                  <button type="button" class="edit-btn" (click)="startEditWhopicture(w)" aria-label="تعديل" title="تعديل">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button type="button" class="del" (click)="removeWhopicture(w.id)" aria-label="حذف">
+                    <i class="fa-solid fa-trash"></i> حذف
+                  </button>
+                </div>
+              }
+            </div>
+            @if (isOpen(w.id)) {
+              <figure class="wp-preview" aria-label="معاينة الصورة">
+                <img [src]="w.photoUrl" [alt]="w.title" loading="lazy" />
+              </figure>
+              <ol class="reveal">
+                @for (n of w.players; track $index) {
+                  <li>
+                    <span class="rank tabular-nums" aria-hidden="true">{{ $index + 1 }}</span>
+                    <span>{{ n }}</span>
                   </li>
                 }
               </ol>

@@ -70,15 +70,20 @@ everything outside the bank. Round ends at 12 questions or timeout. Highest bank
 
 ## Ana Meen (v4)
 
-The hidden subject is always a **player**. Five clues are given hard → easy, 60 seconds per
-clue; a new clue appears if the player is not guessed. 1 point per solved player no matter
-which clue cracked it. A challenge defaults to 3 subjects (adjustable 1 / 3 / 5 / 10),
-teams alternating. The referee handles all turn rules; most points wins.
+The hidden subject is always a **player**. Five clues are shown together, ordered
+very very hard → easy (clue 1 hardest, clue 5 near-giveaway); the referee reads them
+one at a time from hardest down — the screen never locks or reveals anything for him.
+Teams guess simultaneously; whoever solves first, the referee taps that team (+1 no
+matter which clue cracked it). A challenge defaults to 3 subjects (adjustable
+1 / 3 / 5 / 10). The referee handles all rerolls and judgement; most points wins.
+60 seconds on the clock per subject, beep-only.
 
 ## Who-in-Picture (v4)
 
-Both teams see a pre-match photo of 11 players and name them, alternating one guess per
-player per turn. Each correct name = 1 point, attributed by referee tap. Mistakes attach to
-**players, not teams**: 3 mistakes eliminates that player, the teammate continues. The
-referee's screen holds the answers, so the photo is shared to the room (share button) while
-names stay referee-only. Most points wins.
+Both teams see a pre-match photo of 11 players (titled: club/nation + year +
+competition + stage) and name them, alternating one guess per turn. Each correct
+name = 1 point, attributed by referee tap on the name. All 11 names stay visible to
+the referee at all times so he can judge answers. Mistakes attach to **players, not
+teams**: 2 mistakes eliminates that player, the teammate continues. The referee's
+screen holds the answers, so the photo (not the names) is shared to the room via the
+share buttons. Most points wins.

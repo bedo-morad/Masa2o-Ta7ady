@@ -202,7 +202,12 @@ describe('RiskComponent', () => {
     c.toggleCell(answered); // seen, closed
 
     vi.spyOn(api, 'riskRandom').mockReturnValue(of([pack(99)]));
-    await c.rerollColumn(0);
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.25);
+    try {
+      await c.rerollColumn(0);
+    } finally {
+      random.mockRestore();
+    }
 
     const d = c.double();
     expect(d).not.toBeNull();
@@ -210,6 +215,7 @@ describe('RiskComponent', () => {
     // Re-hidden only among still-unanswered cells: never on the answered one.
     expect(c.seen().has(d as string)).toBe(false);
     expect(d).not.toBe(answered);
+    expect(d).toBe(cellKey(99, 3));
   });
 
   it('a found double is never re-hidden by a reroll', async () => {

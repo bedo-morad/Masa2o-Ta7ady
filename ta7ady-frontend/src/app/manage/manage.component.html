@@ -87,60 +87,7 @@
     <app-top10-editor [editor]="top10Editor" />
   }
   @if (pool() === 'scoresheet') {
-    <form class="add column" (ngSubmit)="addScoresheet()">
-      <input [(ngModel)]="newMatch" name="nm" placeholder="اسم المباراة — مثال: نهائي كأس العالم 2022" />
-      <div class="teams">
-        <fieldset class="team">
-          <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الأول</legend>
-          <input
-            class="team-name"
-            [(ngModel)]="newTeamA"
-            name="nta2"
-            placeholder="اسم الفريق الأول"
-            aria-label="اسم الفريق الأول"
-          />
-          <ol class="lineup">
-            @for (slot of lineupSlots; track slot; let i = $index) {
-              <li>
-                <input
-                  class="player-box"
-                  [ngModel]="lineupA()[i]"
-                  (ngModelChange)="setLineupA(i, $event)"
-                  [name]="'la' + slot"
-                  placeholder="اسم لاعب"
-                  aria-label="لاعب في الفريق الأول"
-                />
-              </li>
-            }
-          </ol>
-        </fieldset>
-        <fieldset class="team">
-          <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الثاني</legend>
-          <input
-            class="team-name"
-            [(ngModel)]="newTeamB"
-            name="ntb"
-            placeholder="اسم الفريق الثاني"
-            aria-label="اسم الفريق الثاني"
-          />
-          <ol class="lineup">
-            @for (slot of lineupSlots; track slot; let i = $index) {
-              <li>
-                <input
-                  class="player-box"
-                  [ngModel]="lineupB()[i]"
-                  (ngModelChange)="setLineupB(i, $event)"
-                  [name]="'lb' + slot"
-                  placeholder="اسم لاعب"
-                  aria-label="لاعب في الفريق الثاني"
-                />
-              </li>
-            }
-          </ol>
-        </fieldset>
-      </div>
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة مباراة</button>
-    </form>
+    <app-scoresheet-editor [editor]="scoresheetEditor" />
   }
   @if (pool() === 'risk') {
     <form class="add column" (ngSubmit)="addRisk()">
@@ -175,25 +122,7 @@
     <app-anameen-editor [editor]="anameenEditor" />
   }
   @if (pool() === 'whopicture') {
-    <form class="add column" (ngSubmit)="addWhopicture()">
-      <input [(ngModel)]="newPhotoTitle" name="ntitle" placeholder="العنوان — الأهلي 2021 نهائي دوري أبطال أفريقيا" aria-label="عنوان الصورة" />
-      <input [(ngModel)]="newPhotoUrl" name="nurl" placeholder="رابط الصورة — https://…" aria-label="رابط الصورة" />
-      <ol class="lineup">
-        @for (slot of lineupSlots; track slot; let i = $index) {
-          <li>
-            <input
-              class="player-box"
-              [ngModel]="newPhotoPlayers()[i]"
-              (ngModelChange)="setNewPhotoPlayer(i, $event)"
-              [name]="'nwp' + slot"
-              placeholder="اسم لاعب"
-              [attr.aria-label]="'اللاعب رقم ' + slot + ' في الصورة'"
-            />
-          </li>
-        }
-      </ol>
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة صورة</button>
-    </form>
+    <app-whopicture-editor [editor]="whopictureEditor" />
   }
 
   <app-import-panel [pool]="pool()" (imported)="onImported()" />
@@ -260,68 +189,7 @@
       @for (m of scoresheetRows(); track m.id) {
         <li class="wide managed-row" [class.open]="isOpen(m.id)">
           @if (adminOn() && editingId() === m.id) {
-            <form class="edit column" (ngSubmit)="saveEditScoresheet(m.id)">
-              <input
-                [(ngModel)]="editMatch"
-                name="editMatch"
-                placeholder="اسم المباراة"
-                aria-label="تعديل اسم المباراة"
-              />
-              <div class="teams">
-                <fieldset class="team">
-                  <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الأول</legend>
-                  <input
-                    class="team-name"
-                    [(ngModel)]="editTeamA"
-                    name="editTeamA"
-                    placeholder="اسم الفريق الأول"
-                    aria-label="تعديل اسم الفريق الأول"
-                  />
-                  <ol class="lineup">
-                    @for (slot of lineupSlots; track slot; let i = $index) {
-                      <li>
-                        <input
-                          class="player-box"
-                          [ngModel]="editLineupA()[i]"
-                          (ngModelChange)="setEditLineupA(i, $event)"
-                          [name]="'ela' + slot"
-                          placeholder="اسم لاعب"
-                          aria-label="لاعب في الفريق الأول"
-                        />
-                      </li>
-                    }
-                  </ol>
-                </fieldset>
-                <fieldset class="team">
-                  <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الثاني</legend>
-                  <input
-                    class="team-name"
-                    [(ngModel)]="editTeamB"
-                    name="editTeamB"
-                    placeholder="اسم الفريق الثاني"
-                    aria-label="تعديل اسم الفريق الثاني"
-                  />
-                  <ol class="lineup">
-                    @for (slot of lineupSlots; track slot; let i = $index) {
-                      <li>
-                        <input
-                          class="player-box"
-                          [ngModel]="editLineupB()[i]"
-                          (ngModelChange)="setEditLineupB(i, $event)"
-                          [name]="'elb' + slot"
-                          placeholder="اسم لاعب"
-                          aria-label="لاعب في الفريق الثاني"
-                        />
-                      </li>
-                    }
-                  </ol>
-                </fieldset>
-              </div>
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
+            <app-scoresheet-editor [editor]="scoresheetEditor" mode="edit" [id]="m.id" />
           } @else {
             <div class="row-head">
               <button
@@ -495,38 +363,7 @@
       @for (w of whopictureRows(); track w.id) {
         <li class="wide managed-row" [class.open]="isOpen(w.id)">
           @if (adminOn() && editingId() === w.id) {
-            <form class="edit column" (ngSubmit)="saveEditWhopicture(w.id)">
-              <input
-                [(ngModel)]="editPhotoTitle"
-                name="editPhotoTitle"
-                placeholder="العنوان"
-                aria-label="تعديل عنوان الصورة"
-              />
-              <input
-                [(ngModel)]="editPhotoUrl"
-                name="editPhotoUrl"
-                placeholder="رابط الصورة"
-                aria-label="تعديل رابط الصورة"
-              />
-              <ol class="lineup">
-                @for (slot of lineupSlots; track slot; let i = $index) {
-                  <li>
-                    <input
-                      class="player-box"
-                      [ngModel]="editPhotoPlayers()[i]"
-                      (ngModelChange)="setEditPhotoPlayer(i, $event)"
-                      [name]="'ewp' + slot"
-                      placeholder="اسم لاعب"
-                      [attr.aria-label]="'تعديل اللاعب رقم ' + slot + ' في الصورة'"
-                    />
-                  </li>
-                }
-              </ol>
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
+            <app-whopicture-editor [editor]="whopictureEditor" mode="edit" [id]="w.id" />
           } @else {
             <div class="row-head">
               <button

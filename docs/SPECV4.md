@@ -94,8 +94,7 @@ original 75-photo target after approving the 25-row sample; the pool grew 19 →
   sources), Wikipedia Commons is one option, not the only one. Widely-mirrored URLs
   against link rot. Time-box the authoring: build fast, verify schema/dedupe/mix
   mechanically, one quick check per photo — no deep per-photo provenance rounds.
-  Delivered as `seeds/whopicture.sample.json` renamed to the pool file at import;
-  25 rows, verifier PASS, owner-approved.
+  Delivered as `seeds/who in the picture.json`; 25 rows, verifier PASS, owner-approved.
 - Delivery: 25% sample first for review, then remaining 75% after approval.
   Committed importer-ready via the v2 importer schema; dry-run reviewed but NOT
   imported by agents — owner imports manually.

@@ -32,7 +32,7 @@ for an audience of fans deeply into the **last ~10 years** of football:
 
 - One file per pool in `seeds/` at the project root (`players.json`, `ihbid.json`,
   `offside.json`, `top10.json`, `scoresheet.json`, `risk.json`, `bank.json`,
-  `anameen.json`, `whopicture.json`).
+  `anameen.json`, `who in the picture.json`).
 - Files import through the bulk importer (file upload or paste, JSON only) with a dry-run
   preview: fix every flagged row before confirming. The importer accepts exactly the schemas
   below — the same schemas single-add uses.

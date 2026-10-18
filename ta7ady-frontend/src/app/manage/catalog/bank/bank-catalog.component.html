@@ -1,0 +1,30 @@
+<ul class="rows">
+  @for (b of rows(); track b.id) {
+    <li class="wide bank-row">
+      @if (adminOn() && selection().editingId() === b.id) {
+        <app-bank-renderer [editor]="editor()" mode="edit" [id]="b.id" />
+      } @else {
+        <span class="qa">
+          <span class="q">{{ b.question }}</span>
+          <span class="answer-chip">{{ b.answer }}</span>
+        </span>
+        @if (adminOn()) {
+          <div class="row-actions">
+            <button
+              type="button"
+              class="edit-btn"
+              (click)="editor().start(b)"
+              aria-label="تعديل"
+              title="تعديل"
+            >
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button type="button" class="del" (click)="remove.emit(b.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          </div>
+        }
+      }
+    </li>
+  }
+</ul>

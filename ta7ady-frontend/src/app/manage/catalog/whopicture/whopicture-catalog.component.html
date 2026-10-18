@@ -1,0 +1,61 @@
+<ul class="rows">
+  @for (w of rows(); track w.id) {
+    <li class="wide managed-row" [class.open]="selection().isOpen(w.id)">
+      @if (adminOn() && selection().editingId() === w.id) {
+        <app-whopicture-editor [editor]="editor()" mode="edit" [id]="w.id" />
+      } @else {
+        <div class="row-head">
+          <button
+            type="button"
+            class="row-main"
+            (click)="selection().toggle(w.id)"
+            [attr.aria-expanded]="selection().isOpen(w.id)"
+            [attr.aria-label]="
+              (selection().isOpen(w.id) ? 'إخفاء الصورة والأسماء: ' : 'عرض الصورة والأسماء: ') +
+              w.title
+            "
+          >
+            <span class="prompt">
+              <strong>{{ w.title }}</strong>
+              <span class="pill-quiet">{{ w.photoUrl }}</span>
+            </span>
+            <i
+              class="fa-solid fa-chevron-down"
+              [class.flipped]="selection().isOpen(w.id)"
+              aria-hidden="true"
+            ></i>
+          </button>
+          @if (adminOn()) {
+            <div class="row-actions">
+              <button
+                type="button"
+                class="edit-btn"
+                (click)="editor().startEdit(w)"
+                aria-label="تعديل"
+                title="تعديل"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="del" (click)="remove.emit(w.id)" aria-label="حذف">
+                <i class="fa-solid fa-trash"></i> حذف
+              </button>
+            </div>
+          }
+        </div>
+        @if (selection().isOpen(w.id)) {
+          <figure class="wp-preview" aria-label="معاينة الصورة">
+            <img [src]="w.photoUrl" [alt]="w.title" loading="lazy" />
+          </figure>
+          <ol class="reveal">
+            @for (n of w.players; track $index) {
+              <li>
+                <span class="rank tabular-nums" aria-hidden="true">{{ $index + 1 }}</span>
+                <span>{{ n }}</span>
+              </li>
+            }
+          </ol>
+        }
+      }
+    </li>
+  }
+</ul>

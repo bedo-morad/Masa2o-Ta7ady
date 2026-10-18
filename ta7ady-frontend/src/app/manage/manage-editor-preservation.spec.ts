@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
@@ -110,8 +110,8 @@ describe('Manage editor preservation seam', () => {
     const request = http.expectOne((candidate) => candidate.url.endsWith('/top10/4'));
     request.flush({ message: 'unauthorized' }, { status: 401, statusText: 'Unauthorized' });
     await fixture.whenStable();
-    expect(component.adminOn()).toBe(false);
-    expect(component.adminError()).toContain('كلمة المرور غير صحيحة');
+    expect(component.admin.adminOn()).toBe(false);
+    expect(component.admin.error()).toContain('كلمة المرور غير صحيحة');
     expect(component.msg()).toBe('');
     expect(toast.error).not.toHaveBeenCalled();
   });

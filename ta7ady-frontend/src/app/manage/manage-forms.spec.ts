@@ -157,6 +157,6 @@ describe('Manage rendered Pool forms', () => {
     (root.querySelector('.edit-actions .cancel') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(root.querySelector('form.edit')).toBeNull();
-    expect(fixture.componentInstance.editingId()).toBeNull();
+    expect(fixture.componentInstance.selection.editingId()).toBeNull();
   });
 });

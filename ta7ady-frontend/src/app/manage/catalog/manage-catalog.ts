@@ -12,11 +12,11 @@ import {
 } from '../../api.service';
 
 const SIZE = 20;
-type PlayerRow = { id: number; playerName: string };
-type IhbidRow = { id: number; questionText: string; answerText: string };
-type OffsideRow = { id: number; ruleText: string };
-type Top10Row = { id: number; prompt: string; answers: string[] };
-type ScoresheetRow = {
+export type PlayerRow = { id: number; playerName: string };
+export type IhbidRow = { id: number; questionText: string; answerText: string };
+export type OffsideRow = { id: number; ruleText: string };
+export type Top10Row = { id: number; prompt: string; answers: string[] };
+export type ScoresheetRow = {
   id: number;
   matchLabel: string;
   teamA: string;
@@ -24,8 +24,8 @@ type ScoresheetRow = {
   lineupA: string[];
   lineupB: string[];
 };
-type BankRow = { id: number; question: string; answer: string };
-type RiskRow = { id: number; genre: string; questions: RiskQuestion[] };
+export type BankRow = { id: number; question: string; answer: string };
+export type RiskRow = { id: number; genre: string; questions: RiskQuestion[] };
 
 /** Owns the Manage catalog lifecycle; editors consume its narrow host contract rather than resources. */
 export class ManageCatalog {

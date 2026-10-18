@@ -1,0 +1,7 @@
+<div class="pools" role="tablist">
+  @for (tab of tabs; track tab.pool) {
+    <button type="button" [class.active]="pool() === tab.pool" (click)="choose(tab.pool)">
+      <i class="fa-solid" [class]="tab.icon"></i> {{ tab.label }}
+    </button>
+  }
+</div>

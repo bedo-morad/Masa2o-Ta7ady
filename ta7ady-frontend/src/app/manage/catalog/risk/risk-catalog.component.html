@@ -1,0 +1,57 @@
+<ul class="rows">
+  @for (p of rows(); track p.id) {
+    <li class="wide managed-row" [class.open]="selection().isOpen(p.id)">
+      @if (adminOn() && selection().editingId() === p.id) {
+        <app-risk-pack-editor [model]="editor()" [pack]="p" [editing]="true" />
+      } @else {
+        <div class="row-head">
+          <button
+            type="button"
+            class="row-main"
+            (click)="selection().toggle(p.id)"
+            [attr.aria-expanded]="selection().isOpen(p.id)"
+            [attr.aria-label]="
+              (selection().isOpen(p.id) ? 'إخفاء الأسئلة: ' : 'عرض الأسئلة: ') + p.genre
+            "
+          >
+            <span class="prompt"
+              ><strong>{{ p.genre }}</strong></span
+            >
+            <i
+              class="fa-solid fa-chevron-down"
+              [class.flipped]="selection().isOpen(p.id)"
+              aria-hidden="true"
+            ></i>
+          </button>
+          @if (adminOn()) {
+            <div class="row-actions">
+              <button
+                type="button"
+                class="edit-btn"
+                (click)="editor().startEdit(p)"
+                aria-label="تعديل"
+                title="تعديل"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="del" (click)="remove.emit(p.id)" aria-label="حذف">
+                <i class="fa-solid fa-trash"></i> حذف
+              </button>
+            </div>
+          }
+        </div>
+        @if (selection().isOpen(p.id)) {
+          <ol class="reveal risk-reveal">
+            @for (q of p.questions; track $index) {
+              <li>
+                <span class="tier tabular-nums" aria-hidden="true">{{ riskTiers[$index] }}</span>
+                <span class="rq">{{ q.question }}</span>
+                <span class="answer-chip">{{ q.answer }}</span>
+              </li>
+            }
+          </ol>
+        }
+      }
+    </li>
+  }
+</ul>

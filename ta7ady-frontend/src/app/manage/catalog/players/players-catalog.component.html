@@ -1,0 +1,27 @@
+<ul class="rows">
+  @for (p of rows(); track p.id) {
+    <li>
+      @if (adminOn() && selection().editingId() === p.id) {
+        <app-players-renderer [editor]="editor()" mode="edit" [id]="p.id" />
+      } @else {
+        <span>{{ p.playerName }}</span>
+        @if (adminOn()) {
+          <div class="row-actions">
+            <button
+              type="button"
+              class="edit-btn"
+              (click)="editor().start(p)"
+              aria-label="تعديل"
+              title="تعديل"
+            >
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button type="button" class="del" (click)="remove.emit(p.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          </div>
+        }
+      }
+    </li>
+  }
+</ul>

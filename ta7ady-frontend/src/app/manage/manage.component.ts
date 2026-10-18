@@ -1,45 +1,58 @@
-import { Component, computed, inject, signal, TemplateRef } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Component, inject, signal } from '@angular/core';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, Pool } from '../api.service';
+import { ManageAccessComponent } from './access/manage-access.component';
+import { ManageAdminAccess } from './access/manage-admin-access';
+import { ManagePoolNavigationComponent } from './navigation/manage-pool-navigation.component';
 import { ImportPanelComponent } from './import/import-panel.component';
+import { ManageCatalog } from './catalog/manage-catalog';
+import { ManageRowSelection } from './catalog/manage-row-selection';
+import { PlayersCatalogComponent } from './catalog/players/players-catalog.component';
+import { IhbidCatalogComponent } from './catalog/ihbid/ihbid-catalog.component';
+import { OffsideCatalogComponent } from './catalog/offside/offside-catalog.component';
+import { Top10CatalogComponent } from './catalog/top10/top10-catalog.component';
+import { ScoresheetCatalogComponent } from './catalog/scoresheet/scoresheet-catalog.component';
+import { BankCatalogComponent } from './catalog/bank/bank-catalog.component';
+import { RiskCatalogComponent } from './catalog/risk/risk-catalog.component';
+import { AnameenCatalogComponent } from './catalog/anameen/anameen-catalog.component';
+import { WhopictureCatalogComponent } from './catalog/whopicture/whopicture-catalog.component';
 import { PlayersEditorComponent } from './editors/players/players-editor.component';
 import { IhbidEditorComponent } from './editors/ihbid/ihbid-editor.component';
 import { OffsideEditorComponent } from './editors/offside/offside-editor.component';
 import { BankEditorComponent } from './editors/bank/bank-editor.component';
-import { ManageCatalog } from './catalog/manage-catalog';
-import { ManageEditorHost } from './editors/shared/editor-host';
-import { Top10Editor } from './editors/top10/top10-editor';
-import { AnameenEditor } from './editors/anameen/anameen-editor';
 import { Top10EditorComponent } from './editors/top10/top10-editor.component';
 import { AnameenEditorComponent } from './editors/anameen/anameen-editor.component';
-import { ScoreSheetEditor } from './editors/scoresheet/scoresheet-editor';
 import { ScoreSheetEditorComponent } from './editors/scoresheet/scoresheet-editor.component';
-import { WhoPictureEditor } from './editors/whopicture/whopicture-editor';
 import { WhoPictureEditorComponent } from './editors/whopicture/whopicture-editor.component';
-import { RiskPackEditorModel } from './editors/risk/risk-pack-editor';
 import { RiskPackEditorComponent } from './editors/risk/risk-pack-editor.component';
+import { ManageEditorHost } from './editors/shared/editor-host';
 import { makeSharedBasicDrafts } from './editors/shared/basic-drafts';
 import { PlayersEditor } from './editors/players/players-editor';
 import { IhbidEditor } from './editors/ihbid/ihbid-editor';
 import { OffsideEditor } from './editors/offside/offside-editor';
 import { BankEditor } from './editors/bank/bank-editor';
-
-export const TOP10_SIZE = 13;
-export const LINEUP_SIZE = 11;
-export const ANAMEEN_CLUES = 5;
-export const RISK_TIERS = [5, 10, 20, 40];
-export const RISK_SIZE = RISK_TIERS.length;
+import { Top10Editor } from './editors/top10/top10-editor';
+import { AnameenEditor } from './editors/anameen/anameen-editor';
+import { ScoreSheetEditor } from './editors/scoresheet/scoresheet-editor';
+import { WhoPictureEditor } from './editors/whopicture/whopicture-editor';
+import { RiskPackEditorModel } from './editors/risk/risk-pack-editor';
 
 @Component({
   selector: 'app-manage',
   standalone: true,
   imports: [
-    FormsModule,
-    RouterLink,
+    ManageAccessComponent,
+    ManagePoolNavigationComponent,
     ImportPanelComponent,
+    PlayersCatalogComponent,
+    IhbidCatalogComponent,
+    OffsideCatalogComponent,
+    Top10CatalogComponent,
+    ScoresheetCatalogComponent,
+    BankCatalogComponent,
+    RiskCatalogComponent,
+    AnameenCatalogComponent,
+    WhopictureCatalogComponent,
     PlayersEditorComponent,
     IhbidEditorComponent,
     OffsideEditorComponent,
@@ -55,67 +68,19 @@ export const RISK_SIZE = RISK_TIERS.length;
 })
 export class ManageComponent {
   readonly api = inject(ApiService);
-  readonly catalog = new ManageCatalog(this.api);
-  readonly basicDrafts = makeSharedBasicDrafts();
-  private readonly modal = inject(NgbModal);
   private readonly toast = inject(HotToastService);
-
+  readonly catalog = new ManageCatalog(this.api);
+  readonly selection = new ManageRowSelection();
+  readonly msg = signal('');
+  readonly admin = new ManageAdminAccess(this.api, (message) => this.msg.set(message));
   readonly pool = this.catalog.pool;
   readonly page = this.catalog.page;
-  readonly msg = signal('');
+  readonly basicDrafts = makeSharedBasicDrafts();
 
-  readonly adminPw = signal('');
-  readonly adminError = signal('');
-  readonly adminOn = computed(() => this.api.adminPassword() !== null);
-
-  readonly riskTiers = RISK_TIERS;
-
-  // Accordion for managed top-10 / scoresheet / risk rows: one open at a time.
-  readonly expandedId = signal<number | null>(null);
-
-  // Inline edit (SPECV3 §3.1): one row open at a time, admin-unlocked only.
-  readonly editingId = signal<number | null>(null);
-
-  toggle(id: number): void {
-    this.expandedId.update((open) => (open === id ? null : id));
-  }
-
-  isOpen(id: number): boolean {
-    return this.expandedId() === id;
-  }
-
-  cancelEdit(): void {
-    this.editingId.set(null);
-  }
-
-  readonly playersRes = this.catalog.playersRes;
-  readonly ihbidRes = this.catalog.ihbidRes;
-  readonly offsideRes = this.catalog.offsideRes;
-  readonly top10Res = this.catalog.top10Res;
-  readonly scoresheetRes = this.catalog.scoresheetRes;
-  readonly bankRes = this.catalog.bankRes;
-  readonly riskRes = this.catalog.riskRes;
-  readonly anameenRes = this.catalog.anameenRes;
-  readonly whopictureRes = this.catalog.whopictureRes;
-  readonly playerRows = this.catalog.playerRows;
-  readonly ihbidRows = this.catalog.ihbidRows;
-  readonly offsideRows = this.catalog.offsideRows;
-  readonly top10Rows = this.catalog.top10Rows;
-  readonly scoresheetRows = this.catalog.scoresheetRows;
-  readonly bankRows = this.catalog.bankRows;
-  readonly riskRows = this.catalog.riskRows;
-  readonly anameenRows = this.catalog.anameenRows;
-  readonly whopictureRows = this.catalog.whopictureRows;
-  readonly totalElements = this.catalog.totalElements;
-  readonly totalPages = this.catalog.totalPages;
-  readonly loading = this.catalog.loading;
   readonly editorHost: ManageEditorHost = {
-    authorization: () => this.adminOn(),
-    requestEdit: (id) => {
-      this.expandedId.set(null);
-      this.editingId.set(id);
-    },
-    cancelEdit: () => this.editingId.set(null),
+    authorization: () => this.admin.adminOn(),
+    requestEdit: (id) => this.selection.requestEdit(id),
+    cancelEdit: () => this.selection.cancelEdit(),
     refreshAfterMutation: () => this.catalog.reloadActive(),
     reportFeedback: (message, intent) => {
       this.msg.set(message);
@@ -128,13 +93,11 @@ export class ManageComponent {
       else this.page.set(0);
     },
     reportMutationFailure: (error, fallback) => {
-      const reason = this.apiMsg(error) ?? fallback;
-      this.editorHost.reportFeedback(reason, 'error');
+      this.editorHost.reportFeedback(this.apiMsg(error) ?? fallback, 'error');
     },
     reportEditFailure: (error, fallback) => {
       if (this.denyIf401(error)) return;
-      const reason = this.apiMsg(error) ?? fallback;
-      this.editorHost.reportFeedback(reason, 'error');
+      this.editorHost.reportFeedback(this.apiMsg(error) ?? fallback, 'error');
     },
     completeEdit: (message) => {
       this.editorHost.cancelEdit();
@@ -151,46 +114,21 @@ export class ManageComponent {
   readonly scoresheetEditor = new ScoreSheetEditor(this.api, this.editorHost);
   readonly whopictureEditor = new WhoPictureEditor(this.api, this.editorHost);
   readonly riskEditor = new RiskPackEditorModel(this.api, this.editorHost);
-  select(p: Pool): void {
-    this.catalog.select(p);
+
+  select(pool: Pool): void {
+    this.catalog.select(pool);
     this.msg.set('');
-    this.expandedId.set(null);
-    this.editingId.set(null);
+    this.selection.reset();
   }
+
   prev(): void {
     this.catalog.prev();
-    this.expandedId.set(null);
-    this.editingId.set(null);
+    this.selection.reset();
   }
+
   next(): void {
     this.catalog.next();
-    this.expandedId.set(null);
-    this.editingId.set(null);
-  }
-
-  openAdminModal(content: TemplateRef<unknown>): void {
-    this.adminError.set('');
-    this.modal.open(content, { centered: true });
-  }
-
-  unlockAdmin(dismiss?: { dismiss: () => void }): void {
-    const pw = this.adminPw().trim();
-    if (!pw) {
-      this.adminError.set('أدخل كلمة المرور.');
-      return;
-    }
-    this.api.unlock(pw);
-    this.adminPw.set('');
-    this.adminError.set('');
-    this.msg.set('تم تفعيل وضع الإدارة لهذه الجلسة — ظهرت أزرار التعديل والحذف.');
-    dismiss?.dismiss();
-  }
-
-  lockAdmin(dismiss?: { dismiss: () => void }): void {
-    this.api.lock();
-    this.adminError.set('');
-    this.msg.set('تم قفل وضع الإدارة — أُخفيت أزرار التعديل والحذف.');
-    dismiss?.dismiss();
+    this.selection.reset();
   }
 
   onImported(): void {
@@ -198,33 +136,25 @@ export class ManageComponent {
     this.msg.set('تم الاستيراد — القائمة محدثة.');
   }
 
-  public removeFromCatalog(pool: Pool, id: number): Promise<void> {
+  removeFromCatalog(pool: Pool, id: number): Promise<void> {
     return this.catalog.delete(
       pool,
       id,
-      () => {
-        this.api.lock();
-        this.adminError.set('كلمة المرور غير صحيحة.');
-      },
+      () => this.admin.rejectUnauthorized(),
       () => this.msg.set('تعذّر الحذف — أعد المحاولة.'),
     );
   }
-  private denyIf401(e: unknown): boolean {
-    if (typeof e === 'object' && e !== null && 'status' in e) {
-      if ((e as { status: unknown }).status === 401) {
-        this.api.lock();
-        this.adminError.set('كلمة المرور غير صحيحة.');
-        return true;
-      }
-    }
-    return false;
+
+  private denyIf401(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null || !('status' in error)) return false;
+    if (error.status !== 401) return false;
+    this.admin.rejectUnauthorized();
+    return true;
   }
 
-  private apiMsg(e: unknown): string | null {
-    if (typeof e === 'object' && e !== null && 'error' in e) {
-      const err = (e as { error?: { message?: unknown } }).error;
-      if (err && typeof err.message === 'string' && err.message) return err.message;
-    }
-    return null;
+  private apiMsg(error: unknown): string | null {
+    if (typeof error !== 'object' || error === null || !('error' in error)) return null;
+    const body = error.error as { message?: unknown } | undefined;
+    return body && typeof body.message === 'string' && body.message ? body.message : null;
   }
 }

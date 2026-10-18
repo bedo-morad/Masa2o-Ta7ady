@@ -1,0 +1,61 @@
+<div class="topbar">
+  <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
+  <button
+    type="button"
+    class="lock-btn"
+    [class.on]="access().adminOn()"
+    (click)="openAdminModal(adminModal)"
+    [attr.aria-label]="access().adminOn() ? 'وضع الإدارة مفعّل — إدارة القفل' : 'فتح وضع الإدارة'"
+    [title]="access().adminOn() ? 'وضع الإدارة مفعّل' : 'وضع الإدارة'"
+  >
+    <i
+      class="fa-solid"
+      [class.fa-lock-open]="access().adminOn()"
+      [class.fa-lock]="!access().adminOn()"
+    ></i>
+  </button>
+</div>
+<h2>إدارة الأسئلة</h2>
+<p class="hint">تظهر الإضافات فورًا في اللعب. أسماء اللاعبين مشتركة بين الباسورد والتمثيل.</p>
+<ng-template #adminModal let-modal>
+  <div class="admin-popup">
+    <div class="admin-popup-head">
+      <h3><i class="fa-solid fa-lock"></i> وضع الإدارة (تعديل وحذف)</h3>
+      <button type="button" class="x" (click)="modal.dismiss()" aria-label="إغلاق">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    @if (!access().adminOn()) {
+      <form class="admin-form" (ngSubmit)="access().unlock(modal)">
+        <label class="admin-label" for="adminPw">كلمة مرور الإدارة</label>
+        <input
+          id="adminPw"
+          type="password"
+          [ngModel]="access().password()"
+          (ngModelChange)="access().password.set($event)"
+          name="adminPw"
+          placeholder="كلمة مرور الإدارة"
+          autocomplete="off"
+        />
+        @if (access().error()) {
+          <div class="admin-error" role="alert">{{ access().error() }}</div>
+        }
+        <button type="submit" class="unlock"><i class="fa-solid fa-lock-open"></i> فتح</button>
+      </form>
+    } @else {
+      <p class="admin-state">
+        <i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار التعديل والحذف
+        ظاهرة.
+      </p>
+      @if (access().error()) {
+        <div class="admin-error" role="alert">{{ access().error() }}</div>
+      }
+      <div class="admin-actions">
+        <button type="button" class="lock" (click)="access().lock(modal)">
+          <i class="fa-solid fa-lock"></i> قفل / تسجيل خروج
+        </button>
+        <button type="button" class="close" (click)="modal.dismiss()">إغلاق</button>
+      </div>
+    }
+  </div>
+</ng-template>

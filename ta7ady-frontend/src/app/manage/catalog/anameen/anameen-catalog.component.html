@@ -1,0 +1,56 @@
+<ul class="rows">
+  @for (a of rows(); track a.id) {
+    <li class="wide managed-row" [class.open]="selection().isOpen(a.id)">
+      @if (adminOn() && selection().editingId() === a.id) {
+        <app-anameen-editor [editor]="editor()" mode="edit" [id]="a.id" />
+      } @else {
+        <div class="row-head">
+          <button
+            type="button"
+            class="row-main"
+            (click)="selection().toggle(a.id)"
+            [attr.aria-expanded]="selection().isOpen(a.id)"
+            [attr.aria-label]="
+              (selection().isOpen(a.id) ? 'إخفاء التلميحات: ' : 'عرض التلميحات: ') + a.player
+            "
+          >
+            <span class="prompt"
+              ><strong>{{ a.player }}</strong></span
+            >
+            <i
+              class="fa-solid fa-chevron-down"
+              [class.flipped]="selection().isOpen(a.id)"
+              aria-hidden="true"
+            ></i>
+          </button>
+          @if (adminOn()) {
+            <div class="row-actions">
+              <button
+                type="button"
+                class="edit-btn"
+                (click)="editor().startEdit(a)"
+                aria-label="تعديل"
+                title="تعديل"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="del" (click)="remove.emit(a.id)" aria-label="حذف">
+                <i class="fa-solid fa-trash"></i> حذف
+              </button>
+            </div>
+          }
+        </div>
+        @if (selection().isOpen(a.id)) {
+          <ol class="reveal">
+            @for (c of a.clues; track $index) {
+              <li>
+                <span class="rank tabular-nums" aria-hidden="true">{{ $index + 1 }}</span>
+                <span>{{ c }}</span>
+              </li>
+            }
+          </ol>
+        }
+      }
+    </li>
+  }
+</ul>

@@ -1,0 +1,27 @@
+<ul class="rows">
+  @for (r of rows(); track r.id) {
+    <li>
+      @if (adminOn() && selection().editingId() === r.id) {
+        <app-offside-renderer [editor]="editor()" mode="edit" [id]="r.id" />
+      } @else {
+        <span>{{ r.ruleText }}</span>
+        @if (adminOn()) {
+          <div class="row-actions">
+            <button
+              type="button"
+              class="edit-btn"
+              (click)="editor().start(r)"
+              aria-label="تعديل"
+              title="تعديل"
+            >
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button type="button" class="del" (click)="remove.emit(r.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          </div>
+        }
+      }
+    </li>
+  }
+</ul>

@@ -1,0 +1,56 @@
+<ul class="rows">
+  @for (t of rows(); track t.id) {
+    <li class="wide managed-row" [class.open]="selection().isOpen(t.id)">
+      @if (adminOn() && selection().editingId() === t.id) {
+        <app-top10-editor [editor]="editor()" mode="edit" [id]="t.id" />
+      } @else {
+        <div class="row-head">
+          <button
+            type="button"
+            class="row-main"
+            (click)="selection().toggle(t.id)"
+            [attr.aria-expanded]="selection().isOpen(t.id)"
+            [attr.aria-label]="
+              (selection().isOpen(t.id) ? 'إخفاء الإجابات: ' : 'عرض الإجابات: ') + t.prompt
+            "
+          >
+            <span class="prompt"
+              ><strong>{{ t.prompt }}</strong></span
+            >
+            <i
+              class="fa-solid fa-chevron-down"
+              [class.flipped]="selection().isOpen(t.id)"
+              aria-hidden="true"
+            ></i>
+          </button>
+          @if (adminOn()) {
+            <div class="row-actions">
+              <button
+                type="button"
+                class="edit-btn"
+                (click)="editor().startEdit(t)"
+                aria-label="تعديل"
+                title="تعديل"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="del" (click)="remove.emit(t.id)" aria-label="حذف">
+                <i class="fa-solid fa-trash"></i> حذف
+              </button>
+            </div>
+          }
+        </div>
+        @if (selection().isOpen(t.id)) {
+          <ol class="reveal">
+            @for (a of t.answers; track $index) {
+              <li>
+                <span class="rank tabular-nums" aria-hidden="true">{{ $index + 1 }}</span>
+                <span>{{ a }}</span>
+              </li>
+            }
+          </ol>
+        }
+      }
+    </li>
+  }
+</ul>

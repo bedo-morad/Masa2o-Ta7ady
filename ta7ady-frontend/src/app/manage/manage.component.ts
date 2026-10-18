@@ -5,28 +5,27 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, Pool } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
-import { PlayersEditorComponent } from './players-editor.component';
-import { IhbidEditorComponent } from './ihbid-editor.component';
-import { OffsideEditorComponent } from './offside-editor.component';
-import { BankEditorComponent } from './bank-editor.component';
-import { ManageCatalog, ManageEditorHost } from './manage-catalog';
-import { Top10Editor } from './top10-editor';
-import { AnameenEditor } from './anameen-editor';
-import { Top10EditorComponent } from './top10-editor.component';
-import { AnameenEditorComponent } from './anameen-editor.component';
-import { ScoreSheetEditor } from './scoresheet-editor';
-import { ScoreSheetEditorComponent } from './scoresheet-editor.component';
-import { WhoPictureEditor } from './whopicture-editor';
-import { WhoPictureEditorComponent } from './whopicture-editor.component';
-import { RiskPackEditorModel } from './risk-pack-editor';
-import { RiskPackEditorComponent } from './risk-pack-editor.component';
-import {
-  BankEditor,
-  IhbidEditor,
-  makeSharedBasicDrafts,
-  OffsideEditor,
-  PlayersEditor,
-} from './pool-editors';
+import { PlayersEditorComponent } from './editors/players/players-editor.component';
+import { IhbidEditorComponent } from './editors/ihbid/ihbid-editor.component';
+import { OffsideEditorComponent } from './editors/offside/offside-editor.component';
+import { BankEditorComponent } from './editors/bank/bank-editor.component';
+import { ManageCatalog } from './catalog/manage-catalog';
+import { ManageEditorHost } from './editors/shared/editor-host';
+import { Top10Editor } from './editors/top10/top10-editor';
+import { AnameenEditor } from './editors/anameen/anameen-editor';
+import { Top10EditorComponent } from './editors/top10/top10-editor.component';
+import { AnameenEditorComponent } from './editors/anameen/anameen-editor.component';
+import { ScoreSheetEditor } from './editors/scoresheet/scoresheet-editor';
+import { ScoreSheetEditorComponent } from './editors/scoresheet/scoresheet-editor.component';
+import { WhoPictureEditor } from './editors/whopicture/whopicture-editor';
+import { WhoPictureEditorComponent } from './editors/whopicture/whopicture-editor.component';
+import { RiskPackEditorModel } from './editors/risk/risk-pack-editor';
+import { RiskPackEditorComponent } from './editors/risk/risk-pack-editor.component';
+import { makeSharedBasicDrafts } from './editors/shared/basic-drafts';
+import { PlayersEditor } from './editors/players/players-editor';
+import { IhbidEditor } from './editors/ihbid/ihbid-editor';
+import { OffsideEditor } from './editors/offside/offside-editor';
+import { BankEditor } from './editors/bank/bank-editor';
 
 export const TOP10_SIZE = 13;
 export const LINEUP_SIZE = 11;

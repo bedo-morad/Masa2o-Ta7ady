@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiService } from '../api.service';
-import { ManageEditorHost } from './manage-catalog';
+import { ApiService } from '../../../api.service';
+import { ManageEditorHost } from '../shared/editor-host';
 
 export const SCORESHEET_EDITOR_SIZE = 11;
 export type ScoreSheetRow = {

@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiService } from '../api.service';
-import { ManageEditorHost } from './manage-catalog';
+import { ApiService } from '../../../api.service';
+import { ManageEditorHost } from '../shared/editor-host';
 
 export const TOP10_EDITOR_SIZE = 13;
 export type Top10Draft = { id?: number; prompt: string; answers: string[] };

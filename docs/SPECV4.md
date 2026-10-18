@@ -75,23 +75,27 @@ Picked draws (§4.7 in older draft) moved verbatim to `SPECV5.md` — not in V4.
 
 ## 4.5 v4 seeds (files only — owner imports)
 
-`anameen.json` 100 subjects + `whopicture.json` 75 photos.
+`anameen.json` **100 subjects** + `whopicture` **25 photos** (final — owner retired the
+original 75-photo target after approving the 25-row sample; the pool grew 19 → 25 with
+.easy 15 / .medium 7 / .hard 3, local 6, clubs 19/25).
 
 - Ana Meen clue ladder (THE key quality bar — review rejects files that miss it):
   clue 1 very very hard, clue 2 very hard, clue 3 hard, clue 4 medium, clue 5 easy.
-  Keep the existing sample's clue style, and vary the angles across subjects: trophies
+  Keep the approved sample's clue style, and vary the angles across subjects: trophies
   won, transfer history, teammates he played with (across clubs / his nation), the
   leagues he played in (not just the club), career records. No answer field beyond
-  `player` per `AUTHORING.md` §3.8.
+  `player` per `AUTHORING.md` §3.8. Delivered as `seeds/anameen.json` (100, verifier
+  PASS: mix 60/30/10, local 23%, 100 distinct clue-1 leads).
 - Who-in-Picture content rules (learned from the rejected first sample): prefer CLUBS
-  over nations (33/33+ … nations only for famous sides where the room would know most
-  of the XI); modern-era lean — nothing like Germany 1990 / Iran 2004; no charity /
-  exhibition matches; local slice = Egyptian CLUBS (Al Ahly, Zamalek, + Pyramids' two
-  CAF Champions League finals) not just the national team; source photos from the
-  wider web (club sites / news galleries / Getty-style sources), Wikipedia Commons is
-  one option, not the only one. Widely-mirrored URLs against link rot. Time-box the
-  authoring: build fast, verify schema/dedupe/mix mechanically, one quick visual
-  sanity pass per photo — no deep per-photo provenance rounds.
+  over nations (~76% clubs delivered, ≥60% gate); modern-era lean — nothing like
+  Germany 1990 / Iran 2004; no charity / exhibition matches; local slice = Egyptian
+  CLUBS (Al Ahly, Zamalek, + Pyramids' CAF-CL finals) not just the national team;
+  source photos from the wider web (club sites / news galleries / Getty-style
+  sources), Wikipedia Commons is one option, not the only one. Widely-mirrored URLs
+  against link rot. Time-box the authoring: build fast, verify schema/dedupe/mix
+  mechanically, one quick check per photo — no deep per-photo provenance rounds.
+  Delivered as `seeds/whopicture.sample.json` renamed to the pool file at import;
+  25 rows, verifier PASS, owner-approved.
 - Delivery: 25% sample first for review, then remaining 75% after approval.
   Committed importer-ready via the v2 importer schema; dry-run reviewed but NOT
   imported by agents — owner imports manually.

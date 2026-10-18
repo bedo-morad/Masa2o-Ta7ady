@@ -52,6 +52,7 @@ describe('IhbidComponent asked marks (rendered screen)', () => {
       'الثالث المعروض',
     ]);
     expect(marks()).toHaveLength(3);
+    expect(rows().every((row) => row.querySelectorAll('button').length === 3)).toBe(true);
     expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'false']);
     expect(marks().map((b) => b.textContent?.trim())).toEqual(['1', '2', '3']);
     expect(marks().every((b) => b.type === 'button' && b.name.startsWith('asked-question-'))).toBe(
@@ -92,20 +93,28 @@ describe('IhbidComponent asked marks (rendered screen)', () => {
     expect(fixture.nativeElement.querySelector('.team-a .score')?.textContent?.trim()).toBe('2');
   });
 
-  it('keeps asked marks independent from answer reveal in both directions', async () => {
+  it('keeps reveal visibility and asked marks independent across all four state combinations', async () => {
     await setup();
-    const reveal = fixture.nativeElement.querySelector('.qitem .ghost') as HTMLButtonElement;
-    click(marks()[0]);
-    click(reveal);
-    expect(marks()[0].getAttribute('aria-pressed')).toBe('true');
-    expect(fixture.nativeElement.querySelector('.answer .value')?.textContent?.trim()).toBe(
-      'إجابة الأول',
-    );
-    click(marks()[0]);
-    expect(marks()[0].getAttribute('aria-pressed')).toBe('false');
-    click(fixture.nativeElement.querySelector('.answer .mini')!);
-    expect(marks()[0].getAttribute('aria-pressed')).toBe('false');
-    expect(fixture.nativeElement.querySelector('.answer')).toBeNull();
+    const firstRow = () => rows()[0];
+    const answerVisible = () => firstRow().querySelector('.answer .value') !== null;
+    const toggleReveal = () => click(firstRow().querySelector('.qactions .mini:not(.reroll)')!);
+    for (const marked of [false, true]) {
+      if ((marks()[0].getAttribute('aria-pressed') === 'true') !== marked) click(marks()[0]);
+      for (const visible of [false, true]) {
+        if (answerVisible() !== visible) toggleReveal();
+        click(marks()[0]);
+        expect(answerVisible()).toBe(visible);
+        click(marks()[0]);
+        expect(answerVisible()).toBe(visible);
+        expect(marks()[0].getAttribute('aria-pressed')).toBe(String(marked));
+        toggleReveal();
+        expect(answerVisible()).toBe(!visible);
+        expect(marks()[0].getAttribute('aria-pressed')).toBe(String(marked));
+        toggleReveal();
+        expect(answerVisible()).toBe(visible);
+        expect(marks()[0].getAttribute('aria-pressed')).toBe(String(marked));
+      }
+    }
   });
 
   it('clears marks on count change, new draw, and a fresh page instance', async () => {
@@ -192,6 +201,7 @@ describe('IhbidComponent asked marks (rendered screen)', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(marks()[0].getAttribute('aria-pressed')).toBe('false');
+    expect(rows()[0].querySelector('.qbody')?.textContent?.trim()).toBe('الأول المعروض');
   });
 
   it('preserves marks on a failed or empty reroll', async () => {

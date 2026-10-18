@@ -45,6 +45,7 @@ describe('OffsideComponent asked marks (rendered screen)', () => {
       'الثالثة المعروضة',
     ]);
     expect(marks().map((b) => b.textContent?.trim())).toEqual(['1', '2', '3']);
+    expect(rows().every((row) => row.querySelectorAll('button').length === 2)).toBe(true);
     expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'false']);
     expect(marks().every((b) => b.type === 'button' && b.name.startsWith('asked-rule-'))).toBe(
       true,
@@ -167,6 +168,7 @@ describe('OffsideComponent asked marks (rendered screen)', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(marks()[0].getAttribute('aria-pressed')).toBe('false');
+    expect(rows()[0].querySelector('.rtext')?.textContent?.trim()).toBe('الأولى المعروضة');
   });
 
   it('preserves marks after empty and failed rerolls', async () => {

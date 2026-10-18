@@ -1,10 +1,38 @@
 # Masa2o Ta7ady
 
-Masa2o Ta7ady is an Arabic, right-to-left football party-game app for two teams playing together in person. A referee holds the phone, reads prompts, reveals answers, runs timers, and manages scores. The app assists the referee; it does not decide winners or run an online multiplayer match. Players do not need accounts.
+Get your friends together, split into two teams, and find out who actually remembers all that football trivia. Masa2o Ta7ady (مسائو تحدي) is an Arabic football game-night app, with Egyptian football in the mix alongside clubs and players from around the world.
 
-The available challenges are Password, Acting, Ihbid Sahh, Offside, Top 10, Score Sheet, Risk, Bank, Ana Meen, and Who-in-Picture. Each challenge runs on its own, with shared settings and light/dark themes. The `/manage` page supports adding questions, importing JSON with a dry-run preview, and password-protected editing/deletion.
+One person plays referee and runs the app on their phone. Everyone else plays together in the room, without needing an account. Pick a challenge, give your teams names, and start playing. You can stick with one game or try another whenever the group feels like it.
 
-The project uses an **Angular 22** frontend, a **Spring Boot 4.1 / Java 17** backend, and **PostgreSQL** for question storage.
+## What are we playing?
+
+There's more here than straight question-and-answer trivia:
+
+- **Password and Acting:** help your teammate guess a footballer, either with a one-word hint or by acting it out without speaking.
+- **Ihbid Sahh and Offside:** get as close as you can to a number or date, or come up with a player who fits the prompt without picking the same name as everyone else.
+- **Top 10 and Score Sheet:** test your memory of football rankings and the starting elevens from famous matches.
+- **Risk and Bank:** go for the bigger points on a category board, or build a rapid-fire answer streak and decide when to bank it before a wrong answer wipes it out.
+- **Ana Meen and Who-in-Picture:** work out the mystery footballer from five clues, or put names to the eleven faces in a team photo.
+
+The referee has the answers, timers, and scores on screen. They decide what counts, award points, and can fix the score whenever needed. The app keeps things moving; the football arguments are still yours to settle.
+
+The screens are in Arabic, work right-to-left, and have light and dark themes. You can also add your own questions and import question packs from the question-management page, so the group doesn't have to keep playing the same material.
+
+## A look at the app
+
+These are screenshots from the running app in dark mode. They're the referee's view, so some screens include the answers.
+
+### Risk: pick your category and your points
+
+![Risk category board with 5, 10, 20, and 40-point questions and each team's power cards](docs/screenshots/risk.png)
+
+### Ana Meen: five clues to a footballer
+
+![Ana Meen showing five Arabic clues, the footballer's name, and buttons to award the point](docs/screenshots/anameen.png)
+
+### Who-in-Picture: how many faces do you remember?
+
+![Who-in-Picture showing Chelsea's 2012 Champions League final team photo and the referee's answer list](docs/screenshots/whopicture.png)
 
 ## Prerequisites
 

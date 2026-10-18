@@ -2,9 +2,9 @@ package com.ta7ady.backend.service;
 
 import com.ta7ady.backend.entity.PlayerName;
 import com.ta7ady.backend.repository.PlayerNameRepository;
-import com.ta7ady.backend.web.BulkHelper;
-import com.ta7ady.backend.web.BulkRowResult;
-import com.ta7ady.backend.web.PlayerNameBulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
+import com.ta7ady.backend.dto.PlayerNameBulkRow;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

@@ -2,9 +2,9 @@ package com.ta7ady.backend.service;
 
 import com.ta7ady.backend.entity.ScoresheetMatch;
 import com.ta7ady.backend.repository.ScoresheetMatchRepository;
-import com.ta7ady.backend.web.BulkHelper;
-import com.ta7ady.backend.web.BulkRowResult;
-import com.ta7ady.backend.web.ScoresheetBulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
+import com.ta7ady.backend.dto.ScoresheetBulkRow;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

@@ -1,4 +1,7 @@
 package com.ta7ady.backend.web;
+import com.ta7ady.backend.dto.Top10BulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
 
 import com.ta7ady.backend.entity.Top10List;
 import com.ta7ady.backend.service.Top10Service;

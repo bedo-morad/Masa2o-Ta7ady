@@ -2,9 +2,9 @@ package com.ta7ady.backend.service;
 
 import com.ta7ady.backend.entity.WhoPicturePhoto;
 import com.ta7ady.backend.repository.WhoPicturePhotoRepository;
-import com.ta7ady.backend.web.BulkHelper;
-import com.ta7ady.backend.web.BulkRowResult;
-import com.ta7ady.backend.web.WhoPictureBulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
+import com.ta7ady.backend.dto.WhoPictureBulkRow;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;

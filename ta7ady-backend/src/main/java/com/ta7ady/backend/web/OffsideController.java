@@ -1,4 +1,6 @@
 package com.ta7ady.backend.web;
+import com.ta7ady.backend.dto.OffsideBulkRow;
+import com.ta7ady.backend.bulk.BulkRowResult;
 
 import com.ta7ady.backend.entity.OffsideRule;
 import com.ta7ady.backend.service.OffsideService;

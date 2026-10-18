@@ -1,4 +1,5 @@
 package com.ta7ady.backend.web;
+import com.ta7ady.backend.bulk.BulkRowResult;
 
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;

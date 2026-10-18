@@ -1,4 +1,4 @@
-package com.ta7ady.backend.web;
+package com.ta7ady.backend.dto;
 
 // One tiered question inside a Risk pack (AUTHORING.md §3.6). points is the tier:
 // 5/10/20/40, in order.

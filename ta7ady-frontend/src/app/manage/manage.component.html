@@ -143,7 +143,7 @@
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
+                <button type="button" class="del" (click)="catalog.delete('players', p.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
                   <i class="fa-solid fa-trash"></i> حذف
                 </button>
               </div>
@@ -173,7 +173,7 @@
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
+                <button type="button" class="del" (click)="catalog.delete('ihbid', q.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
                   <i class="fa-solid fa-trash"></i> حذف
                 </button>
               </div>
@@ -200,7 +200,7 @@
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
+                <button type="button" class="del" (click)="catalog.delete('offside', r.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
                   <i class="fa-solid fa-trash"></i> حذف
                 </button>
               </div>
@@ -245,7 +245,7 @@
                   >
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button type="button" class="del" (click)="removeTop10(t.id)" aria-label="حذف">
+                  <button type="button" class="del" (click)="catalog.delete('top10', t.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
                     <i class="fa-solid fa-trash"></i> حذف
                   </button>
                 </div>
@@ -304,7 +304,7 @@
                   <button
                     type="button"
                     class="del"
-                    (click)="removeScoresheet(m.id)"
+                    (click)="catalog.delete('scoresheet', m.id, deleteUnauthorized, deleteFailed)"
                     aria-label="حذف"
                   >
                     <i class="fa-solid fa-trash"></i> حذف
@@ -357,7 +357,7 @@
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button type="button" class="del" (click)="removeBank(b.id)" aria-label="حذف">
+                <button type="button" class="del" (click)="catalog.delete('bank', b.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
                   <i class="fa-solid fa-trash"></i> حذف
                 </button>
               </div>
@@ -400,7 +400,7 @@
                   >
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button type="button" class="del" (click)="removeRisk(p.id)" aria-label="حذف">
+                  <button type="button" class="del" (click)="catalog.delete('risk', p.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
                     <i class="fa-solid fa-trash"></i> حذف
                   </button>
                 </div>
@@ -459,7 +459,7 @@
                   >
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button type="button" class="del" (click)="removeAnameen(a.id)" aria-label="حذف">
+                  <button type="button" class="del" (click)="catalog.delete('anameen', a.id, deleteUnauthorized, deleteFailed)" aria-label="حذف">
                     <i class="fa-solid fa-trash"></i> حذف
                   </button>
                 </div>
@@ -519,7 +519,7 @@
                   <button
                     type="button"
                     class="del"
-                    (click)="removeWhopicture(w.id)"
+                    (click)="catalog.delete('whopicture', w.id, deleteUnauthorized, deleteFailed)"
                     aria-label="حذف"
                   >
                     <i class="fa-solid fa-trash"></i> حذف

@@ -155,7 +155,7 @@ describe('ManageComponent admin unlock', () => {
     expect(el.querySelector('.del')).not.toBeNull();
 
     apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 401 })));
-    await c.removePlayer(1);
+    await c.catalog.delete('players', 1, c.deleteUnauthorized, c.deleteFailed);
     fixture.detectChanges();
     expect(apiStub.lock).toHaveBeenCalled();
     expect(c.adminOn()).toBe(false);
@@ -239,6 +239,40 @@ describe('ManageComponent catalog lifecycle', () => {
       expect(request.request.urlWithParams).toContain('sort=id,desc');
       expect(c.loading()).toBe(true);
       request.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+      await fixture.whenStable();
+    }
+  });
+
+  it('routes every rendered pool delete button to its own common operation', async () => {
+    const { fixture, apiStub, httpMock } = await setupCatalog();
+    const c = fixture.componentInstance;
+    const rows: Record<(typeof pools)[number], { id: number }> = {
+      players: { id: 1 },
+      ihbid: { id: 2 },
+      offside: { id: 3 },
+      top10: { id: 4 },
+      scoresheet: { id: 5 },
+      bank: { id: 6 },
+      risk: { id: 7 },
+      anameen: { id: 8 },
+      whopicture: { id: 9 },
+    };
+
+    for (const pool of pools) {
+      if (pool !== 'players') {
+        c.select(pool);
+        fixture.detectChanges();
+        page(httpMock, pool, [rows[pool]]);
+        await fixture.whenStable();
+        fixture.detectChanges();
+      }
+      const button = fixture.nativeElement.querySelector('.del') as HTMLButtonElement;
+      expect(button).not.toBeNull();
+      button.click();
+      await Promise.resolve();
+      expect(apiStub.del).toHaveBeenLastCalledWith(pool, rows[pool].id);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      page(httpMock, pool);
       await fixture.whenStable();
     }
   });
@@ -385,18 +419,18 @@ describe('ManageComponent catalog lifecycle', () => {
   it('refreshes after delete and preserves the existing failure and authorization outcomes', async () => {
     const { fixture, apiStub, httpMock } = await setupCatalog();
     const c = fixture.componentInstance;
-    await c.removePlayer(1);
+    await c.catalog.delete('players', 1, c.deleteUnauthorized, c.deleteFailed);
     expect(apiStub.del).toHaveBeenCalledWith('players', 1);
     await new Promise((resolve) => setTimeout(resolve, 0));
     const refresh = httpMock.expectOne((r) => r.url.includes('/players/all'));
     refresh.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
 
     apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 500 })));
-    await c.removePlayer(1);
+    await c.catalog.delete('players', 1, c.deleteUnauthorized, c.deleteFailed);
     expect(c.msg()).toBe('تعذّر الحذف — أعد المحاولة.');
 
     apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 401 })));
-    await c.removePlayer(1);
+    await c.catalog.delete('players', 1, c.deleteUnauthorized, c.deleteFailed);
     expect(apiStub.lock).toHaveBeenCalled();
     expect(c.adminError()).toBe('كلمة المرور غير صحيحة.');
   });
@@ -1298,7 +1332,7 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     const { fixture, apiStub, httpMock } = await setupV4();
     const c = fixture.componentInstance;
     await showV4(fixture, httpMock, 'anameen', [{ id: 4, player: 'محمد صلاح', clues: clues5 }]);
-    await c.removeAnameen(4);
+    await c.catalog.delete('anameen', 4, c.deleteUnauthorized, c.deleteFailed);
     expect(apiStub.del).toHaveBeenCalledWith('anameen', 4);
     await drainList(httpMock, 'anameen');
   });

@@ -103,24 +103,7 @@
     </form>
   }
   @if (pool() === 'top10') {
-    <form class="add column" (ngSubmit)="addTop10()">
-      <input [(ngModel)]="newTop10Prompt" name="ntp" placeholder="عنوان القائمة — مثال: أعلى 13 هدافًا…" />
-      <ol class="ranks">
-        @for (rank of top10Ranks; track rank; let i = $index) {
-          <li>
-            <span class="rank tabular-nums" aria-hidden="true">{{ rank }}</span>
-            <input
-              [ngModel]="top10Answers()[i]"
-              (ngModelChange)="setTop10Answer(i, $event)"
-              [name]="'ans' + rank"
-              [placeholder]="'الإجابة رقم ' + rank"
-              [attr.aria-label]="'الإجابة رقم ' + rank"
-            />
-          </li>
-        }
-      </ol>
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة قائمة</button>
-    </form>
+    <app-top10-editor [editor]="top10Editor" />
   }
   @if (pool() === 'scoresheet') {
     <form class="add column" (ngSubmit)="addScoresheet()">
@@ -215,24 +198,7 @@
     </form>
   }
   @if (pool() === 'anameen') {
-    <form class="add column" (ngSubmit)="addAnameen()">
-      <input [(ngModel)]="newSubject" name="nsubj" placeholder="اسم الشخصية — مثال: محمد صلاح" />
-      <ol class="ranks">
-        @for (clue of clueSlots; track clue; let i = $index) {
-          <li>
-            <span class="rank tabular-nums" aria-hidden="true">{{ clue }}</span>
-            <input
-              [ngModel]="newClues()[i]"
-              (ngModelChange)="setNewClue(i, $event)"
-              [name]="'nclue' + clue"
-              [placeholder]="'التلميح رقم ' + clue"
-              [attr.aria-label]="'التلميح رقم ' + clue"
-            />
-          </li>
-        }
-      </ol>
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة شخصية</button>
-    </form>
+    <app-anameen-editor [editor]="anameenEditor" />
   }
   @if (pool() === 'whopicture') {
     <form class="add column" (ngSubmit)="addWhopicture()">
@@ -364,32 +330,7 @@
       @for (t of top10Rows(); track t.id) {
         <li class="wide managed-row" [class.open]="isOpen(t.id)">
           @if (adminOn() && editingId() === t.id) {
-            <form class="edit column" (ngSubmit)="saveEditTop10(t.id)">
-              <input
-                [(ngModel)]="editPrompt"
-                name="editPrompt"
-                placeholder="عنوان القائمة"
-                aria-label="تعديل عنوان القائمة"
-              />
-              <ol class="ranks">
-                @for (rank of top10Ranks; track rank; let i = $index) {
-                  <li>
-                    <span class="rank tabular-nums" aria-hidden="true">{{ rank }}</span>
-                    <input
-                      [ngModel]="editAnswers()[i]"
-                      (ngModelChange)="setEditTop10Answer(i, $event)"
-                      [name]="'eans' + rank"
-                      [placeholder]="'الإجابة رقم ' + rank"
-                      [attr.aria-label]="'تعديل الإجابة رقم ' + rank"
-                    />
-                  </li>
-                }
-              </ol>
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
+            <app-top10-editor [editor]="top10Editor" mode="edit" [id]="t.id" />
           } @else {
             <div class="row-head">
               <button
@@ -404,7 +345,7 @@
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="startEditTop10(t)" aria-label="تعديل" title="تعديل">
+                  <button type="button" class="edit-btn" (click)="top10Editor.startEdit(t)" aria-label="تعديل" title="تعديل">
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeTop10(t.id)" aria-label="حذف">
@@ -652,32 +593,7 @@
       @for (a of anameenRows(); track a.id) {
         <li class="wide managed-row" [class.open]="isOpen(a.id)">
           @if (adminOn() && editingId() === a.id) {
-            <form class="edit column" (ngSubmit)="saveEditAnameen(a.id)">
-              <input
-                [(ngModel)]="editSubject"
-                name="editSubject"
-                placeholder="اسم الشخصية"
-                aria-label="تعديل اسم الشخصية"
-              />
-              <ol class="ranks">
-                @for (clue of clueSlots; track clue; let i = $index) {
-                  <li>
-                    <span class="rank tabular-nums" aria-hidden="true">{{ clue }}</span>
-                    <input
-                      [ngModel]="editClues()[i]"
-                      (ngModelChange)="setEditClue(i, $event)"
-                      [name]="'eclue' + clue"
-                      [placeholder]="'التلميح رقم ' + clue"
-                      [attr.aria-label]="'تعديل التلميح رقم ' + clue"
-                    />
-                  </li>
-                }
-              </ol>
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
+            <app-anameen-editor [editor]="anameenEditor" mode="edit" [id]="a.id" />
           } @else {
             <div class="row-head">
               <button
@@ -692,7 +608,7 @@
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="startEditAnameen(a)" aria-label="تعديل" title="تعديل">
+                  <button type="button" class="edit-btn" (click)="anameenEditor.startEdit(a)" aria-label="تعديل" title="تعديل">
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeAnameen(a.id)" aria-label="حذف">

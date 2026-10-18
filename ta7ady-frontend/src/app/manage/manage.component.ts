@@ -7,6 +7,10 @@ import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, AnameenSubject, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
 import { ManageCatalog, ManageEditorHost } from './manage-catalog';
+import { Top10Editor } from './top10-editor';
+import { AnameenEditor } from './anameen-editor';
+import { Top10EditorComponent } from './top10-editor.component';
+import { AnameenEditorComponent } from './anameen-editor.component';
 
 export const TOP10_SIZE = 13;
 export const LINEUP_SIZE = 11;
@@ -22,7 +26,7 @@ function blankRisk(): RiskQuestion[] {
 @Component({
   selector: 'app-manage',
   standalone: true,
-  imports: [FormsModule, RouterLink, ImportPanelComponent],
+  imports: [FormsModule, RouterLink, ImportPanelComponent, Top10EditorComponent, AnameenEditorComponent],
   templateUrl: './manage.component.html',
   styleUrl: './manage.component.scss',
 })
@@ -44,8 +48,6 @@ export class ManageComponent {
   readonly newQuestion = signal('');
   readonly newAnswer = signal('');
   readonly newRule = signal('');
-  readonly newTop10Prompt = signal('');
-  readonly top10Answers = signal<string[]>(Array(TOP10_SIZE).fill(''));
   readonly newMatch = signal('');
   readonly newTeamA = signal('');
   readonly newTeamB = signal('');
@@ -54,8 +56,6 @@ export class ManageComponent {
   readonly newGenre = signal('');
   readonly newRisk = signal<RiskQuestion[]>(blankRisk());
   // Ana Meen (SPECV4 §4.1): subject name + 5 clues, hard -> easy.
-  readonly newSubject = signal('');
-  readonly newClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
   // Who-in-Picture (SPECV4 §4.3): title + hotlinked photo + 11 pictured names.
   readonly newPhotoTitle = signal('');
   readonly newPhotoUrl = signal('');
@@ -74,8 +74,6 @@ export class ManageComponent {
   readonly editText = signal('');
   readonly editQ = signal('');
   readonly editA = signal('');
-  readonly editPrompt = signal('');
-  readonly editAnswers = signal<string[]>(Array(TOP10_SIZE).fill(''));
   readonly editMatch = signal('');
   readonly editTeamA = signal('');
   readonly editTeamB = signal('');
@@ -83,8 +81,6 @@ export class ManageComponent {
   readonly editLineupB = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly editGenre = signal('');
   readonly editRisk = signal<RiskQuestion[]>(blankRisk());
-  readonly editSubject = signal('');
-  readonly editClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
   readonly editPhotoTitle = signal('');
   readonly editPhotoUrl = signal('');
   readonly editPhotoPlayers = signal<string[]>(Array(LINEUP_SIZE).fill(''));
@@ -126,12 +122,28 @@ export class ManageComponent {
     },
     cancelEdit: () => this.editingId.set(null),
     refreshAfterMutation: () => this.reloadActive(),
+    refreshAfterAdd: () => {
+      if (this.page() === 0) this.reloadActive();
+      else this.page.set(0);
+    },
+    completeEdit: (message) => {
+      this.editingId.set(null);
+      this.reloadActive();
+      this.editorHost.reportFeedback(message, 'success');
+    },
+    reportMutationFailure: (error, fallback) => {
+      if (this.denyIf401(error)) return;
+      const reason = this.apiMsg(error) ?? fallback;
+      this.editorHost.reportFeedback(reason, 'error');
+    },
     reportFeedback: (message, intent) => {
       this.msg.set(message);
       if (intent === 'success') this.toast.success(message);
       else this.toast.error(message);
     },
   };
+  readonly top10Editor = new Top10Editor(this.api, this.editorHost);
+  readonly anameenEditor = new AnameenEditor(this.api, this.editorHost);
   select(p: Pool): void {
     this.catalog.select(p);
     this.msg.set('');
@@ -179,20 +191,12 @@ export class ManageComponent {
     this.msg.set('تم الاستيراد — القائمة محدثة.');
   }
 
-  setTop10Answer(i: number, v: string): void {
-    this.top10Answers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
-
   setLineupA(i: number, v: string): void {
     this.lineupA.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
   setLineupB(i: number, v: string): void {
     this.lineupB.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
-
-  setEditTop10Answer(i: number, v: string): void {
-    this.editAnswers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
   setEditLineupA(i: number, v: string): void {
@@ -209,14 +213,6 @@ export class ManageComponent {
 
   setEditRisk(i: number, field: 'question' | 'answer', v: string): void {
     this.editRisk.update((arr) => arr.map((q, j) => (j === i ? { ...q, [field]: v } : q)));
-  }
-
-  setNewClue(i: number, v: string): void {
-    this.newClues.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
-
-  setEditClue(i: number, v: string): void {
-    this.editClues.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
   setNewPhotoPlayer(i: number, v: string): void {
@@ -248,13 +244,6 @@ export class ManageComponent {
     this.editingId.set(r.id);
   }
 
-  startEditTop10(t: { id: number; prompt: string; answers: string[] }): void {
-    this.editPrompt.set(t.prompt);
-    this.editAnswers.set([...t.answers]);
-    this.expandedId.set(null);
-    this.editingId.set(t.id);
-  }
-
   startEditScoresheet(m: {
     id: number;
     matchLabel: string;
@@ -284,13 +273,6 @@ export class ManageComponent {
     this.editRisk.set(p.questions.map((q, i) => ({ ...q, points: RISK_TIERS[i] })));
     this.expandedId.set(null);
     this.editingId.set(p.id);
-  }
-
-  startEditAnameen(a: AnameenSubject): void {
-    this.editSubject.set(a.player);
-    this.editClues.set([...a.clues]);
-    this.expandedId.set(null);
-    this.editingId.set(a.id);
   }
 
   startEditWhopicture(w: WhoPicturePhoto): void {
@@ -360,24 +342,6 @@ export class ManageComponent {
     );
   }
 
-  async saveEditTop10(id: number): Promise<void> {
-    this.msg.set('');
-    const answers = this.editAnswers().map((a) => a.trim());
-    if (!this.editPrompt().trim() || answers.some((a) => !a)) {
-      const reason = 'أكمل العنوان والإجابات الـ13 كلها قبل الحفظ.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    await this.applyEdit(
-      'top10',
-      id,
-      { prompt: this.editPrompt(), answers },
-      'تم حفظ تعديل القائمة.',
-      'خطأ — يلزم عنوان و13 إجابة مميزة.',
-    );
-  }
-
   async saveEditScoresheet(id: number): Promise<void> {
     this.msg.set('');
     const a = this.editLineupA().map((p) => p.trim());
@@ -439,25 +403,6 @@ export class ManageComponent {
       { genre, questions },
       'تم حفظ تعديل الحزمة.',
       'خطأ — يلزم نوع وأربعة أسئلة بفئاتها.',
-    );
-  }
-
-  async saveEditAnameen(id: number): Promise<void> {
-    this.msg.set('');
-    const player = this.editSubject().trim();
-    const clues = this.editClues().map((c) => c.trim());
-    if (!player || clues.some((c) => !c)) {
-      const reason = 'أكمل اسم الشخصية والتلميحات الخمس قبل الحفظ.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    await this.applyEdit(
-      'anameen',
-      id,
-      { player, clues },
-      `تم حفظ تعديل الشخصية (#${id}).`,
-      'خطأ — يلزم اسم وخمسة تلميحات مميزة.',
     );
   }
 
@@ -529,30 +474,6 @@ export class ManageComponent {
       this.toast.success('تمت إضافة القاعدة.');
     } catch (e: unknown) {
       const reason = this.apiMsg(e) ?? 'خطأ — القاعدة قصيرة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
-  }
-
-  async addTop10(): Promise<void> {
-    this.msg.set('');
-    const answers = this.top10Answers().map((a) => a.trim());
-    if (answers.some((a) => !a)) {
-      const reason = 'أكمل الإجابات الـ13 كلها قبل الإضافة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    try {
-      await firstValueFrom(this.api.addTop10(this.newTop10Prompt(), answers));
-      this.newTop10Prompt.set('');
-      this.top10Answers.set(Array(TOP10_SIZE).fill(''));
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      this.msg.set('تمت إضافة قائمة توب 10.');
-      this.toast.success('تمت إضافة قائمة توب 10.');
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — يلزم عنوان و13 إجابة مميزة.';
       this.msg.set(reason);
       this.toast.error(reason);
     }
@@ -635,32 +556,6 @@ export class ManageComponent {
       this.toast.success('تمت إضافة حزمة الريسك.');
     } catch (e: unknown) {
       const reason = this.apiMsg(e) ?? 'خطأ — يلزم نوع وأربعة أسئلة بفئات 5/10/20/40.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
-  }
-
-  async addAnameen(): Promise<void> {
-    this.msg.set('');
-    const player = this.newSubject().trim();
-    const clues = this.newClues().map((c) => c.trim());
-    if (!player || clues.some((c) => !c)) {
-      const reason = 'أكمل اسم الشخصية والتلميحات الخمس قبل الإضافة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    try {
-      const saved = await firstValueFrom(this.api.addAnameen(player, clues));
-      this.newSubject.set('');
-      this.newClues.set(Array(ANAMEEN_CLUES).fill(''));
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      const ok = `تمت إضافة الشخصية (#${saved.id}).`;
-      this.msg.set(ok);
-      this.toast.success(ok);
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — يلزم اسم وخمسة تلميحات مميزة.';
       this.msg.set(reason);
       this.toast.error(reason);
     }

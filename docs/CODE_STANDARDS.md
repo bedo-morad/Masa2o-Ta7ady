@@ -17,8 +17,9 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
 
 ## 2. Small readable files
 
-- Target ≤ ~200 lines per `.ts` / `.java` / `.html`. Split by extraction: child
-  components, pure helper functions, pipes, presenters. One file = one job, reads top-down.
+- Treat ~200 lines per `.ts` / `.java` / `.html` as a review prompt, not a hard limit.
+  Split by cohesive responsibility: child components, pure helper functions, pipes,
+  presenters. One file = one job, reads top-down.
 - No logic in templates beyond `*if`/`*for` + bindings + event forwarding. No nested
   ternaries, no multi-line expressions in HTML.
 - No `any` (frontend) / raw `Object` maps (backend). Name every shape (interface/DTO/record).
@@ -59,7 +60,38 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
 - Timers beep (Web Audio, no assets) and stop; they never auto-score, auto-eliminate,
   or auto-advance. Referee acts after timeout.
 
-## 6. Quality gates (every commit)
+## 6. Refactoring quality goals
+
+These owner priorities align with [IBM's code-quality guidance](https://www.ibm.com/think/topics/code-quality):
+correctness, clarity, containment, and consistency. Working code alone is not the
+quality bar; future changes should be understandable, testable, and contained.
+
+- **Preserve behavior by default.** Structural refactors must not change how a game
+  plays. Keep scoring amounts, caps, multipliers, reversals, audit entries, draw and
+  turn flow, timers, randomization, persistence, and referee control unchanged unless
+  a separate behavior change is explicitly approved.
+- **Do not generalize rules from resemblance.** Before sharing code, compare the games
+  and extract only the invariant they genuinely share. Keep game-specific scoring,
+  team/player attribution, elimination thresholds, timer behavior, and other differing
+  rules explicit where they belong.
+- **Prioritize containment.** Keep related decisions and behavior together behind a
+  clear interface, limit dependencies and cross-module leakage, and avoid pass-through
+  modules that only move code around.
+- **Split for cohesion, not a line-count target.** Break a large file into smaller
+  pieces when it has distinct responsibilities or a clear UI ownership seam. Do not
+  replace one large component with another or scatter one flow across tiny forwarding
+  components just to satisfy a metric.
+- **Prefer readable, maintainable, robust solutions over theoretical perfection.**
+  Add abstractions, dependencies, or frameworks only when they solve demonstrated
+  friction and make future changes safer or easier to contain.
+- **Test behavior, not file shape.** Characterize existing behavior at the relevant
+  public seams before moving under-tested logic. Keep tests focused on observable
+  outcomes and preserve the current rules through each small refactoring slice.
+- **Keep naming and ownership consistent.** Use the domain glossary and existing
+  Angular conventions; make the owner of state and side effects obvious. Remove
+  replaced implementations rather than leaving parallel sources of truth.
+
+## 7. Quality gates (every commit)
 
 - `mvn -B verify` (backend), `npx ng build` + `npx ng test --watch=false` (frontend),
   detector clean. No landing on red.

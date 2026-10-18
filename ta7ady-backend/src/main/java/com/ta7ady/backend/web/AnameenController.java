@@ -1,4 +1,7 @@
 package com.ta7ady.backend.web;
+import com.ta7ady.backend.dto.AnameenBulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
 
 import com.ta7ady.backend.entity.AnameenSubject;
 import com.ta7ady.backend.service.AnameenService;

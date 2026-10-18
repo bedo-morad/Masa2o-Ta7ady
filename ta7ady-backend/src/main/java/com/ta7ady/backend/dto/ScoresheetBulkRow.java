@@ -1,4 +1,4 @@
-package com.ta7ady.backend.web;
+package com.ta7ady.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;

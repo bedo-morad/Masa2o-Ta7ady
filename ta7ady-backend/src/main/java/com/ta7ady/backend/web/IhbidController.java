@@ -1,4 +1,6 @@
 package com.ta7ady.backend.web;
+import com.ta7ady.backend.dto.IhbidBulkRow;
+import com.ta7ady.backend.bulk.BulkRowResult;
 
 import com.ta7ady.backend.entity.IhbidQuestion;
 import com.ta7ady.backend.service.IhbidService;

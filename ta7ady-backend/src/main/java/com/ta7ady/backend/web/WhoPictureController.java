@@ -1,4 +1,6 @@
 package com.ta7ady.backend.web;
+import com.ta7ady.backend.dto.WhoPictureBulkRow;
+import com.ta7ady.backend.bulk.BulkRowResult;
 
 import com.ta7ady.backend.entity.WhoPicturePhoto;
 import com.ta7ady.backend.service.WhoPictureService;import java.util.List;

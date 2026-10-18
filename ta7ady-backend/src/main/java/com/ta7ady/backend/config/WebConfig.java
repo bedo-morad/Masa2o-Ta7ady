@@ -1,4 +1,4 @@
-package com.ta7ady.backend.web;
+package com.ta7ady.backend.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

@@ -1,4 +1,6 @@
 package com.ta7ady.backend.web;
+import com.ta7ady.backend.dto.RiskBulkRow;
+import com.ta7ady.backend.bulk.BulkRowResult;
 
 import com.ta7ady.backend.entity.RiskPack;
 import com.ta7ady.backend.service.RiskService;

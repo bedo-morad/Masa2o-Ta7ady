@@ -1,4 +1,4 @@
-package com.ta7ady.backend.web;
+package com.ta7ady.backend.bulk;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;

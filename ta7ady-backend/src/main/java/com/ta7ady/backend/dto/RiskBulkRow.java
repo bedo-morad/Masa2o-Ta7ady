@@ -1,4 +1,4 @@
-package com.ta7ady.backend.web;
+package com.ta7ady.backend.dto;
 
 import java.util.List;
 

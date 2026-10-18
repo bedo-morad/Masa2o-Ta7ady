@@ -2,13 +2,12 @@ import { Component, computed, inject, signal, TemplateRef } from '@angular/core'
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { httpResource } from '@angular/common/http';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { API_BASE, ApiService, AnameenSubject, Page, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
+import { ApiService, AnameenSubject, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
+import { ManageCatalog, ManageEditorHost } from './manage-catalog';
 
-const SIZE = 20;
 export const TOP10_SIZE = 13;
 export const LINEUP_SIZE = 11;
 export const ANAMEEN_CLUES = 5;
@@ -29,11 +28,12 @@ function blankRisk(): RiskQuestion[] {
 })
 export class ManageComponent {
   readonly api = inject(ApiService);
+  readonly catalog = new ManageCatalog(this.api);
   private readonly modal = inject(NgbModal);
   private readonly toast = inject(HotToastService);
 
-  readonly pool = signal<Pool>('players');
-  readonly page = signal(0);
+  readonly pool = this.catalog.pool;
+  readonly page = this.catalog.page;
   readonly msg = signal('');
 
   readonly adminPw = signal('');
@@ -97,122 +97,54 @@ export class ManageComponent {
     return this.expandedId() === id;
   }
 
-  private readonly playersRes = httpResource<Page<{ id: number; playerName: string }>>(() =>
-    this.pool() === 'players'
-      ? `${API_BASE}/players/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-      : undefined,
-  );
-  private readonly ihbidRes = httpResource<
-    Page<{ id: number; questionText: string; answerText: string }>
-  >(() =>
-    this.pool() === 'ihbid'
-      ? `${API_BASE}/ihbid/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-      : undefined,
-  );
-  private readonly offsideRes = httpResource<Page<{ id: number; ruleText: string }>>(() =>
-    this.pool() === 'offside'
-      ? `${API_BASE}/offside/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-      : undefined,
-  );
-  private readonly top10Res = httpResource<Page<{ id: number; prompt: string; answers: string[] }>>(
-    () =>
-      this.pool() === 'top10'
-        ? `${API_BASE}/top10/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-        : undefined,
-  );
-  private readonly scoresheetRes = httpResource<
-    Page<{
-      id: number;
-      matchLabel: string;
-      teamA: string;
-      teamB: string;
-      lineupA: string[];
-      lineupB: string[];
-    }>
-  >(() =>
-    this.pool() === 'scoresheet'
-      ? `${API_BASE}/scoresheet/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-      : undefined,
-  );
-  private readonly bankRes = httpResource<
-    Page<{ id: number; question: string; answer: string }>
-  >(() =>
-    this.pool() === 'bank'
-      ? `${API_BASE}/bank/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-      : undefined,
-  );
-  private readonly riskRes = httpResource<Page<{ id: number; genre: string; questions: RiskQuestion[] }>>(
-    () =>
-      this.pool() === 'risk'
-        ? `${API_BASE}/risk/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-        : undefined,
-  );
-  private readonly anameenRes = httpResource<Page<AnameenSubject>>(
-    () =>
-      this.pool() === 'anameen'
-        ? `${API_BASE}/anameen/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-        : undefined,
-  );
-  private readonly whopictureRes = httpResource<Page<WhoPicturePhoto>>(
-    () =>
-      this.pool() === 'whopicture'
-        ? `${API_BASE}/whopicture/all?page=${this.page()}&size=${SIZE}&sort=id,desc`
-        : undefined,
-  );
-
-  readonly playerRows = computed(() => this.playersRes.value()?.content ?? []);
-  readonly ihbidRows = computed(() => this.ihbidRes.value()?.content ?? []);
-  readonly offsideRows = computed(() => this.offsideRes.value()?.content ?? []);
-  readonly top10Rows = computed(() => this.top10Res.value()?.content ?? []);
-  readonly scoresheetRows = computed(() => this.scoresheetRes.value()?.content ?? []);
-  readonly bankRows = computed(() => this.bankRes.value()?.content ?? []);
-  readonly riskRows = computed(() => this.riskRes.value()?.content ?? []);
-  readonly anameenRows = computed(() => this.anameenRes.value()?.content ?? []);
-  readonly whopictureRows = computed(() => this.whopictureRes.value()?.content ?? []);
-
-  readonly totalElements = computed(() => this.activePage()?.totalElements ?? 0);
-  readonly totalPages = computed(() => this.activePage()?.totalPages ?? 0);
-  readonly loading = computed(
-    () =>
-      this.playersRes.isLoading() ||
-      this.ihbidRes.isLoading() ||
-      this.offsideRes.isLoading() ||
-      this.top10Res.isLoading() ||
-      this.scoresheetRes.isLoading() ||
-      this.bankRes.isLoading() ||
-      this.riskRes.isLoading() ||
-      this.anameenRes.isLoading() ||
-      this.whopictureRes.isLoading(),
-  );
-
-  private activePage() {
-    if (this.pool() === 'players') return this.playersRes.value();
-    if (this.pool() === 'ihbid') return this.ihbidRes.value();
-    if (this.pool() === 'top10') return this.top10Res.value();
-    if (this.pool() === 'scoresheet') return this.scoresheetRes.value();
-    if (this.pool() === 'bank') return this.bankRes.value();
-    if (this.pool() === 'risk') return this.riskRes.value();
-    if (this.pool() === 'anameen') return this.anameenRes.value();
-    if (this.pool() === 'whopicture') return this.whopictureRes.value();
-    return this.offsideRes.value();
-  }
-
+  readonly playersRes = this.catalog.playersRes;
+  readonly ihbidRes = this.catalog.ihbidRes;
+  readonly offsideRes = this.catalog.offsideRes;
+  readonly top10Res = this.catalog.top10Res;
+  readonly scoresheetRes = this.catalog.scoresheetRes;
+  readonly bankRes = this.catalog.bankRes;
+  readonly riskRes = this.catalog.riskRes;
+  readonly anameenRes = this.catalog.anameenRes;
+  readonly whopictureRes = this.catalog.whopictureRes;
+  readonly playerRows = this.catalog.playerRows;
+  readonly ihbidRows = this.catalog.ihbidRows;
+  readonly offsideRows = this.catalog.offsideRows;
+  readonly top10Rows = this.catalog.top10Rows;
+  readonly scoresheetRows = this.catalog.scoresheetRows;
+  readonly bankRows = this.catalog.bankRows;
+  readonly riskRows = this.catalog.riskRows;
+  readonly anameenRows = this.catalog.anameenRows;
+  readonly whopictureRows = this.catalog.whopictureRows;
+  readonly totalElements = this.catalog.totalElements;
+  readonly totalPages = this.catalog.totalPages;
+  readonly loading = this.catalog.loading;
+  readonly editorHost: ManageEditorHost = {
+    authorization: () => this.adminOn(),
+    requestEdit: (id) => {
+      this.expandedId.set(null);
+      this.editingId.set(id);
+    },
+    cancelEdit: () => this.editingId.set(null),
+    refreshAfterMutation: () => this.reloadActive(),
+    reportFeedback: (message, intent) => {
+      this.msg.set(message);
+      if (intent === 'success') this.toast.success(message);
+      else this.toast.error(message);
+    },
+  };
   select(p: Pool): void {
-    this.pool.set(p);
-    this.page.set(0);
+    this.catalog.select(p);
     this.msg.set('');
     this.expandedId.set(null);
     this.editingId.set(null);
   }
-
   prev(): void {
-    if (this.page() > 0) this.page.update((p) => p - 1);
+    this.catalog.prev();
     this.expandedId.set(null);
     this.editingId.set(null);
   }
-
   next(): void {
-    if (this.page() + 1 < this.totalPages()) this.page.update((p) => p + 1);
+    this.catalog.next();
     this.expandedId.set(null);
     this.editingId.set(null);
   }
@@ -376,7 +308,11 @@ export class ManageComponent {
   // Shared edit apply: admin-gated PUT, then reload + toast. A duplicate of
   // another row (or any validation failure) surfaces the backend message.
   private async applyEdit(
-    pool: Pool, id: number, body: unknown, okMsg: string, failMsg: string,
+    pool: Pool,
+    id: number,
+    body: unknown,
+    okMsg: string,
+    failMsg: string,
   ): Promise<void> {
     this.msg.set('');
     try {
@@ -395,18 +331,33 @@ export class ManageComponent {
   }
 
   async saveEditPlayer(id: number): Promise<void> {
-    await this.applyEdit('players', id, { playerName: this.editText() },
-      'تم حفظ تعديل اسم اللاعب.', 'خطأ — الاسم قصير أو مكرر.');
+    await this.applyEdit(
+      'players',
+      id,
+      { playerName: this.editText() },
+      'تم حفظ تعديل اسم اللاعب.',
+      'خطأ — الاسم قصير أو مكرر.',
+    );
   }
 
   async saveEditIhbid(id: number): Promise<void> {
-    await this.applyEdit('ihbid', id, { questionText: this.editQ(), answerText: this.editA() },
-      'تم حفظ تعديل السؤال.', 'خطأ — تأكد من طول السؤال والجواب.');
+    await this.applyEdit(
+      'ihbid',
+      id,
+      { questionText: this.editQ(), answerText: this.editA() },
+      'تم حفظ تعديل السؤال.',
+      'خطأ — تأكد من طول السؤال والجواب.',
+    );
   }
 
   async saveEditOffside(id: number): Promise<void> {
-    await this.applyEdit('offside', id, { ruleText: this.editText() },
-      'تم حفظ تعديل القاعدة.', 'خطأ — القاعدة قصيرة.');
+    await this.applyEdit(
+      'offside',
+      id,
+      { ruleText: this.editText() },
+      'تم حفظ تعديل القاعدة.',
+      'خطأ — القاعدة قصيرة.',
+    );
   }
 
   async saveEditTop10(id: number): Promise<void> {
@@ -418,37 +369,63 @@ export class ManageComponent {
       this.toast.error(reason);
       return;
     }
-    await this.applyEdit('top10', id, { prompt: this.editPrompt(), answers },
-      'تم حفظ تعديل القائمة.', 'خطأ — يلزم عنوان و13 إجابة مميزة.');
+    await this.applyEdit(
+      'top10',
+      id,
+      { prompt: this.editPrompt(), answers },
+      'تم حفظ تعديل القائمة.',
+      'خطأ — يلزم عنوان و13 إجابة مميزة.',
+    );
   }
 
   async saveEditScoresheet(id: number): Promise<void> {
     this.msg.set('');
     const a = this.editLineupA().map((p) => p.trim());
     const b = this.editLineupB().map((p) => p.trim());
-    if (!this.editMatch().trim() || !this.editTeamA().trim() || !this.editTeamB().trim()
-      || a.some((p) => !p) || b.some((p) => !p)) {
+    if (
+      !this.editMatch().trim() ||
+      !this.editTeamA().trim() ||
+      !this.editTeamB().trim() ||
+      a.some((p) => !p) ||
+      b.some((p) => !p)
+    ) {
       const reason = 'أكمل اسم المباراة والفريقين و22 لاعبًا قبل الحفظ.';
       this.msg.set(reason);
       this.toast.error(reason);
       return;
     }
-    await this.applyEdit('scoresheet', id, {
-      match: this.editMatch(), teamA: this.editTeamA(), teamB: this.editTeamB(),
-      lineupA: a, lineupB: b,
-    }, 'تم حفظ تعديل المباراة.', 'خطأ — يلزم اسم مباراة وفريقان و11 لاعبًا لكل تشكيلة.');
+    await this.applyEdit(
+      'scoresheet',
+      id,
+      {
+        match: this.editMatch(),
+        teamA: this.editTeamA(),
+        teamB: this.editTeamB(),
+        lineupA: a,
+        lineupB: b,
+      },
+      'تم حفظ تعديل المباراة.',
+      'خطأ — يلزم اسم مباراة وفريقان و11 لاعبًا لكل تشكيلة.',
+    );
   }
 
   async saveEditBank(id: number): Promise<void> {
-    await this.applyEdit('bank', id, { question: this.editQ(), answer: this.editA() },
-      'تم حفظ تعديل السؤال.', 'خطأ — تأكد من طول السؤال والجواب.');
+    await this.applyEdit(
+      'bank',
+      id,
+      { question: this.editQ(), answer: this.editA() },
+      'تم حفظ تعديل السؤال.',
+      'خطأ — تأكد من طول السؤال والجواب.',
+    );
   }
 
   async saveEditRisk(id: number): Promise<void> {
     this.msg.set('');
     const genre = this.editGenre().trim();
     const questions = this.editRisk().map((q, i) => ({
-      points: RISK_TIERS[i], question: q.question.trim(), answer: q.answer.trim(),
+      points: RISK_TIERS[i],
+      question: q.question.trim(),
+      answer: q.answer.trim(),
     }));
     if (!genre || questions.some((q) => !q.question || !q.answer)) {
       const reason = 'أكمل النوع والأسئلة الأربعة (سؤال وجواب) قبل الحفظ.';
@@ -456,8 +433,13 @@ export class ManageComponent {
       this.toast.error(reason);
       return;
     }
-    await this.applyEdit('risk', id, { genre, questions },
-      'تم حفظ تعديل الحزمة.', 'خطأ — يلزم نوع وأربعة أسئلة بفئاتها.');
+    await this.applyEdit(
+      'risk',
+      id,
+      { genre, questions },
+      'تم حفظ تعديل الحزمة.',
+      'خطأ — يلزم نوع وأربعة أسئلة بفئاتها.',
+    );
   }
 
   async saveEditAnameen(id: number): Promise<void> {
@@ -470,8 +452,13 @@ export class ManageComponent {
       this.toast.error(reason);
       return;
     }
-    await this.applyEdit('anameen', id, { player, clues },
-      `تم حفظ تعديل الشخصية (#${id}).`, 'خطأ — يلزم اسم وخمسة تلميحات مميزة.');
+    await this.applyEdit(
+      'anameen',
+      id,
+      { player, clues },
+      `تم حفظ تعديل الشخصية (#${id}).`,
+      'خطأ — يلزم اسم وخمسة تلميحات مميزة.',
+    );
   }
 
   async saveEditWhopicture(id: number): Promise<void> {
@@ -485,20 +472,17 @@ export class ManageComponent {
       this.toast.error(reason);
       return;
     }
-    await this.applyEdit('whopicture', id, { title, photoUrl, players },
-      `تم حفظ تعديل الصورة (#${id}).`, 'خطأ — يلزم عنوان ورابط صالح و11 اسمًا مميزًا.');
+    await this.applyEdit(
+      'whopicture',
+      id,
+      { title, photoUrl, players },
+      `تم حفظ تعديل الصورة (#${id}).`,
+      'خطأ — يلزم عنوان ورابط صالح و11 اسمًا مميزًا.',
+    );
   }
 
   private reloadActive(): void {
-    if (this.pool() === 'players') this.playersRes.reload();
-    else if (this.pool() === 'ihbid') this.ihbidRes.reload();
-    else if (this.pool() === 'top10') this.top10Res.reload();
-    else if (this.pool() === 'scoresheet') this.scoresheetRes.reload();
-    else if (this.pool() === 'bank') this.bankRes.reload();
-    else if (this.pool() === 'risk') this.riskRes.reload();
-    else if (this.pool() === 'anameen') this.anameenRes.reload();
-    else if (this.pool() === 'whopicture') this.whopictureRes.reload();
-    else this.offsideRes.reload();
+    this.catalog.reloadActive();
   }
 
   async addPlayer(): Promise<void> {
@@ -578,8 +562,13 @@ export class ManageComponent {
     this.msg.set('');
     const a = this.lineupA().map((p) => p.trim());
     const b = this.lineupB().map((p) => p.trim());
-    if (!this.newMatch().trim() || !this.newTeamA().trim() || !this.newTeamB().trim()
-      || a.some((p) => !p) || b.some((p) => !p)) {
+    if (
+      !this.newMatch().trim() ||
+      !this.newTeamA().trim() ||
+      !this.newTeamB().trim() ||
+      a.some((p) => !p) ||
+      b.some((p) => !p)
+    ) {
       const reason = 'أكمل اسم المباراة والفريقين و22 لاعبًا قبل الإضافة.';
       this.msg.set(reason);
       this.toast.error(reason);
@@ -626,7 +615,9 @@ export class ManageComponent {
     this.msg.set('');
     const genre = this.newGenre().trim();
     const questions = this.newRisk().map((q, i) => ({
-      points: RISK_TIERS[i], question: q.question.trim(), answer: q.answer.trim(),
+      points: RISK_TIERS[i],
+      question: q.question.trim(),
+      answer: q.answer.trim(),
     }));
     if (!genre || questions.some((q) => !q.question || !q.answer)) {
       const reason = 'أكمل النوع والأسئلة الأربعة (سؤال وجواب) قبل الإضافة.';
@@ -704,107 +695,42 @@ export class ManageComponent {
   }
 
   async removePlayer(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('players', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.playersRes.value()?.content.length ?? 0);
+    return this.removeFromCatalog('players', id);
   }
-
   async removeIhbid(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('ihbid', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.ihbidRes.value()?.content.length ?? 0);
+    return this.removeFromCatalog('ihbid', id);
   }
-
   async removeOffside(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('offside', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.offsideRes.value()?.content.length ?? 0);
+    return this.removeFromCatalog('offside', id);
   }
-
   async removeTop10(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('top10', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.top10Res.value()?.content.length ?? 0);
+    return this.removeFromCatalog('top10', id);
   }
-
   async removeScoresheet(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('scoresheet', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.scoresheetRes.value()?.content.length ?? 0);
+    return this.removeFromCatalog('scoresheet', id);
   }
-
   async removeBank(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('bank', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.bankRes.value()?.content.length ?? 0);
+    return this.removeFromCatalog('bank', id);
   }
-
   async removeRisk(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('risk', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.riskRes.value()?.content.length ?? 0);
+    return this.removeFromCatalog('risk', id);
   }
-
   async removeAnameen(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('anameen', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.anameenRes.value()?.content.length ?? 0);
+    return this.removeFromCatalog('anameen', id);
   }
-
   async removeWhopicture(id: number): Promise<void> {
-    try {
-      await firstValueFrom(this.api.del('whopicture', id));
-    } catch (e: unknown) {
-      if (this.denyIf401(e)) return;
-      this.msg.set('تعذّر الحذف — أعد المحاولة.');
-      return;
-    }
-    this.afterDelete(this.whopictureRes.value()?.content.length ?? 0);
+    return this.removeFromCatalog('whopicture', id);
   }
-
-  private afterDelete(leftOnPage: number): void {
-    if (leftOnPage <= 1 && this.page() > 0) this.page.update((p) => p - 1);
-    else this.reloadActive();
+  private removeFromCatalog(pool: Pool, id: number): Promise<void> {
+    return this.catalog.delete(
+      pool,
+      id,
+      () => {
+        this.api.lock();
+        this.adminError.set('كلمة المرور غير صحيحة.');
+      },
+      () => this.msg.set('تعذّر الحذف — أعد المحاولة.'),
+    );
   }
 
   private denyIf401(e: unknown): boolean {

@@ -51,7 +51,7 @@ describe('trioHolder + teamContribution', () => {
 describe('Top10Component', () => {
   const list = (id: number): Top10List => ({
     id,
-    prompt: 'قائمة',
+    prompt: `قائمة ${id}`,
     answers: Array.from({ length: 13 }, (_, i) => `جواب ${i + 1}`),
   });
 
@@ -158,6 +158,25 @@ describe('Top10Component', () => {
     expect(c.audit()[0]).toEqual(
       expect.objectContaining({ team: 'A', label: 'جواب 3', delta: 3 }),
     );
+  });
+
+  it('keeps exact audit labels and monotonic sequence through manual edits and redraw reversal', () => {
+    const c = setup();
+    assign(c, 1, 11, 'A');
+    c.scoreA.set(4); // referee manual edit does not reset attribution booking or audit sequence
+    assign(c, 1, 12, 'A');
+
+    // Reconcile is the existing page lifecycle seam used by redraw responses.
+    (c as unknown as { reconcile(rows: Top10List[]): void }).reconcile([list(2)]);
+    assign(c, 2, 13, 'A');
+
+    expect(c.scoreA()).toBe(2);
+    expect(c.audit()).toEqual([
+      { seq: 1, team: 'A', label: 'جواب 11', delta: -1 },
+      { seq: 2, team: 'A', label: 'جواب 12', delta: -2 },
+      { seq: 3, team: 'A', label: 'قائمة 1', delta: 3 },
+      { seq: 4, team: 'A', label: 'جواب 13', delta: -3 },
+    ]);
   });
 
   it('navigation stays in bounds', () => {

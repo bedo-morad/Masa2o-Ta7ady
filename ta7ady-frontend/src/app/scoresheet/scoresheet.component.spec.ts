@@ -123,6 +123,26 @@ describe('ScoresheetComponent', () => {
     expect(c.audit()[0]).toEqual(expect.objectContaining({ team: 'B', delta: 1 }));
   });
 
+  it('keeps exact audit labels and monotonic sequence through manual edits and redraw reversal', () => {
+    const c = setup();
+    pick(c, 'A', 0);
+    c.scoreA.set(-4); // referee manual edit leaves the page booking baseline intact
+    pick(c, 'A', 0);
+    pick(c, 'B', 1);
+
+    // Reconcile is the existing page lifecycle seam used by redraw responses.
+    (c as unknown as { reconcile(rows: ScoresheetMatch[]): void }).reconcile([]);
+
+    expect(c.scoreA()).toBe(-5);
+    expect(c.scoreB()).toBe(0);
+    expect(c.audit()).toEqual([
+      { seq: 1, team: 'A', label: 'لاعب أ1', delta: 1 },
+      { seq: 2, team: 'A', label: 'لاعب أ1', delta: -1 },
+      { seq: 3, team: 'B', label: 'لاعب ب2', delta: 1 },
+      { seq: 4, team: 'B', label: 'نهائي', delta: -1 },
+    ]);
+  });
+
   it('strike tracker: 3 mistakes eliminates, reset clears', () => {
     const c = setup();
     const m = match(1);

@@ -202,7 +202,7 @@ describe('ManageComponent catalog lifecycle', () => {
     httpMock
       .expectOne((r) => r.url.includes('/players/all'))
       .flush({
-        content: [{ id: 1, playerName: 'لاعب' }],
+        content: [{ id: 1, playerName: 'players fixture' }],
         totalElements: 21,
         totalPages: 2,
         number: 0,
@@ -243,16 +243,98 @@ describe('ManageComponent catalog lifecycle', () => {
     }
   });
 
-  it('reads and reloads only the selected pool for every Pool', async () => {
+  it('reads and reloads every pool, exposing its rows and total through the page', async () => {
     const { fixture, httpMock } = await setupCatalog();
     const c = fixture.componentInstance;
+    const fixtures: Record<
+      (typeof pools)[number],
+      { label: string; total: number; content: unknown[] }
+    > = {
+      players: {
+        label: 'players fixture',
+        total: 21,
+        content: [{ id: 1, playerName: 'players fixture' }],
+      },
+      ihbid: {
+        label: 'ihbid fixture',
+        total: 32,
+        content: [{ id: 2, questionText: 'ihbid fixture', answerText: 'answer' }],
+      },
+      offside: {
+        label: 'offside fixture',
+        total: 43,
+        content: [{ id: 3, ruleText: 'offside fixture' }],
+      },
+      top10: {
+        label: 'top10 fixture',
+        total: 54,
+        content: [{ id: 4, prompt: 'top10 fixture', answers: [] }],
+      },
+      scoresheet: {
+        label: 'scoresheet fixture',
+        total: 65,
+        content: [
+          {
+            id: 5,
+            matchLabel: 'scoresheet fixture',
+            teamA: 'A',
+            teamB: 'B',
+            lineupA: [],
+            lineupB: [],
+          },
+        ],
+      },
+      bank: {
+        label: 'bank fixture',
+        total: 76,
+        content: [{ id: 6, question: 'bank fixture', answer: 'answer' }],
+      },
+      risk: {
+        label: 'risk fixture',
+        total: 87,
+        content: [{ id: 7, genre: 'risk fixture', questions: [] }],
+      },
+      anameen: {
+        label: 'anameen fixture',
+        total: 98,
+        content: [{ id: 8, player: 'anameen fixture', clues: [] }],
+      },
+      whopicture: {
+        label: 'whopicture fixture',
+        total: 109,
+        content: [{ id: 9, title: 'whopicture fixture', photoUrl: 'https://fixture', players: [] }],
+      },
+    };
 
-    for (const pool of pools.slice(1)) {
-      c.select(pool);
-      fixture.detectChanges();
-      const read = httpMock.expectOne((r) => r.url.includes(`/${pool}/all`));
-      read.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-      await fixture.whenStable();
+    const expectActivePage = (pool: (typeof pools)[number]): void => {
+      const expected = fixtures[pool];
+      expect((fixture.nativeElement as HTMLElement).querySelector('.rows')?.textContent).toContain(
+        expected.label,
+      );
+      expect((fixture.nativeElement as HTMLElement).querySelector('.count')?.textContent).toContain(
+        String(expected.total),
+      );
+    };
+
+    for (const pool of pools) {
+      const expected = fixtures[pool];
+      if (pool === 'players') {
+        expectActivePage(pool);
+      } else {
+        c.select(pool);
+        fixture.detectChanges();
+        const read = httpMock.expectOne((r) => r.url.includes(`/${pool}/all`));
+        read.flush({
+          content: expected.content,
+          totalElements: expected.total,
+          totalPages: 1,
+          number: 0,
+          size: 20,
+        });
+        await fixture.whenStable();
+        fixture.detectChanges();
+        expectActivePage(pool);
+      }
 
       c.catalog.reloadActive();
       fixture.detectChanges();
@@ -260,8 +342,16 @@ describe('ManageComponent catalog lifecycle', () => {
       expect(reload.request.urlWithParams).toContain('page=0');
       expect(reload.request.urlWithParams).toContain('size=20');
       expect(reload.request.urlWithParams).toContain('sort=id,desc');
-      reload.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+      reload.flush({
+        content: expected.content,
+        totalElements: expected.total,
+        totalPages: 1,
+        number: 0,
+        size: 20,
+      });
       await fixture.whenStable();
+      fixture.detectChanges();
+      expectActivePage(pool);
     }
   });
 

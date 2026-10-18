@@ -42,7 +42,14 @@
           [attr.aria-pressed]="asked().has(i)"
           [attr.aria-label]="'تحديد القاعدة ' + (i + 1) + ' على أنها طُرحت'"
         >
-          {{ i + 1 }}
+          <span class="asked-face" aria-hidden="true">
+            <span class="asked-number">{{ i + 1 }}</span>
+            <span class="asked-check">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor">
+                <path d="m2 6 2.5 2.5L10 3" />
+              </svg>
+            </span>
+          </span>
         </button>
         <span class="rtext">{{ r.ruleText }}</span>
         <button

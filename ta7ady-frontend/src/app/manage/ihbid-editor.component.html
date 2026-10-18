@@ -1,0 +1,26 @@
+@if (mode() === 'add') {
+  <form class="add column" (ngSubmit)="editor().add()">
+    <input [(ngModel)]="editor().drafts.addQuestion" name="nq" placeholder="السؤال" />
+    <input [(ngModel)]="editor().drafts.addAnswer" name="na" placeholder="الجواب (رقم أو تاريخ)" />
+    <button type="submit"><i class="fa-solid fa-plus"></i> إضافة سؤال</button>
+  </form>
+} @else {
+  <form class="edit column" (ngSubmit)="editor().save(id()!)">
+    <input
+      [(ngModel)]="editor().drafts.editQuestion"
+      name="editIhbidQ"
+      placeholder="السؤال"
+      aria-label="تعديل السؤال"
+    />
+    <input
+      [(ngModel)]="editor().drafts.editAnswer"
+      name="editIhbidA"
+      placeholder="الجواب (رقم أو تاريخ)"
+      aria-label="تعديل الجواب"
+    />
+    <div class="edit-actions">
+      <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+      <button type="button" class="cancel" (click)="editor().cancel()">إلغاء</button>
+    </div>
+  </form>
+}

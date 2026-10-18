@@ -1,0 +1,51 @@
+@if (mode() === 'add') {
+  <form class="add column" (ngSubmit)="editor().add()">
+    <input
+      [(ngModel)]="editor().prompt"
+      name="ntp"
+      placeholder="عنوان القائمة — مثال: أعلى 13 هدافًا…"
+    />
+    <ol class="ranks">
+      @for (rank of slots; track rank; let i = $index) {
+        <li>
+          <span class="rank tabular-nums" aria-hidden="true">{{ rank }}</span>
+          <input
+            [ngModel]="editor().answers()[i]"
+            (ngModelChange)="editor().setAnswer(i, $event)"
+            [name]="'ans' + rank"
+            [placeholder]="'الإجابة رقم ' + rank"
+            [attr.aria-label]="'الإجابة رقم ' + rank"
+          />
+        </li>
+      }
+    </ol>
+    <button type="submit"><i class="fa-solid fa-plus"></i> إضافة قائمة</button>
+  </form>
+} @else {
+  <form class="edit column" (ngSubmit)="editor().save(id()!)">
+    <input
+      [(ngModel)]="editor().editPrompt"
+      name="editPrompt"
+      placeholder="عنوان القائمة"
+      aria-label="تعديل عنوان القائمة"
+    />
+    <ol class="ranks">
+      @for (rank of slots; track rank; let i = $index) {
+        <li>
+          <span class="rank tabular-nums" aria-hidden="true">{{ rank }}</span>
+          <input
+            [ngModel]="editor().editAnswers()[i]"
+            (ngModelChange)="editor().setEditAnswer(i, $event)"
+            [name]="'eans' + rank"
+            [placeholder]="'الإجابة رقم ' + rank"
+            [attr.aria-label]="'تعديل الإجابة رقم ' + rank"
+          />
+        </li>
+      }
+    </ol>
+    <div class="edit-actions">
+      <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+      <button type="button" class="cancel" (click)="editor().hostCancel()">إلغاء</button>
+    </div>
+  </form>
+}

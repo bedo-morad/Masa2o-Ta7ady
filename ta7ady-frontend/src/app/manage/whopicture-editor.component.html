@@ -1,0 +1,64 @@
+@if (mode() === 'add') {
+  <form class="add column" (ngSubmit)="editor().add()">
+    <input
+      [(ngModel)]="editor().newPhotoTitle"
+      name="ntitle"
+      placeholder="العنوان — الأهلي 2021 نهائي دوري أبطال أفريقيا"
+      aria-label="عنوان الصورة"
+    />
+    <input
+      [(ngModel)]="editor().newPhotoUrl"
+      name="nurl"
+      placeholder="رابط الصورة — https://…"
+      aria-label="رابط الصورة"
+    />
+    <ol class="lineup">
+      @for (slot of slots; track slot; let i = $index) {
+        <li>
+          <input
+            class="player-box"
+            [ngModel]="editor().newPhotoPlayers()[i]"
+            (ngModelChange)="editor().setNewPlayer(i, $event)"
+            [name]="'nwp' + slot"
+            placeholder="اسم لاعب"
+            [attr.aria-label]="'اللاعب رقم ' + slot + ' في الصورة'"
+          />
+        </li>
+      }
+    </ol>
+    <button type="submit"><i class="fa-solid fa-plus"></i> إضافة صورة</button>
+  </form>
+} @else {
+  <form class="edit column" (ngSubmit)="editor().save(id()!)">
+    <input
+      [(ngModel)]="editor().editPhotoTitle"
+      name="editPhotoTitle"
+      placeholder="العنوان"
+      aria-label="تعديل عنوان الصورة"
+    />
+    <input
+      [(ngModel)]="editor().editPhotoUrl"
+      name="editPhotoUrl"
+      placeholder="رابط الصورة"
+      aria-label="تعديل رابط الصورة"
+    />
+    <ol class="lineup">
+      @for (slot of slots; track slot; let i = $index) {
+        <li>
+          <input
+            class="player-box"
+            [ngModel]="editor().editPhotoPlayers()[i]"
+            (ngModelChange)="editor().setEditPlayer(i, $event)"
+            [name]="'ewp' + slot"
+            placeholder="اسم لاعب"
+            [attr.aria-label]="'تعديل اللاعب رقم ' + slot + ' في الصورة'"
+          />
+        </li>
+      }
+    </ol>
+    <div class="edit-actions">
+      <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+      <button type="button" class="cancel" (click)="editor().cancel()">إلغاء</button>
+    </div>
+  </form>
+}

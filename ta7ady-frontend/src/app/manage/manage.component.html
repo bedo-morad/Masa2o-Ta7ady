@@ -41,12 +41,17 @@
           <button type="submit" class="unlock"><i class="fa-solid fa-lock-open"></i> فتح</button>
         </form>
       } @else {
-        <p class="admin-state"><i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار التعديل والحذف ظاهرة.</p>
+        <p class="admin-state">
+          <i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار التعديل والحذف
+          ظاهرة.
+        </p>
         @if (adminError()) {
           <div class="admin-error" role="alert">{{ adminError() }}</div>
         }
         <div class="admin-actions">
-          <button type="button" class="lock" (click)="lockAdmin(modal)"><i class="fa-solid fa-lock"></i> قفل / تسجيل خروج</button>
+          <button type="button" class="lock" (click)="lockAdmin(modal)">
+            <i class="fa-solid fa-lock"></i> قفل / تسجيل خروج
+          </button>
           <button type="button" class="close" (click)="modal.dismiss()">إغلاق</button>
         </div>
       }
@@ -83,11 +88,23 @@
     </button>
   </div>
 
+  @if (pool() === 'players') {
+    <app-players-renderer [editor]="playersEditor" />
+  }
+  @if (pool() === 'ihbid') {
+    <app-ihbid-renderer [editor]="ihbidEditor" />
+  }
+  @if (pool() === 'offside') {
+    <app-offside-renderer [editor]="offsideEditor" />
+  }
   @if (pool() === 'top10') {
     <app-top10-editor [editor]="top10Editor" />
   }
   @if (pool() === 'scoresheet') {
     <app-scoresheet-editor [editor]="scoresheetEditor" />
+  }
+  @if (pool() === 'bank') {
+    <app-bank-renderer [editor]="bankEditor" />
   }
   @if (pool() === 'risk') {
     <app-risk-pack-editor [model]="riskEditor" />
@@ -99,11 +116,6 @@
     <app-whopicture-editor [editor]="whopictureEditor" />
   }
 
-  @if (pool() === 'players') { <app-players-renderer [editor]="playersEditor" mode="add" /> }
-  @if (pool() === 'ihbid') { <app-ihbid-renderer [editor]="ihbidEditor" mode="add" /> }
-  @if (pool() === 'offside') { <app-offside-renderer [editor]="offsideEditor" mode="add" /> }
-  @if (pool() === 'bank') { <app-bank-renderer [editor]="bankEditor" mode="add" /> }
-
   <app-import-panel [pool]="pool()" (imported)="onImported()" />
 
   @if (msg()) {
@@ -114,13 +126,88 @@
 
   <ul class="rows">
     @if (pool() === 'players') {
-      <app-players-renderer [editor]="playersEditor" [rows]="playerRows()" [ctx]="editorContext" [remove]="removePlayer.bind(this)" mode="rows" />
+      @for (p of playerRows(); track p.id) {
+        <li>
+          @if (adminOn() && editingId() === p.id) {
+            <app-players-renderer [editor]="playersEditor" mode="edit" [id]="p.id" />
+          } @else {
+            <span>{{ p.playerName }}</span>
+            @if (adminOn()) {
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="edit-btn"
+                  (click)="playersEditor.start(p)"
+                  aria-label="تعديل"
+                  title="تعديل"
+                >
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
+                  <i class="fa-solid fa-trash"></i> حذف
+                </button>
+              </div>
+            }
+          }
+        </li>
+      }
     }
     @if (pool() === 'ihbid') {
-      <app-ihbid-renderer [editor]="ihbidEditor" [rows]="ihbidRows()" [ctx]="editorContext" [remove]="removeIhbid.bind(this)" mode="rows" />
+      @for (q of ihbidRows(); track q.id) {
+        <li class="wide ihbid-row">
+          @if (adminOn() && editingId() === q.id) {
+            <app-ihbid-renderer [editor]="ihbidEditor" mode="edit" [id]="q.id" />
+          } @else {
+            <span class="qa">
+              <span class="q">{{ q.questionText }}</span>
+              <span class="answer-chip">{{ q.answerText }}</span>
+            </span>
+            @if (adminOn()) {
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="edit-btn"
+                  (click)="ihbidEditor.start(q)"
+                  aria-label="تعديل"
+                  title="تعديل"
+                >
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
+                  <i class="fa-solid fa-trash"></i> حذف
+                </button>
+              </div>
+            }
+          }
+        </li>
+      }
     }
     @if (pool() === 'offside') {
-      <app-offside-renderer [editor]="offsideEditor" [rows]="offsideRows()" [ctx]="editorContext" [remove]="removeOffside.bind(this)" mode="rows" />
+      @for (r of offsideRows(); track r.id) {
+        <li>
+          @if (adminOn() && editingId() === r.id) {
+            <app-offside-renderer [editor]="offsideEditor" mode="edit" [id]="r.id" />
+          } @else {
+            <span>{{ r.ruleText }}</span>
+            @if (adminOn()) {
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="edit-btn"
+                  (click)="offsideEditor.start(r)"
+                  aria-label="تعديل"
+                  title="تعديل"
+                >
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
+                  <i class="fa-solid fa-trash"></i> حذف
+                </button>
+              </div>
+            }
+          }
+        </li>
+      }
     }
     @if (pool() === 'top10') {
       @for (t of top10Rows(); track t.id) {
@@ -134,14 +221,28 @@
                 class="row-main"
                 (click)="toggle(t.id)"
                 [attr.aria-expanded]="isOpen(t.id)"
-                [attr.aria-label]="(isOpen(t.id) ? 'إخفاء الإجابات: ' : 'عرض الإجابات: ') + t.prompt"
+                [attr.aria-label]="
+                  (isOpen(t.id) ? 'إخفاء الإجابات: ' : 'عرض الإجابات: ') + t.prompt
+                "
               >
-                <span class="prompt"><strong>{{ t.prompt }}</strong></span>
-                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(t.id)" aria-hidden="true"></i>
+                <span class="prompt"
+                  ><strong>{{ t.prompt }}</strong></span
+                >
+                <i
+                  class="fa-solid fa-chevron-down"
+                  [class.flipped]="isOpen(t.id)"
+                  aria-hidden="true"
+                ></i>
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="top10Editor.startEdit(t)" aria-label="تعديل" title="تعديل">
+                  <button
+                    type="button"
+                    class="edit-btn"
+                    (click)="top10Editor.startEdit(t)"
+                    aria-label="تعديل"
+                    title="تعديل"
+                  >
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeTop10(t.id)" aria-label="حذف">
@@ -176,17 +277,36 @@
                 class="row-main"
                 (click)="toggle(m.id)"
                 [attr.aria-expanded]="isOpen(m.id)"
-                [attr.aria-label]="(isOpen(m.id) ? 'إخفاء التشكيلتين: ' : 'عرض التشكيلتين: ') + m.matchLabel"
+                [attr.aria-label]="
+                  (isOpen(m.id) ? 'إخفاء التشكيلتين: ' : 'عرض التشكيلتين: ') + m.matchLabel
+                "
               >
-                <span class="prompt"><strong>{{ m.matchLabel }}</strong></span>
-                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(m.id)" aria-hidden="true"></i>
+                <span class="prompt"
+                  ><strong>{{ m.matchLabel }}</strong></span
+                >
+                <i
+                  class="fa-solid fa-chevron-down"
+                  [class.flipped]="isOpen(m.id)"
+                  aria-hidden="true"
+                ></i>
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="scoresheetEditor.startEdit(m)" aria-label="تعديل" title="تعديل">
+                  <button
+                    type="button"
+                    class="edit-btn"
+                    (click)="scoresheetEditor.startEdit(m)"
+                    aria-label="تعديل"
+                    title="تعديل"
+                  >
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button type="button" class="del" (click)="removeScoresheet(m.id)" aria-label="حذف">
+                  <button
+                    type="button"
+                    class="del"
+                    (click)="removeScoresheet(m.id)"
+                    aria-label="حذف"
+                  >
                     <i class="fa-solid fa-trash"></i> حذف
                   </button>
                 </div>
@@ -217,7 +337,34 @@
       }
     }
     @if (pool() === 'bank') {
-      <app-bank-renderer [editor]="bankEditor" [rows]="bankRows()" [ctx]="editorContext" [remove]="removeBank.bind(this)" mode="rows" />
+      @for (b of bankRows(); track b.id) {
+        <li class="wide bank-row">
+          @if (adminOn() && editingId() === b.id) {
+            <app-bank-renderer [editor]="bankEditor" mode="edit" [id]="b.id" />
+          } @else {
+            <span class="qa">
+              <span class="q">{{ b.question }}</span>
+              <span class="answer-chip">{{ b.answer }}</span>
+            </span>
+            @if (adminOn()) {
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="edit-btn"
+                  (click)="bankEditor.start(b)"
+                  aria-label="تعديل"
+                  title="تعديل"
+                >
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="del" (click)="removeBank(b.id)" aria-label="حذف">
+                  <i class="fa-solid fa-trash"></i> حذف
+                </button>
+              </div>
+            }
+          }
+        </li>
+      }
     }
     @if (pool() === 'risk') {
       @for (p of riskRows(); track p.id) {
@@ -233,12 +380,24 @@
                 [attr.aria-expanded]="isOpen(p.id)"
                 [attr.aria-label]="(isOpen(p.id) ? 'إخفاء الأسئلة: ' : 'عرض الأسئلة: ') + p.genre"
               >
-                <span class="prompt"><strong>{{ p.genre }}</strong></span>
-                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(p.id)" aria-hidden="true"></i>
+                <span class="prompt"
+                  ><strong>{{ p.genre }}</strong></span
+                >
+                <i
+                  class="fa-solid fa-chevron-down"
+                  [class.flipped]="isOpen(p.id)"
+                  aria-hidden="true"
+                ></i>
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="riskEditor.startEdit(p)" aria-label="تعديل" title="تعديل">
+                  <button
+                    type="button"
+                    class="edit-btn"
+                    (click)="riskEditor.startEdit(p)"
+                    aria-label="تعديل"
+                    title="تعديل"
+                  >
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeRisk(p.id)" aria-label="حذف">
@@ -251,7 +410,9 @@
               <ol class="reveal risk-reveal">
                 @for (q of p.questions; track $index) {
                   <li>
-                    <span class="tier tabular-nums" aria-hidden="true">{{ riskTiers[$index] }}</span>
+                    <span class="tier tabular-nums" aria-hidden="true">{{
+                      riskTiers[$index]
+                    }}</span>
                     <span class="rq">{{ q.question }}</span>
                     <span class="answer-chip">{{ q.answer }}</span>
                   </li>
@@ -274,14 +435,28 @@
                 class="row-main"
                 (click)="toggle(a.id)"
                 [attr.aria-expanded]="isOpen(a.id)"
-                [attr.aria-label]="(isOpen(a.id) ? 'إخفاء التلميحات: ' : 'عرض التلميحات: ') + a.player"
+                [attr.aria-label]="
+                  (isOpen(a.id) ? 'إخفاء التلميحات: ' : 'عرض التلميحات: ') + a.player
+                "
               >
-                <span class="prompt"><strong>{{ a.player }}</strong></span>
-                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(a.id)" aria-hidden="true"></i>
+                <span class="prompt"
+                  ><strong>{{ a.player }}</strong></span
+                >
+                <i
+                  class="fa-solid fa-chevron-down"
+                  [class.flipped]="isOpen(a.id)"
+                  aria-hidden="true"
+                ></i>
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="anameenEditor.startEdit(a)" aria-label="تعديل" title="تعديل">
+                  <button
+                    type="button"
+                    class="edit-btn"
+                    (click)="anameenEditor.startEdit(a)"
+                    aria-label="تعديل"
+                    title="تعديل"
+                  >
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeAnameen(a.id)" aria-label="حذف">
@@ -316,20 +491,37 @@
                 class="row-main"
                 (click)="toggle(w.id)"
                 [attr.aria-expanded]="isOpen(w.id)"
-                [attr.aria-label]="(isOpen(w.id) ? 'إخفاء الصورة والأسماء: ' : 'عرض الصورة والأسماء: ') + w.title"
+                [attr.aria-label]="
+                  (isOpen(w.id) ? 'إخفاء الصورة والأسماء: ' : 'عرض الصورة والأسماء: ') + w.title
+                "
               >
                 <span class="prompt">
                   <strong>{{ w.title }}</strong>
                   <span class="pill-quiet">{{ w.photoUrl }}</span>
                 </span>
-                <i class="fa-solid fa-chevron-down" [class.flipped]="isOpen(w.id)" aria-hidden="true"></i>
+                <i
+                  class="fa-solid fa-chevron-down"
+                  [class.flipped]="isOpen(w.id)"
+                  aria-hidden="true"
+                ></i>
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="whopictureEditor.startEdit(w)" aria-label="تعديل" title="تعديل">
+                  <button
+                    type="button"
+                    class="edit-btn"
+                    (click)="whopictureEditor.startEdit(w)"
+                    aria-label="تعديل"
+                    title="تعديل"
+                  >
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button type="button" class="del" (click)="removeWhopicture(w.id)" aria-label="حذف">
+                  <button
+                    type="button"
+                    class="del"
+                    (click)="removeWhopicture(w.id)"
+                    aria-label="حذف"
+                  >
                     <i class="fa-solid fa-trash"></i> حذف
                   </button>
                 </div>

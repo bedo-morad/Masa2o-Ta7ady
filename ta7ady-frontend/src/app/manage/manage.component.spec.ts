@@ -116,7 +116,13 @@ describe('ManageComponent admin unlock', () => {
     fixture.detectChanges();
     const httpMock = TestBed.inject(HttpTestingController);
     const req = httpMock.expectOne((r) => r.url.includes('/players/all'));
-    req.flush({ content: [{ id: 1, playerName: 'لاعب للاختبار' }], totalElements: 1, totalPages: 1, number: 0, size: 20 });
+    req.flush({
+      content: [{ id: 1, playerName: 'لاعب للاختبار' }],
+      totalElements: 1,
+      totalPages: 1,
+      number: 0,
+      size: 20,
+    });
     fixture.detectChanges();
     return { fixture, apiStub, httpMock };
   }
@@ -193,26 +199,30 @@ describe('ManageComponent catalog lifecycle', () => {
     const fixture = TestBed.createComponent(ManageComponent);
     fixture.detectChanges();
     const httpMock = TestBed.inject(HttpTestingController);
-    httpMock.expectOne((r) => r.url.includes('/players/all')).flush({
-      content: [{ id: 1, playerName: 'لاعب' }],
-      totalElements: 21,
-      totalPages: 2,
-      number: 0,
-      size: 20,
-    });
+    httpMock
+      .expectOne((r) => r.url.includes('/players/all'))
+      .flush({
+        content: [{ id: 1, playerName: 'لاعب' }],
+        totalElements: 21,
+        totalPages: 2,
+        number: 0,
+        size: 20,
+      });
     await fixture.whenStable();
     fixture.detectChanges();
     return { fixture, apiStub, httpMock };
   }
 
   function page(httpMock: HttpTestingController, pool: string, content: unknown[] = []): void {
-    httpMock.expectOne((r) => r.url.includes(`/${pool}/all`)).flush({
-      content,
-      totalElements: content.length,
-      totalPages: content.length ? 1 : 0,
-      number: 0,
-      size: 20,
-    });
+    httpMock
+      .expectOne((r) => r.url.includes(`/${pool}/all`))
+      .flush({
+        content,
+        totalElements: content.length,
+        totalPages: content.length ? 1 : 0,
+        number: 0,
+        size: 20,
+      });
   }
 
   afterEach(() => TestBed.inject(HttpTestingController).verify());
@@ -244,7 +254,13 @@ describe('ManageComponent catalog lifecycle', () => {
     expect(nextRequest.request.urlWithParams).toContain('page=1');
     expect(c.expandedId()).toBeNull();
     expect(c.editingId()).toBeNull();
-    nextRequest.flush({ content: [{ id: 2, playerName: 'لاعب آخر' }], totalElements: 21, totalPages: 2, number: 1, size: 20 });
+    nextRequest.flush({
+      content: [{ id: 2, playerName: 'لاعب آخر' }],
+      totalElements: 21,
+      totalPages: 2,
+      number: 1,
+      size: 20,
+    });
     await fixture.whenStable();
     c.onImported();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -341,7 +357,11 @@ describe('ManageComponent add forms', () => {
     fixture.detectChanges();
     flushPool(httpMock, 'top10');
     c.top10Editor.prompt.set('عنوان');
-    c.top10Editor.answers.set(Array(13).fill('إجابة').map((v, i) => (i === 12 ? '' : v)));
+    c.top10Editor.answers.set(
+      Array(13)
+        .fill('إجابة')
+        .map((v, i) => (i === 12 ? '' : v)),
+    );
     await c.top10Editor.add();
     expect(apiStub.addTop10).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
@@ -410,31 +430,51 @@ describe('ManageComponent add forms', () => {
     c.scoresheetEditor.newTeamA.set('أ');
     c.scoresheetEditor.newTeamB.set('ب');
     c.scoresheetEditor.lineupA.set(Array(11).fill('لاعب'));
-    c.scoresheetEditor.lineupB.set(Array(11).fill('لاعب').map((v, i) => (i === 0 ? '' : v)));
+    c.scoresheetEditor.lineupB.set(
+      Array(11)
+        .fill('لاعب')
+        .map((v, i) => (i === 0 ? '' : v)),
+    );
     await c.scoresheetEditor.add();
     expect(apiStub.addScoresheet).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
   });
   it('renders migrated Pools through explicit renderers and preserves the shared text draft across tabs', async () => {
-    const { fixture, httpMock } = await setupForms(); const c = fixture.componentInstance;
-    c.basicDrafts.addPlayer.set('مسودة مشتركة'); c.select('offside'); fixture.detectChanges(); flushPool(httpMock, 'offside'); fixture.detectChanges();
+    const { fixture, httpMock } = await setupForms();
+    const c = fixture.componentInstance;
+    c.basicDrafts.addPlayer.set('مسودة مشتركة');
+    c.select('offside');
+    fixture.detectChanges();
+    flushPool(httpMock, 'offside');
+    fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-offside-renderer')).not.toBeNull();
     expect(c.basicDrafts.addPlayer()).toBe('مسودة مشتركة');
-    c.select('players'); fixture.detectChanges(); flushPool(httpMock, 'players'); fixture.detectChanges();
+    c.select('players');
+    fixture.detectChanges();
+    flushPool(httpMock, 'players');
+    fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-players-renderer')).not.toBeNull();
     expect(c.basicDrafts.addPlayer()).toBe('مسودة مشتركة');
   });
   it('keeps an add draft and reports the backend message when a Pool add fails', async () => {
-    const { fixture, apiStub, httpMock } = await setupForms(); const c = fixture.componentInstance;
+    const { fixture, apiStub, httpMock } = await setupForms();
+    const c = fixture.componentInstance;
     apiStub.addPlayer.mockReturnValueOnce(throwError(() => ({ error: { message: 'اسم مكرر' } })));
-    c.basicDrafts.addPlayer.set('اسم مكرر'); await c.playersEditor.add();
-    expect(c.basicDrafts.addPlayer()).toBe('اسم مكرر'); expect(c.msg()).toBe('اسم مكرر'); httpMock.verify();
+    c.basicDrafts.addPlayer.set('اسم مكرر');
+    await c.playersEditor.add();
+    expect(c.basicDrafts.addPlayer()).toBe('اسم مكرر');
+    expect(c.msg()).toBe('اسم مكرر');
+    httpMock.verify();
   });
   it('cancels an admin inline edit at the rendered Manage form seam without a mutation', async () => {
-    const { fixture, apiStub, httpMock } = await setupForms(); const c = fixture.componentInstance;
-    c.api.unlock('pw'); c.playersEditor.start({ id: 1, playerName: 'لاعب' });
-    expect(c.editingId()).toBe(1); c.cancelEdit();
-    expect(c.editingId()).toBeNull(); httpMock.verify();
+    const { fixture, apiStub, httpMock } = await setupForms();
+    const c = fixture.componentInstance;
+    c.api.unlock('pw');
+    c.playersEditor.start({ id: 1, playerName: 'لاعب' });
+    expect(c.editingId()).toBe(1);
+    c.cancelEdit();
+    expect(c.editingId()).toBeNull();
+    httpMock.verify();
   });
 });
 
@@ -496,16 +536,18 @@ describe('ManageComponent polish', () => {
   }
 
   function showTop10(httpMock: HttpTestingController) {
-    httpMock.expectOne((r) => r.url.includes('/top10/all')).flush({
-      content: [
-        { id: 1, prompt: 'أعلى الهدافين', answers: answers13 },
-        { id: 2, prompt: 'أفضل الحراس', answers: answers13 },
-      ],
-      totalElements: 2,
-      totalPages: 1,
-      number: 0,
-      size: 20,
-    });
+    httpMock
+      .expectOne((r) => r.url.includes('/top10/all'))
+      .flush({
+        content: [
+          { id: 1, prompt: 'أعلى الهدافين', answers: answers13 },
+          { id: 2, prompt: 'أفضل الحراس', answers: answers13 },
+        ],
+        totalElements: 2,
+        totalPages: 1,
+        number: 0,
+        size: 20,
+      });
   }
 
   it('top-10 rows show the prompt with no answer-count suffix', async () => {
@@ -574,14 +616,16 @@ describe('ManageComponent polish', () => {
   it('scoresheet rows collapse to one line and expand to both lineups', async () => {
     const { fixture, httpMock } = await setupRows();
     const c = fixture.componentInstance;
-    await showPool(fixture, httpMock, 'scoresheet', [{
-      id: 7,
-      matchLabel: 'نهائي المونديال',
-      teamA: 'الأرجنتين',
-      teamB: 'فرنسا',
-      lineupA: Array.from({ length: 11 }, (_, i) => `أ${i + 1}`),
-      lineupB: Array.from({ length: 11 }, (_, i) => `ب${i + 1}`),
-    }]);
+    await showPool(fixture, httpMock, 'scoresheet', [
+      {
+        id: 7,
+        matchLabel: 'نهائي المونديال',
+        teamA: 'الأرجنتين',
+        teamB: 'فرنسا',
+        lineupA: Array.from({ length: 11 }, (_, i) => `أ${i + 1}`),
+        lineupB: Array.from({ length: 11 }, (_, i) => `ب${i + 1}`),
+      },
+    ]);
     const el = fixture.nativeElement as HTMLElement;
     const head = el.querySelector('.managed-row .row-head') as HTMLElement;
     expect(head.textContent).toContain('نهائي المونديال');
@@ -663,16 +707,18 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
     const fixture = TestBed.createComponent(ManageComponent);
     fixture.detectChanges();
     const httpMock = TestBed.inject(HttpTestingController);
-    httpMock.expectOne((r) => r.url.includes('/players/all')).flush({
-      content: [
-        { id: 1, playerName: 'لاعب أول' },
-        { id: 2, playerName: 'لاعب ثانٍ' },
-      ],
-      totalElements: 2,
-      totalPages: 1,
-      number: 0,
-      size: 20,
-    });
+    httpMock
+      .expectOne((r) => r.url.includes('/players/all'))
+      .flush({
+        content: [
+          { id: 1, playerName: 'لاعب أول' },
+          { id: 2, playerName: 'لاعب ثانٍ' },
+        ],
+        totalElements: 2,
+        totalPages: 1,
+        number: 0,
+        size: 20,
+      });
     fixture.detectChanges();
     return { fixture, apiStub, toast, httpMock };
   }
@@ -847,7 +893,9 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
       update: vi.fn(() => of({})),
       del: vi.fn(() => of(undefined)),
       addAnameen: vi.fn(() => of({ id: 7, player: 'x', clues: [] })),
-      addWhopicture: vi.fn(() => of({ id: 9, title: 'أهلي 2021', photoUrl: 'https://x', players: [] })),
+      addWhopicture: vi.fn(() =>
+        of({ id: 9, title: 'أهلي 2021', photoUrl: 'https://x', players: [] }),
+      ),
     };
     await TestBed.configureTestingModule({
       imports: [ManageComponent],
@@ -862,13 +910,15 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     const fixture = TestBed.createComponent(ManageComponent);
     fixture.detectChanges();
     const httpMock = TestBed.inject(HttpTestingController);
-    httpMock.expectOne((r) => r.url.includes('/players/all')).flush({
-      content: [],
-      totalElements: 0,
-      totalPages: 0,
-      number: 0,
-      size: 20,
-    });
+    httpMock
+      .expectOne((r) => r.url.includes('/players/all'))
+      .flush({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        number: 0,
+        size: 20,
+      });
     fixture.detectChanges();
     return { fixture, apiStub, toast, httpMock };
   }
@@ -888,10 +938,7 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     fixture.detectChanges();
   }
 
-  async function drainList(
-    httpMock: HttpTestingController,
-    pool = 'players',
-  ): Promise<void> {
+  async function drainList(httpMock: HttpTestingController, pool = 'players'): Promise<void> {
     await new Promise((r) => setTimeout(r, 0));
     for (const req of httpMock.match((r) => r.url.includes(`/${pool}/all`))) {
       req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
@@ -1117,7 +1164,12 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/whopicture/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.whopictureEditor.startEdit({ id: 11, title: TITLE, photoUrl: 'https://example.com/p.jpg', players: names11 });
+    c.whopictureEditor.startEdit({
+      id: 11,
+      title: TITLE,
+      photoUrl: 'https://example.com/p.jpg',
+      players: names11,
+    });
     c.whopictureEditor.editPhotoTitle.set('');
     await c.whopictureEditor.save(11);
     expect(apiStub.update).not.toHaveBeenCalled();

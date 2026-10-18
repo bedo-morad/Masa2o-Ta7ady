@@ -14,7 +14,10 @@ export class Top10Editor {
   readonly editPrompt = signal('');
   readonly editAnswers = signal<string[]>(emptyAnswers());
 
-  constructor(private readonly api: ApiService, private readonly host: ManageEditorHost) {}
+  constructor(
+    private readonly api: ApiService,
+    private readonly host: ManageEditorHost,
+  ) {}
 
   setAnswer(index: number, value: string): void {
     this.answers.update((items) => items.map((item, i) => (i === index ? value : item)));
@@ -27,12 +30,15 @@ export class Top10Editor {
     this.editAnswers.set([...row.answers]);
     this.host.requestEdit(row.id!);
   }
-  hostCancel(): void { this.host.cancelEdit(); }
+  hostCancel(): void {
+    this.host.cancelEdit();
+  }
 
   async add(): Promise<void> {
-    const prompt = this.prompt().trim();
+    this.host.clearFeedback();
+    const prompt = this.prompt();
     const answers = this.answers().map((answer) => answer.trim());
-    if (!prompt || answers.some((answer) => !answer)) {
+    if (answers.some((answer) => !answer)) {
       this.host.reportFeedback('أكمل العنوان والإجابات الـ13 كلها قبل الإضافة.', 'error');
       return;
     }
@@ -47,6 +53,7 @@ export class Top10Editor {
     }
   }
   async save(id: number): Promise<void> {
+    this.host.clearFeedback();
     const prompt = this.editPrompt().trim();
     const answers = this.editAnswers().map((answer) => answer.trim());
     if (!prompt || answers.some((answer) => !answer)) {
@@ -54,10 +61,10 @@ export class Top10Editor {
       return;
     }
     try {
-      await firstValueFrom(this.api.update('top10', id, { prompt, answers }));
+      await firstValueFrom(this.api.update('top10', id, { prompt: this.editPrompt(), answers }));
       this.host.completeEdit('تم حفظ تعديل القائمة.');
     } catch (error: unknown) {
-      this.host.reportMutationFailure(error, 'خطأ — يلزم عنوان و13 إجابة مميزة.');
+      this.host.reportEditFailure(error, 'خطأ — يلزم عنوان و13 إجابة مميزة.');
     }
   }
 }

@@ -45,6 +45,9 @@ export async function applyEditMutation(
 }
 
 export class PlayersEditor {
+  cancel(): void {
+    this.host.cancelEdit();
+  }
   constructor(
     private readonly api: ApiService,
     private readonly host: ManageEditorHost,
@@ -79,6 +82,9 @@ export class PlayersEditor {
 }
 
 export class OffsideEditor {
+  cancel(): void {
+    this.host.cancelEdit();
+  }
   constructor(
     private readonly api: ApiService,
     private readonly host: ManageEditorHost,
@@ -113,6 +119,9 @@ export class OffsideEditor {
 }
 
 export class IhbidEditor {
+  cancel(): void {
+    this.host.cancelEdit();
+  }
   constructor(
     private readonly api: ApiService,
     private readonly host: ManageEditorHost,
@@ -149,6 +158,9 @@ export class IhbidEditor {
 }
 
 export class BankEditor {
+  cancel(): void {
+    this.host.cancelEdit();
+  }
   constructor(
     private readonly api: ApiService,
     private readonly host: ManageEditorHost,

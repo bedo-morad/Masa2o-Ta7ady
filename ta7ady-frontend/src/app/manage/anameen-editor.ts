@@ -12,7 +12,10 @@ export class AnameenEditor {
   readonly editSubject = signal('');
   readonly editClues = signal<string[]>(emptyClues());
 
-  constructor(private readonly api: ApiService, private readonly host: ManageEditorHost) {}
+  constructor(
+    private readonly api: ApiService,
+    private readonly host: ManageEditorHost,
+  ) {}
 
   setClue(index: number, value: string): void {
     this.clues.update((items) => items.map((item, i) => (i === index ? value : item)));
@@ -25,9 +28,12 @@ export class AnameenEditor {
     this.editClues.set([...row.clues]);
     this.host.requestEdit(row.id);
   }
-  hostCancel(): void { this.host.cancelEdit(); }
+  hostCancel(): void {
+    this.host.cancelEdit();
+  }
 
   async add(): Promise<void> {
+    this.host.clearFeedback();
     const player = this.subject().trim();
     const clues = this.clues().map((clue) => clue.trim());
     if (!player || clues.some((clue) => !clue)) {
@@ -45,6 +51,7 @@ export class AnameenEditor {
     }
   }
   async save(id: number): Promise<void> {
+    this.host.clearFeedback();
     const player = this.editSubject().trim();
     const clues = this.editClues().map((clue) => clue.trim());
     if (!player || clues.some((clue) => !clue)) {
@@ -55,7 +62,7 @@ export class AnameenEditor {
       await firstValueFrom(this.api.update('anameen', id, { player, clues }));
       this.host.completeEdit(`تم حفظ تعديل الشخصية (#${id}).`);
     } catch (error: unknown) {
-      this.host.reportMutationFailure(error, 'خطأ — يلزم اسم وخمسة تلميحات مميزة.');
+      this.host.reportEditFailure(error, 'خطأ — يلزم اسم وخمسة تلميحات مميزة.');
     }
   }
 }

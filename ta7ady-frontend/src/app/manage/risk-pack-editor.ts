@@ -22,23 +22,25 @@ export class RiskPackEditorModel {
   ) {}
 
   setNewRisk(index: number, field: 'question' | 'answer', value: string): void {
-    this.newRisk.update((questions) => questions.map((question, i) =>
-      i === index ? { ...question, [field]: value } : question,
-    ));
+    this.newRisk.update((questions) =>
+      questions.map((question, i) => (i === index ? { ...question, [field]: value } : question)),
+    );
   }
 
   setEditRisk(index: number, field: 'question' | 'answer', value: string): void {
-    this.editRisk.update((questions) => questions.map((question, i) =>
-      i === index ? { ...question, [field]: value } : question,
-    ));
+    this.editRisk.update((questions) =>
+      questions.map((question, i) => (i === index ? { ...question, [field]: value } : question)),
+    );
   }
 
   startEdit(pack: RiskPack): void {
     this.editGenre.set(pack.genre);
-    this.editRisk.set(pack.questions.map((question, i) => ({
-      ...question,
-      points: RISK_TIERS[i],
-    })));
+    this.editRisk.set(
+      pack.questions.map((question, i) => ({
+        ...question,
+        points: RISK_TIERS[i],
+      })),
+    );
     this.host.requestEdit(pack.id);
   }
 
@@ -94,8 +96,11 @@ export class RiskPackEditorModel {
   }
 
   private valid(genre: string, questions: RiskQuestion[]): boolean {
-    return Boolean(genre) && questions.length === RISK_TIERS.length &&
-      questions.every((question) => Boolean(question.question) && Boolean(question.answer));
+    return (
+      Boolean(genre) &&
+      questions.length === RISK_TIERS.length &&
+      questions.every((question) => Boolean(question.question) && Boolean(question.answer))
+    );
   }
 
   private apiMessage(error: unknown): string | null {

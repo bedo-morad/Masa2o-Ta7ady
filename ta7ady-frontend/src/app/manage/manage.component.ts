@@ -5,7 +5,10 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, Pool } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
-import { BankRenderer, IhbidRenderer, OffsideRenderer, PlayersRenderer } from './pool-renderers';
+import { PlayersEditorComponent } from './players-editor.component';
+import { IhbidEditorComponent } from './ihbid-editor.component';
+import { OffsideEditorComponent } from './offside-editor.component';
+import { BankEditorComponent } from './bank-editor.component';
 import { ManageCatalog, ManageEditorHost } from './manage-catalog';
 import { Top10Editor } from './top10-editor';
 import { AnameenEditor } from './anameen-editor';
@@ -38,10 +41,10 @@ export const RISK_SIZE = RISK_TIERS.length;
     FormsModule,
     RouterLink,
     ImportPanelComponent,
-    PlayersRenderer,
-    IhbidRenderer,
-    OffsideRenderer,
-    BankRenderer,
+    PlayersEditorComponent,
+    IhbidEditorComponent,
+    OffsideEditorComponent,
+    BankEditorComponent,
     Top10EditorComponent,
     AnameenEditorComponent,
     ScoreSheetEditorComponent,
@@ -107,11 +110,6 @@ export class ManageComponent {
   readonly totalElements = this.catalog.totalElements;
   readonly totalPages = this.catalog.totalPages;
   readonly loading = this.catalog.loading;
-  readonly editorContext = {
-    adminOn: this.adminOn,
-    editingId: this.editingId,
-    cancelEdit: () => this.cancelEdit(),
-  };
   readonly editorHost: ManageEditorHost = {
     authorization: () => this.adminOn(),
     requestEdit: (id) => {

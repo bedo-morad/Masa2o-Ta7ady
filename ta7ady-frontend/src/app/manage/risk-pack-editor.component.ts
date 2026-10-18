@@ -8,7 +8,6 @@ import { RiskPackEditorModel } from './risk-pack-editor';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './risk-pack-editor.component.html',
-  styleUrl: './risk-pack-editor.component.scss',
 })
 export class RiskPackEditorComponent {
   @Input({ required: true }) model!: RiskPackEditorModel;
@@ -17,10 +16,5 @@ export class RiskPackEditorComponent {
 
   get addMode(): boolean {
     return !this.pack;
-  }
-
-  async submit(): Promise<void> {
-    if (this.pack) await this.model.save(this.pack.id);
-    else await this.model.add();
   }
 }

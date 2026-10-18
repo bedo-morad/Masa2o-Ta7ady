@@ -1,0 +1,123 @@
+@if (mode() === 'add') {
+  <form class="add column" (ngSubmit)="editor().add()">
+    <input
+      [(ngModel)]="editor().newMatch"
+      name="nm"
+      placeholder="اسم المباراة — مثال: نهائي كأس العالم 2022"
+    />
+    <div class="teams">
+      <fieldset class="team">
+        <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الأول</legend>
+        <input
+          class="team-name"
+          [(ngModel)]="editor().newTeamA"
+          name="nta2"
+          placeholder="اسم الفريق الأول"
+          aria-label="اسم الفريق الأول"
+        />
+        <ol class="lineup">
+          @for (slot of slots; track slot; let i = $index) {
+            <li>
+              <input
+                class="player-box"
+                [ngModel]="editor().lineupA()[i]"
+                (ngModelChange)="editor().setLineupA(i, $event)"
+                [name]="'la' + slot"
+                placeholder="اسم لاعب"
+                aria-label="لاعب في الفريق الأول"
+              />
+            </li>
+          }
+        </ol>
+      </fieldset>
+      <fieldset class="team">
+        <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الثاني</legend>
+        <input
+          class="team-name"
+          [(ngModel)]="editor().newTeamB"
+          name="ntb"
+          placeholder="اسم الفريق الثاني"
+          aria-label="اسم الفريق الثاني"
+        />
+        <ol class="lineup">
+          @for (slot of slots; track slot; let i = $index) {
+            <li>
+              <input
+                class="player-box"
+                [ngModel]="editor().lineupB()[i]"
+                (ngModelChange)="editor().setLineupB(i, $event)"
+                [name]="'lb' + slot"
+                placeholder="اسم لاعب"
+                aria-label="لاعب في الفريق الثاني"
+              />
+            </li>
+          }
+        </ol>
+      </fieldset>
+    </div>
+    <button type="submit"><i class="fa-solid fa-plus"></i> إضافة مباراة</button>
+  </form>
+} @else {
+  <form class="edit column" (ngSubmit)="editor().save(id()!)">
+    <input
+      [(ngModel)]="editor().editMatch"
+      name="editMatch"
+      placeholder="اسم المباراة"
+      aria-label="تعديل اسم المباراة"
+    />
+    <div class="teams">
+      <fieldset class="team">
+        <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الأول</legend>
+        <input
+          class="team-name"
+          [(ngModel)]="editor().editTeamA"
+          name="editTeamA"
+          placeholder="اسم الفريق الأول"
+          aria-label="تعديل اسم الفريق الأول"
+        />
+        <ol class="lineup">
+          @for (slot of slots; track slot; let i = $index) {
+            <li>
+              <input
+                class="player-box"
+                [ngModel]="editor().editLineupA()[i]"
+                (ngModelChange)="editor().setEditLineupA(i, $event)"
+                [name]="'ela' + slot"
+                placeholder="اسم لاعب"
+                aria-label="لاعب في الفريق الأول"
+              />
+            </li>
+          }
+        </ol>
+      </fieldset>
+      <fieldset class="team">
+        <legend class="team-label"><i class="fa-solid fa-shield-halved"></i> الفريق الثاني</legend>
+        <input
+          class="team-name"
+          [(ngModel)]="editor().editTeamB"
+          name="editTeamB"
+          placeholder="اسم الفريق الثاني"
+          aria-label="تعديل اسم الفريق الثاني"
+        />
+        <ol class="lineup">
+          @for (slot of slots; track slot; let i = $index) {
+            <li>
+              <input
+                class="player-box"
+                [ngModel]="editor().editLineupB()[i]"
+                (ngModelChange)="editor().setEditLineupB(i, $event)"
+                [name]="'elb' + slot"
+                placeholder="اسم لاعب"
+                aria-label="لاعب في الفريق الثاني"
+              />
+            </li>
+          }
+        </ol>
+      </fieldset>
+    </div>
+    <div class="edit-actions">
+      <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+      <button type="button" class="cancel" (click)="editor().cancel()">إلغاء</button>
+    </div>
+  </form>
+}

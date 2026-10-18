@@ -1,0 +1,40 @@
+@if (addMode || editing) {
+  <form class="risk-editor" [class.edit-mode]="!addMode" (ngSubmit)="submit()">
+    <input
+      [ngModel]="addMode ? model.newGenre : model.editGenre"
+      (ngModelChange)="addMode ? model.newGenre = $event : model.editGenre = $event"
+      name="riskGenre"
+      placeholder="النوع — مثال: ريال مدريد"
+      aria-label="نوع حزمة الريسك"
+    />
+    <ol class="tiers">
+      @for (tier of model.riskTiers; track tier; let i = $index) {
+        <li>
+          <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
+          <div class="tier-fields">
+            <input
+              [ngModel]="addMode ? model.newRisk[i].question : model.editRisk[i].question"
+              (ngModelChange)="addMode ? model.setNewRisk(i, 'question', $event) : model.setEditRisk(i, 'question', $event)"
+              [name]="'riskQuestion' + tier"
+              placeholder="السؤال"
+              [attr.aria-label]="'سؤال فئة ' + tier"
+            />
+            <input
+              [ngModel]="addMode ? model.newRisk[i].answer : model.editRisk[i].answer"
+              (ngModelChange)="addMode ? model.setNewRisk(i, 'answer', $event) : model.setEditRisk(i, 'answer', $event)"
+              [name]="'riskAnswer' + tier"
+              placeholder="الجواب"
+              [attr.aria-label]="'جواب فئة ' + tier"
+            />
+          </div>
+        </li>
+      }
+    </ol>
+    <div class="editor-actions">
+      <button type="submit" class="save"><i class="fa-solid" [class.fa-plus]="addMode" [class.fa-check]="!addMode"></i> {{ addMode ? 'إضافة حزمة' : 'حفظ' }}</button>
+      @if (!addMode) {
+        <button type="button" class="cancel" (click)="model.cancelEdit()">إلغاء</button>
+      }
+    </div>
+  </form>
+}

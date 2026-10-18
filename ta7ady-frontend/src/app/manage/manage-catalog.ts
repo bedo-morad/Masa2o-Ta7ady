@@ -37,6 +37,10 @@ export interface ManageEditorHost {
   requestEdit(id: number): void;
   cancelEdit(): void;
   refreshAfterMutation(): void;
+  refreshAfterAdd(): void;
+  clearFeedback(): void;
+  reportEditFailure(error: unknown, fallback: string): void;
+  completeEdit(message: string): void;
   reportFeedback(message: string, intent: 'success' | 'error'): void;
 }
 

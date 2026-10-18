@@ -4,25 +4,19 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { ApiService, AnameenSubject, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
+import { ApiService, AnameenSubject, Pool, WhoPicturePhoto } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
 import { ManageCatalog, ManageEditorHost } from './manage-catalog';
+import { RiskPackEditorComponent } from './risk-pack-editor.component';
+import { RiskPackEditorModel } from './risk-pack-editor';
 
 export const TOP10_SIZE = 13;
 export const LINEUP_SIZE = 11;
 export const ANAMEEN_CLUES = 5;
-export const RISK_TIERS = [5, 10, 20, 40];
-export const RISK_SIZE = RISK_TIERS.length;
-
-// A fresh Risk pack buffer: exactly one question per tier, in tier order.
-function blankRisk(): RiskQuestion[] {
-  return RISK_TIERS.map((points) => ({ points, question: '', answer: '' }));
-}
-
 @Component({
   selector: 'app-manage',
   standalone: true,
-  imports: [FormsModule, RouterLink, ImportPanelComponent],
+  imports: [FormsModule, RouterLink, ImportPanelComponent, RiskPackEditorComponent],
   templateUrl: './manage.component.html',
   styleUrl: './manage.component.scss',
 })
@@ -52,7 +46,6 @@ export class ManageComponent {
   readonly lineupA = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly lineupB = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly newGenre = signal('');
-  readonly newRisk = signal<RiskQuestion[]>(blankRisk());
   // Ana Meen (SPECV4 §4.1): subject name + 5 clues, hard -> easy.
   readonly newSubject = signal('');
   readonly newClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
@@ -64,7 +57,6 @@ export class ManageComponent {
   readonly top10Ranks = Array.from({ length: TOP10_SIZE }, (_, i) => i + 1);
   readonly lineupSlots = Array.from({ length: LINEUP_SIZE }, (_, i) => i + 1);
   readonly clueSlots = Array.from({ length: ANAMEEN_CLUES }, (_, i) => i + 1);
-  readonly riskTiers = RISK_TIERS;
 
   // Accordion for managed top-10 / scoresheet / risk rows: one open at a time.
   readonly expandedId = signal<number | null>(null);
@@ -82,7 +74,6 @@ export class ManageComponent {
   readonly editLineupA = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly editLineupB = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly editGenre = signal('');
-  readonly editRisk = signal<RiskQuestion[]>(blankRisk());
   readonly editSubject = signal('');
   readonly editClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
   readonly editPhotoTitle = signal('');
@@ -126,12 +117,25 @@ export class ManageComponent {
     },
     cancelEdit: () => this.editingId.set(null),
     refreshAfterMutation: () => this.reloadActive(),
+    refreshAfterAdd: () => (this.page() === 0 ? this.reloadActive() : this.page.set(0)),
+    clearFeedback: () => this.msg.set(''),
     reportFeedback: (message, intent) => {
       this.msg.set(message);
       if (intent === 'success') this.toast.success(message);
       else this.toast.error(message);
     },
+    reportEditFailure: (error, fallback) => {
+      if (this.denyIf401(error)) return;
+      const reason = this.apiMsg(error) ?? fallback;
+      this.editorHost.reportFeedback(reason, 'error');
+    },
+    completeEdit: (message) => {
+      this.editingId.set(null);
+      this.reloadActive();
+      this.editorHost.reportFeedback(message, 'success');
+    },
   };
+  readonly riskEditor = new RiskPackEditorModel(this.api, this.editorHost);
   select(p: Pool): void {
     this.catalog.select(p);
     this.msg.set('');
@@ -203,14 +207,6 @@ export class ManageComponent {
     this.editLineupB.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
-  setNewRisk(i: number, field: 'question' | 'answer', v: string): void {
-    this.newRisk.update((arr) => arr.map((q, j) => (j === i ? { ...q, [field]: v } : q)));
-  }
-
-  setEditRisk(i: number, field: 'question' | 'answer', v: string): void {
-    this.editRisk.update((arr) => arr.map((q, j) => (j === i ? { ...q, [field]: v } : q)));
-  }
-
   setNewClue(i: number, v: string): void {
     this.newClues.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
@@ -277,13 +273,6 @@ export class ManageComponent {
     this.editA.set(b.answer);
     this.expandedId.set(null);
     this.editingId.set(b.id);
-  }
-
-  startEditRisk(p: { id: number; genre: string; questions: RiskQuestion[] }): void {
-    this.editGenre.set(p.genre);
-    this.editRisk.set(p.questions.map((q, i) => ({ ...q, points: RISK_TIERS[i] })));
-    this.expandedId.set(null);
-    this.editingId.set(p.id);
   }
 
   startEditAnameen(a: AnameenSubject): void {
@@ -416,29 +405,6 @@ export class ManageComponent {
       { question: this.editQ(), answer: this.editA() },
       'تم حفظ تعديل السؤال.',
       'خطأ — تأكد من طول السؤال والجواب.',
-    );
-  }
-
-  async saveEditRisk(id: number): Promise<void> {
-    this.msg.set('');
-    const genre = this.editGenre().trim();
-    const questions = this.editRisk().map((q, i) => ({
-      points: RISK_TIERS[i],
-      question: q.question.trim(),
-      answer: q.answer.trim(),
-    }));
-    if (!genre || questions.some((q) => !q.question || !q.answer)) {
-      const reason = 'أكمل النوع والأسئلة الأربعة (سؤال وجواب) قبل الحفظ.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    await this.applyEdit(
-      'risk',
-      id,
-      { genre, questions },
-      'تم حفظ تعديل الحزمة.',
-      'خطأ — يلزم نوع وأربعة أسئلة بفئاتها.',
     );
   }
 
@@ -606,35 +572,6 @@ export class ManageComponent {
       this.toast.success('تمت إضافة سؤال البنك.');
     } catch (e: unknown) {
       const reason = this.apiMsg(e) ?? 'خطأ — تأكد من طول السؤال والجواب.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
-  }
-
-  async addRisk(): Promise<void> {
-    this.msg.set('');
-    const genre = this.newGenre().trim();
-    const questions = this.newRisk().map((q, i) => ({
-      points: RISK_TIERS[i],
-      question: q.question.trim(),
-      answer: q.answer.trim(),
-    }));
-    if (!genre || questions.some((q) => !q.question || !q.answer)) {
-      const reason = 'أكمل النوع والأسئلة الأربعة (سؤال وجواب) قبل الإضافة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    try {
-      await firstValueFrom(this.api.addRisk(genre, questions));
-      this.newGenre.set('');
-      this.newRisk.set(blankRisk());
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      this.msg.set('تمت إضافة حزمة الريسك.');
-      this.toast.success('تمت إضافة حزمة الريسك.');
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — يلزم نوع وأربعة أسئلة بفئات 5/10/20/40.';
       this.msg.set(reason);
       this.toast.error(reason);
     }

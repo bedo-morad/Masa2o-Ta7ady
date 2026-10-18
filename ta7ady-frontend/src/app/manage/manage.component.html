@@ -186,33 +186,7 @@
     </form>
   }
   @if (pool() === 'risk') {
-    <form class="add column" (ngSubmit)="addRisk()">
-      <input [(ngModel)]="newGenre" name="ngr" placeholder="النوع — مثال: ريال مدريد" />
-      <ol class="tiers">
-        @for (tier of riskTiers; track tier; let i = $index) {
-          <li>
-            <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
-            <div class="tier-fields">
-              <input
-                [ngModel]="newRisk()[i].question"
-                (ngModelChange)="setNewRisk(i, 'question', $event)"
-                [name]="'nrq' + tier"
-                placeholder="السؤال"
-                [attr.aria-label]="'سؤال فئة ' + tier"
-              />
-              <input
-                [ngModel]="newRisk()[i].answer"
-                (ngModelChange)="setNewRisk(i, 'answer', $event)"
-                [name]="'nra' + tier"
-                placeholder="الجواب"
-                [attr.aria-label]="'جواب فئة ' + tier"
-              />
-            </div>
-          </li>
-        }
-      </ol>
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة حزمة</button>
-    </form>
+    <app-risk-pack-editor [model]="riskEditor" />
   }
   @if (pool() === 'anameen') {
     <form class="add column" (ngSubmit)="addAnameen()">
@@ -270,12 +244,7 @@
         <li>
           @if (adminOn() && editingId() === p.id) {
             <form class="edit" (ngSubmit)="saveEditPlayer(p.id)">
-              <input
-                [(ngModel)]="editText"
-                name="editPlayer"
-                placeholder="اسم اللاعب"
-                aria-label="تعديل اسم اللاعب"
-              />
+              <input [(ngModel)]="editText" name="editPlayer" placeholder="اسم اللاعب" aria-label="تعديل اسم اللاعب" />
               <div class="edit-actions">
                 <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
                 <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
@@ -575,41 +544,7 @@
       @for (p of riskRows(); track p.id) {
         <li class="wide managed-row" [class.open]="isOpen(p.id)">
           @if (adminOn() && editingId() === p.id) {
-            <form class="edit column" (ngSubmit)="saveEditRisk(p.id)">
-              <input
-                [(ngModel)]="editGenre"
-                name="editGenre"
-                placeholder="النوع"
-                aria-label="تعديل نوع الحزمة"
-              />
-              <ol class="tiers">
-                @for (tier of riskTiers; track tier; let i = $index) {
-                  <li>
-                    <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
-                    <div class="tier-fields">
-                      <input
-                        [ngModel]="editRisk()[i].question"
-                        (ngModelChange)="setEditRisk(i, 'question', $event)"
-                        [name]="'erq' + tier"
-                        placeholder="السؤال"
-                        [attr.aria-label]="'تعديل سؤال فئة ' + tier"
-                      />
-                      <input
-                        [ngModel]="editRisk()[i].answer"
-                        (ngModelChange)="setEditRisk(i, 'answer', $event)"
-                        [name]="'era' + tier"
-                        placeholder="الجواب"
-                        [attr.aria-label]="'تعديل جواب فئة ' + tier"
-                      />
-                    </div>
-                  </li>
-                }
-              </ol>
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
+            <app-risk-pack-editor [model]="riskEditor" [pack]="p" [editing]="true" />
           } @else {
             <div class="row-head">
               <button
@@ -624,7 +559,7 @@
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="startEditRisk(p)" aria-label="تعديل" title="تعديل">
+                  <button type="button" class="edit-btn" (click)="riskEditor.startEdit(p)" aria-label="تعديل" title="تعديل">
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeRisk(p.id)" aria-label="حذف">
@@ -637,7 +572,7 @@
               <ol class="reveal risk-reveal">
                 @for (q of p.questions; track $index) {
                   <li>
-                    <span class="tier tabular-nums" aria-hidden="true">{{ riskTiers[$index] }}</span>
+                    <span class="tier tabular-nums" aria-hidden="true">{{ riskEditor.riskTiers[$index] }}</span>
                     <span class="rq">{{ q.question }}</span>
                     <span class="answer-chip">{{ q.answer }}</span>
                   </li>

@@ -3,7 +3,6 @@ package com.ta7ady.backend.web;
 import com.ta7ady.backend.entity.AnameenSubject;
 import com.ta7ady.backend.service.AnameenService;
 import java.util.List;
-import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,9 +34,11 @@ public class AnameenController extends BulkAdminController<AnameenBulkRow> {
     }
 
     // POST JSON: { "player": "...", "clues": ["hard", ..., "easy"] }
+    // Typed DTO like WhoPictureController's single-add: the schema is
+    // type-checked at deserialization (409-free, BulkHelper untouched).
     @PostMapping
-    public AnameenSubject create(@RequestBody Map<String, Object> body) {
-        return service.create(BulkHelper.str(body.get("player")), BulkHelper.list(body.get("clues")));
+    public AnameenSubject create(@RequestBody AnameenBulkRow body) {
+        return service.create(body.player(), body.clues());
     }
 
     @Override

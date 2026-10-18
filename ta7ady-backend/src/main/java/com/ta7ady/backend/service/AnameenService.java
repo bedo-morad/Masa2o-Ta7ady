@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -47,7 +48,7 @@ public class AnameenService {
         if (repo.existsByPlayerIgnoreCase(player)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "player already exists");
         }
-        return repo.save(toEntity(player, clues));
+        return saveGuarded(toEntity(player, clues));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, plus create's
@@ -66,7 +67,7 @@ public class AnameenService {
         e.setPlayer(player);
         e.getClues().clear();
         e.getClues().addAll(cleaned(clues));
-        return repo.save(e);
+        return saveGuarded(e);
     }
 
     // Pure validation shared by single POST, edit (PUT) and bulk (no DB touch).
@@ -109,7 +110,7 @@ public class AnameenService {
                 },
                 r -> r == null ? null : r.player(),
                 r -> toEntity(r.player(), r.clues()),
-                e -> repo.save(e).getId());
+                e -> saveGuarded(e).getId());
     }
 
     public void delete(Long id) {
@@ -124,6 +125,19 @@ public class AnameenService {
         e.setPlayer(player.trim());
         e.setClues(cleaned(clues));
         return e;
+    }
+
+    // Last line of defence for the case-insensitive duplicate rule: the
+    // pre-check on existsByPlayerIgnoreCase can lose a race with a concurrent
+    // twin save, the uk_anameen_subject_player_key unique index cannot. The
+    // first insert commits; the loser's violation maps to the same friendly
+    // 409 the pre-check throws.
+    private AnameenSubject saveGuarded(AnameenSubject e) {
+        try {
+            return repo.save(e);
+        } catch (DataIntegrityViolationException dup) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "player already exists");
+        }
     }
 
     private static List<String> cleaned(List<?> clues) {

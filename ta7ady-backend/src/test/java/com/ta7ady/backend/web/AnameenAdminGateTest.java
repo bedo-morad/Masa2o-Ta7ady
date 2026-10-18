@@ -119,6 +119,29 @@ class AnameenAdminGateTest {
                 .andExpect(status().isConflict());
     }
 
+    // Case-insensitive pool rule (AUTHORING.md §2): casing stays a duplicate,
+    // caught by the pre-check and backed by the uk_anameen_subject_player_key
+    // unique index at the DB level.
+    @Test
+    void postRejectsCaseInsensitiveDuplicatePlayer() throws Exception {
+        createAndId("/api/anameen", subjectRow("Already there player"));
+        mvc.perform(post("/api/anameen").contentType(MediaType.APPLICATION_JSON)
+                .content(json(subjectRow("ALREADY THERE PLAYER"))))
+                .andExpect(status().isConflict());
+    }
+
+    // Typed-DTO single add: a malformed player value (object, not string) dies
+    // at deserialization with 400 instead of reaching the service blind.
+    @Test
+    void postRejectsTypeMismatchedPlayer() throws Exception {
+        mvc.perform(post("/api/anameen").contentType(MediaType.APPLICATION_JSON)
+                .content(
+                        "{\"player\":{\"full\":\"سلطان\"},"
+                        + "\"clues\":[\"long first clue\",\"long second clue\","
+                        + "\"long third clue\",\"long fourth clue\",\"long fifth clue\"]}"))
+                .andExpect(status().isBadRequest());
+    }
+
     // ---- bulk: dry-run vs commit, in-batch + DB dedupe ----
 
     @Test

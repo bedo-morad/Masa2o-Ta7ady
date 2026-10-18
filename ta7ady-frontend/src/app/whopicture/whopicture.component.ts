@@ -80,8 +80,8 @@ export class WhopictureComponent {
   readonly booked = signal<Record<number, { A: number; B: number }>>({});
   readonly audit = signal<AuditEntry[]>([]);
   readonly strikes = signal<Record<number, StrikeSlot[]>>({});
-  // Per-photo load state of the hotlinked image: skeleton → ready / failed-ish.
-  readonly imageState = signal<Record<number, 'loading' | 'ready'>>({});
+  // Per-photo load state of the hotlinked image: skeleton → ready / failed.
+  readonly imageState = signal<Record<number, 'loading' | 'ready' | 'failed'>>({});
   readonly msg = signal('');
   readonly maxPhotos = WHO_MAX_PHOTOS;
   private seq = 0;
@@ -112,12 +112,18 @@ export class WhopictureComponent {
   }
 
   /** Hotlinked image lifecycle per photo: starts on 'loading' at first sight. */
-  imageOf(photoId: number): 'loading' | 'ready' {
+  imageOf(photoId: number): 'loading' | 'ready' | 'failed' {
     return this.imageState()[photoId] ?? 'loading';
   }
 
   markLoaded(photoId: number): void {
     this.imageState.update((st) => (st[photoId] === 'ready' ? st : { ...st, [photoId]: 'ready' }));
+  }
+
+  /** The external host failed us (dead hotlink, offline image): an explicit
+   * 'failed' replaces the eternal skeleton; showing-once wins over the error. */
+  markFailed(photoId: number): void {
+    this.imageState.update((st) => (st[photoId] === 'ready' ? st : { ...st, [photoId]: 'failed' }));
   }
 
   prev(): void {

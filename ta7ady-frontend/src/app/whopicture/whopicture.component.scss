@@ -129,6 +129,28 @@ a:focus-visible {
   font-size: 2rem;
 }
 
+// A dead hotlink gets its own honest state, never an eternal skeleton:
+// the message points at the link share as the way out.
+.shot-failed {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.6rem;
+  color: var(--pitch-ink-dim);
+  font-weight: 800;
+  font-size: 0.9rem;
+
+  i {
+    font-size: 1.6rem;
+    color: var(--pitch-gold);
+  }
+}
+
 .shot {
   display: block;
   width: 100%;
@@ -139,6 +161,10 @@ a:focus-visible {
 
   &.is-ready {
     opacity: 1;
+  }
+
+  &.is-failed {
+    display: none;
   }
 }
 

@@ -62,7 +62,12 @@
     <section class="photo-card" aria-label="الصورة">
       <h3 class="title">{{ photo.title }}</h3>
       <div class="shot-frame" [class.is-ready]="imageOf(photo.id) === 'ready'">
-        @if (imageOf(photo.id) !== 'ready') {
+        @if (imageOf(photo.id) === 'failed') {
+          <div class="shot-failed" role="status">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>تعذّر تحميل الصورة — جرّب «مشاركة الرابط» لفتحها خارج التطبيق.</span>
+          </div>
+        } @else if (imageOf(photo.id) !== 'ready') {
           <div class="shot-skeleton" aria-hidden="true">
             <i class="fa-regular fa-image"></i>
           </div>
@@ -73,7 +78,9 @@
           alt="صورة تشكيلة الفريق"
           loading="lazy"
           [class.is-ready]="imageOf(photo.id) === 'ready'"
+          [class.is-failed]="imageOf(photo.id) === 'failed'"
           (load)="markLoaded(photo.id)"
+          (error)="markFailed(photo.id)"
         />
       </div>
       <div class="share-row">

@@ -198,6 +198,30 @@ describe('WhopictureComponent', () => {
     expect(c.imageOf(1)).toBe('ready');
   });
 
+  it('a dead hotlink shows an explicit fallback, never an eternal skeleton', () => {
+    const c = setup();
+    c.markFailed(1);
+    fixture.detectChanges();
+    const view = el();
+    expect(c.imageOf(1)).toBe('failed');
+    expect(view.querySelector('.shot-failed')?.textContent).toContain('تعذّر تحميل الصورة');
+    expect(view.querySelector('.shot-skeleton')).toBeNull();
+  });
+
+  it('the img error event itself drives the failed fallback', () => {
+    setup();
+    el().querySelector('img.shot')?.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(el().querySelector('.shot-failed')).toBeTruthy();
+  });
+
+  it('ready wins once shown — a later error does not regress a shown photo', () => {
+    const c = setup();
+    c.markLoaded(1);
+    c.markFailed(1);
+    expect(c.imageOf(1)).toBe('ready');
+  });
+
   it('award buttons carry the FULL team names, never أ/ب', () => {
     const c = setup();
     c.teamA.set('الصقور');

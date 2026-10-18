@@ -13,6 +13,7 @@ import {
   AuditStripComponent,
   attributionDeltas,
 } from '../shared/attribution/attribution.component';
+import { ScoreBooking } from '../shared/score-booking';
 
 // Risk (RULES.md / SPECV3 §3.5): a fixed 4-genre × 4-tier board (5/10/20/40).
 // One of the 16 cells is the hidden **double**: the device draws it uniformly at
@@ -95,7 +96,7 @@ export class RiskComponent {
   readonly audit = signal<AuditEntry[]>([]);
   readonly msg = signal('');
   readonly rerolling = signal<number | null>(null);
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   readonly tiers = RISK_TIERS;
   readonly cardLabels = RISK_CARDS;
@@ -226,8 +227,8 @@ export class RiskComponent {
     const to: AssignedTeam = from === ch.picked ? null : ch.picked;
     const points = this.pointsOf(key);
     const { deltaA, deltaB } = attributionDeltas(points, from, to);
-    this.applyScore('A', deltaA, label);
-    this.applyScore('B', deltaB, label);
+    this.booking.book('A', deltaA, label);
+    this.booking.book('B', deltaB, label);
     this.assignments.update((m) => {
       const next = { ...m };
       if (to) next[key] = to;
@@ -242,20 +243,11 @@ export class RiskComponent {
       const key = cellKey(pack.id, tier);
       const team = all[key] ?? null;
       delete all[key];
-      if (team) this.applyScore(team, -this.pointsOf(key), q.question);
+      if (team) this.booking.book(team, -this.pointsOf(key), q.question);
     });
     this.assignments.set(all);
   }
 
-  /** Applies a delta directly (scores may go negative); audits the actual amount
-   * so the strip always sums to the score. Cards never pass through here. */
-  private applyScore(team: 'A' | 'B', delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
-  }
 
   // ── double ─────────────────────────────────────────────────────────────
 

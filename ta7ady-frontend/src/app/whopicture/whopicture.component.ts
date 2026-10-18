@@ -6,6 +6,7 @@ import { API_BASE, WhoPicturePhoto } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { SettingsService } from '../shared/settings/settings.service';
+import { ScoreBooking } from '../shared/score-booking';
 
 // Who-in-Picture (SPECV4 §4.4): referee screen over one hotlinked team photo.
 // All 11 names stay visible from the start in ONE column; the shared
@@ -84,7 +85,7 @@ export class WhopictureComponent {
   readonly imageState = signal<Record<number, 'loading' | 'ready' | 'failed'>>({});
   readonly msg = signal('');
   readonly maxPhotos = WHO_MAX_PHOTOS;
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   private readonly res = httpResource<WhoPicturePhoto[]>(
     () => `${API_BASE}/whopicture?count=${this.count()}`,
@@ -157,16 +158,16 @@ export class WhopictureComponent {
     all[photo.id] = nextMap;
     this.assignments.set(all);
     const b = this.booked()[photo.id] ?? { A: 0, B: 0 };
-    const eA = this.applyScore('A', countAssigned(nextMap, 'A') - b.A, photo.players[i]);
-    const eB = this.applyScore('B', countAssigned(nextMap, 'B') - b.B, photo.players[i]);
+    const eA = this.booking.book('A', countAssigned(nextMap, 'A') - b.A, photo.players[i]);
+    const eB = this.booking.book('B', countAssigned(nextMap, 'B') - b.B, photo.players[i]);
     this.booked.update((bb) => ({ ...bb, [photo.id]: { A: b.A + eA, B: b.B + eB } }));
   }
 
   /** Reverse one photo's booked points and drop its assignments + strikes. */
   private reversePhoto(photo: WhoPicturePhoto): void {
     const b = this.booked()[photo.id] ?? { A: 0, B: 0 };
-    if (b.A !== 0) this.applyScore('A', -b.A, photo.players[0]);
-    if (b.B !== 0) this.applyScore('B', -b.B, photo.players[0]);
+    if (b.A !== 0) this.booking.book('A', -b.A, photo.players[0]);
+    if (b.B !== 0) this.booking.book('B', -b.B, photo.players[0]);
     const all = { ...this.assignments() };
     delete all[photo.id];
     this.assignments.set(all);
@@ -195,15 +196,6 @@ export class WhopictureComponent {
     this.idx.update((i) => Math.min(i, Math.max(0, rows.length - 1)));
   }
 
-  /** Applies delta directly (scores may go negative); audits the actual
-   * amount, so the strip always sums to the score. Returns the delta. */
-  private applyScore(team: 'A' | 'B', delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
-  }
 
   // Per-photo mistake tracker (display only): 4 named slots, 2 per team.
   // Stored per photo id, cleared when the photo leaves the run. Defaults

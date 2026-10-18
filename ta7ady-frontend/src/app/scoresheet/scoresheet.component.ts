@@ -5,6 +5,7 @@ import { httpResource } from '@angular/common/http';
 import { API_BASE, ScoresheetMatch } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
+import { ScoreBooking } from '../shared/score-booking';
 import { SettingsService } from '../shared/settings/settings.service';
 import {
   AssignedTeam,
@@ -70,7 +71,7 @@ export class ScoresheetComponent {
   readonly audit = signal<AuditEntry[]>([]);
   readonly strikes = signal<Record<number, StrikeSlot[]>>({});
   readonly msg = signal('');
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   private readonly res = httpResource<ScoresheetMatch[]>(
     () => `${API_BASE}/scoresheet?count=${this.count()}`,
@@ -133,16 +134,16 @@ export class ScoresheetComponent {
     const b = this.booked()[match.id] ?? { A: 0, B: 0 };
     const tA = countTeam(nextMap, 'A');
     const tB = countTeam(nextMap, 'B');
-    const eA = this.applyScore('A', tA - b.A, player);
-    const eB = this.applyScore('B', tB - b.B, player);
+    const eA = this.booking.book('A', tA - b.A, player);
+    const eB = this.booking.book('B', tB - b.B, player);
     this.booked.update((bb) => ({ ...bb, [match.id]: { A: b.A + eA, B: b.B + eB } }));
   }
 
   /** Reverse one match's booked points and drop its assignments. */
   private reverseMatch(match: ScoresheetMatch): void {
     const b = this.booked()[match.id] ?? { A: 0, B: 0 };
-    if (b.A !== 0) this.applyScore('A', -b.A, match.matchLabel);
-    if (b.B !== 0) this.applyScore('B', -b.B, match.matchLabel);
+    if (b.A !== 0) this.booking.book('A', -b.A, match.matchLabel);
+    if (b.B !== 0) this.booking.book('B', -b.B, match.matchLabel);
     const all = { ...this.assignments() };
     delete all[match.id];
     this.assignments.set(all);
@@ -168,16 +169,6 @@ export class ScoresheetComponent {
     this.matches.set(rows);
     for (const m of rows) this.slotsOf(m);
     this.idx.update((i) => Math.min(i, Math.max(0, rows.length - 1)));
-  }
-
-  /** Applies delta directly (scores may go negative); audits the actual
-   * amount, so the strip always sums to the score. Returns the delta. */
-  private applyScore(team: 'A' | 'B', delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
   }
 
   // Per-match mistake tracker (display only, referee enforces): 4 named slots

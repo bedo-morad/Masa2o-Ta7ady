@@ -1,49 +1,188 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { OffsideComponent } from './offside.component';
 import { OffsideRule } from '../api.service';
 
-describe('OffsideComponent', () => {
+describe('OffsideComponent asked marks (rendered screen)', () => {
   let fixture: ComponentFixture<OffsideComponent>;
+  let http: HttpTestingController;
   const rules: OffsideRule[] = [
-    { id: 1, ruleText: 'القاعدة الأولى' },
-    { id: 2, ruleText: 'القاعدة الثانية' },
+    { id: 11, ruleText: 'الأولى المعروضة' },
+    { id: 22, ruleText: 'الثانية المعروضة' },
+    { id: 33, ruleText: 'الثالثة المعروضة' },
   ];
-
+  const rows = () => Array.from(fixture.nativeElement.querySelectorAll('.ritem')) as HTMLElement[];
+  const marks = () =>
+    Array.from(fixture.nativeElement.querySelectorAll('.asked-mark')) as HTMLButtonElement[];
+  const click = (el: Element) => {
+    (el as HTMLButtonElement).click();
+    fixture.detectChanges();
+  };
+  async function setup(): Promise<void> {
+    fixture = TestBed.createComponent(OffsideComponent);
+    fixture.detectChanges();
+    http.expectOne((r) => r.urlWithParams.endsWith('/offside?count=10')).flush(rules);
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
   beforeEach(async () => {
+    TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [OffsideComponent],
-      providers: [provideHttpClient(), provideRouter([])],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
-    fixture = TestBed.createComponent(OffsideComponent);
-    fixture.componentInstance.rows.set(rules);
-    fixture.detectChanges();
+    http = TestBed.inject(HttpTestingController);
+  });
+  afterEach(() => http.verify());
+
+  it('renders ordered rules with every mark unmarked, wordless, named, and accessible', async () => {
+    await setup();
+    expect(rows().map((r) => r.querySelector('.rtext')?.textContent?.trim())).toEqual([
+      'الأولى المعروضة',
+      'الثانية المعروضة',
+      'الثالثة المعروضة',
+    ]);
+    expect(marks().map((b) => b.textContent?.trim())).toEqual(['1', '2', '3']);
+    expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'false']);
+    expect(marks().every((b) => b.type === 'button' && b.name.startsWith('asked-rule-'))).toBe(
+      true,
+    );
+    expect(marks()[0].getAttribute('aria-label')).toBe('تحديد القاعدة 1 على أنها طُرحت');
+    expect(fixture.nativeElement.querySelectorAll('.asked-mark[title]').length).toBe(0);
+    expect(fixture.nativeElement.textContent).not.toContain('تم السؤال');
+    expect(fixture.nativeElement.querySelectorAll('.asked-mark').length).toBe(3);
   });
 
-  const marks = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.asked-mark')) as HTMLButtonElement[];
+  it('supports mark, undo, repeated toggle, and independent visible controls without extra text', async () => {
+    await setup();
+    click(marks()[0]);
+    click(marks()[0]);
+    click(marks()[0]);
+    click(marks()[1]);
+    expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'true', 'false']);
+    click(marks()[1]);
+    expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
+  });
 
-  it('renders independent accessible marks and toggles them through the visible badge seam', () => {
-    expect(marks()).toHaveLength(2);
+  it('leaves rendered content, order, scoreboard, timer, score changes, and HTTP untouched by toggles', async () => {
+    await setup();
+    const content = rows().map((r) => r.querySelector('.rtext')?.textContent?.trim());
+    const board = fixture.nativeElement.querySelector('.scoreboard')?.innerHTML;
+    const timer = fixture.nativeElement.querySelector('.timer')?.innerHTML;
+    click(marks()[1]);
+    http.expectNone((r) => r.url.includes('/offside'));
+    expect(rows().map((r) => r.querySelector('.rtext')?.textContent?.trim())).toEqual(content);
+    expect(fixture.nativeElement.querySelector('.scoreboard')?.innerHTML).toBe(board);
+    expect(fixture.nativeElement.querySelector('.timer')?.innerHTML).toBe(timer);
+    click(fixture.nativeElement.querySelector('.team-b .plus')!);
+    expect(fixture.nativeElement.querySelector('.team-b .score')?.textContent?.trim()).toBe('1');
+    click(marks()[1]);
+    click(fixture.nativeElement.querySelector('.team-b .plus')!);
+    expect(fixture.nativeElement.querySelector('.team-b .score')?.textContent?.trim()).toBe('2');
+  });
+
+  it('clears marks after count change, new draw, and a fresh fixture', async () => {
+    await setup();
+    click(marks()[0]);
+    click(marks()[2]);
+    const select = fixture.nativeElement.querySelector('#of-count') as HTMLSelectElement;
+    select.selectedIndex = 0;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    fixture.detectChanges();
+    http.expectOne((r) => r.urlWithParams.endsWith('count=5')).flush(rules.slice(0, 2));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(marks().every((b) => b.getAttribute('aria-pressed') === 'false')).toBe(true);
+    click(marks()[0]);
+    click(fixture.nativeElement.querySelector('.redraw')!);
+    http.expectOne((r) => r.urlWithParams.endsWith('count=5')).flush(rules.slice(1));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(marks().every((b) => b.getAttribute('aria-pressed') === 'false')).toBe(true);
+    const fresh = TestBed.createComponent(OffsideComponent);
+    fresh.detectChanges();
+    http.expectOne((r) => r.urlWithParams.endsWith('count=10')).flush(rules);
+    await fresh.whenStable();
+    fresh.detectChanges();
+    expect(
+      (
+        Array.from(fresh.nativeElement.querySelectorAll('.asked-mark')) as HTMLButtonElement[]
+      ).every((b) => b.getAttribute('aria-pressed') === 'false'),
+    ).toBe(true);
+    fresh.destroy();
+  });
+
+  it('rerolls marked and unmarked rows using six candidates, skips displayed IDs, retains other marks, and clears returning rows', async () => {
+    await setup();
+    click(marks()[0]);
+    click(marks()[2]);
+    const rerolls = () =>
+      Array.from(fixture.nativeElement.querySelectorAll('.reroll')) as HTMLButtonElement[];
+    click(rerolls()[1]);
+    http
+      .expectOne((r) => r.urlWithParams.endsWith('count=6'))
+      .flush([
+        rules[0],
+        rules[1],
+        { id: 44, ruleText: 'بديل غير معروض' },
+        { id: 55, ruleText: 'مرشح' },
+        { id: 66, ruleText: 'مرشح' },
+        { id: 77, ruleText: 'مرشح' },
+      ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(rows().map((r) => r.querySelector('.rtext')?.textContent?.trim())).toEqual([
+      'الأولى المعروضة',
+      'بديل غير معروض',
+      'الثالثة المعروضة',
+    ]);
+    expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'true']);
+    click(rerolls()[0]);
+    http
+      .expectOne((r) => r.urlWithParams.endsWith('count=6'))
+      .flush([
+        rules[0],
+        { id: 88, ruleText: 'بديل ثان' },
+        { id: 89, ruleText: 'مرشح' },
+        { id: 90, ruleText: 'مرشح' },
+        { id: 91, ruleText: 'مرشح' },
+        { id: 92, ruleText: 'مرشح' },
+      ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true']);
+    click(rerolls()[0]);
+    http
+      .expectOne((r) => r.urlWithParams.endsWith('count=6'))
+      .flush([
+        rules[0],
+        { id: 93, ruleText: 'عودة' },
+        { id: 94, ruleText: 'مرشح' },
+        { id: 95, ruleText: 'مرشح' },
+        { id: 96, ruleText: 'مرشح' },
+        { id: 97, ruleText: 'مرشح' },
+      ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
     expect(marks()[0].getAttribute('aria-pressed')).toBe('false');
-    expect(marks()[0].getAttribute('aria-label')).toContain('قاعدة');
-    marks()[0].click();
+  });
+
+  it('preserves marks after empty and failed rerolls', async () => {
+    await setup();
+    click(marks()[0]);
+    click(fixture.nativeElement.querySelector('.reroll')!);
+    http.expectOne((r) => r.urlWithParams.endsWith('count=6')).flush([]);
+    await fixture.whenStable();
     fixture.detectChanges();
     expect(marks()[0].getAttribute('aria-pressed')).toBe('true');
-    expect(marks()[1].getAttribute('aria-pressed')).toBe('false');
-    marks()[0].click();
+    click(fixture.nativeElement.querySelector('.reroll')!);
+    http
+      .expectOne((r) => r.urlWithParams.endsWith('count=6'))
+      .flush('fail', { status: 500, statusText: 'failed' });
+    await fixture.whenStable();
     fixture.detectChanges();
-    expect(marks()[0].getAttribute('aria-pressed')).toBe('false');
-    expect(fixture.nativeElement.querySelectorAll('.asked-mark').length).toBe(2);
-    expect(fixture.nativeElement.textContent).toContain('القاعدة الأولى');
-    expect(fixture.nativeElement.textContent).toContain('القاعدة الثانية');
-  });
-
-  it('starts a fresh page with no marks and shows no added visible control text', () => {
-    const fresh = TestBed.createComponent(OffsideComponent);
-    fresh.componentInstance.rows.set(rules);
-    fresh.detectChanges();
-    expect((Array.from((fresh.nativeElement as HTMLElement).querySelectorAll('.asked-mark')) as HTMLButtonElement[]).every((b) => b.getAttribute('aria-pressed') === 'false')).toBe(true);
-    expect(fresh.nativeElement.textContent).not.toContain('تم السؤال');
+    expect(marks()[0].getAttribute('aria-pressed')).toBe('true');
   });
 });

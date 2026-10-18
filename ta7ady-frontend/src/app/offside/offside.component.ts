@@ -49,8 +49,10 @@ export class OffsideComponent {
     this.res.reload();
   }
 
-  countChanged(value: number): void {
-    this.count.set(value);
+  countChanged(value: number | string): void {
+    const next = Number(value);
+    if (!Number.isFinite(next)) return;
+    this.count.set(next);
     this.asked.set(new Set());
   }
 

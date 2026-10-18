@@ -12,7 +12,13 @@
 
   <div class="draw-row">
     <label for="ih-count">عدد الأسئلة</label>
-    <select id="ih-count" [ngModel]="count()" (ngModelChange)="countChanged($event)">
+    <select
+      id="ih-count"
+      [ngModel]="count()"
+      (change)="
+        countChanged($any($event.target).options[$any($event.target).selectedIndex].textContent)
+      "
+    >
       <option [ngValue]="5">5</option>
       <option [ngValue]="10">10</option>
       <option [ngValue]="15">15</option>
@@ -31,7 +37,16 @@
     @for (q of rows(); track q.id; let i = $index) {
       <li class="qitem">
         <div class="qtext">
-          <button type="button" class="qnum asked-mark tabular-nums" (click)="toggleAsked(i)" [attr.aria-pressed]="asked().has(i)" [attr.aria-label]="'تمييز السؤال ' + (i + 1) + ' كسؤال مسـؤول عنه'" title="تمييز السؤال">{{ i + 1 }}</button>
+          <button
+            type="button"
+            class="qnum asked-mark tabular-nums"
+            [attr.name]="'asked-question-' + (i + 1)"
+            (click)="toggleAsked(i)"
+            [attr.aria-pressed]="asked().has(i)"
+            [attr.aria-label]="'تحديد السؤال ' + (i + 1) + ' على أنه طُرح'"
+          >
+            {{ i + 1 }}
+          </button>
           <span class="qbody">{{ q.questionText }}</span>
           <a
             class="gq"
@@ -39,7 +54,6 @@
             target="_blank"
             rel="noopener"
             aria-label="بحث عن السؤال"
-            title="بحث"
           >
             <i class="fa-brands fa-google"></i>
           </a>
@@ -63,7 +77,6 @@
             (click)="rerollOne(i)"
             [disabled]="rerolling() !== null"
             aria-label="تبديل هذا السؤال"
-            title="تبديل"
           >
             <i class="fa-solid fa-dice"></i>
           </button>

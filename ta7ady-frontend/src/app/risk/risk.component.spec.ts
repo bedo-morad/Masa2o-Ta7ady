@@ -242,6 +242,22 @@ describe('RiskComponent', () => {
     expect(c.doubleFound()).toBe(false);
   });
 
+  it('closes an open replaced column but preserves an open surviving column', async () => {
+    const c = setup();
+    const api = TestBed.inject(ApiService);
+    const replaced = cellKey(1, 0);
+    c.toggleCell(replaced);
+    vi.spyOn(api, 'riskRandom').mockReturnValue(of([pack(99)]));
+    await c.rerollColumn(0);
+    expect(c.open()).toBeNull();
+
+    const surviving = cellKey(2, 0);
+    c.toggleCell(surviving);
+    vi.spyOn(api, 'riskRandom').mockReturnValue(of([pack(100)]));
+    await c.rerollColumn(0);
+    expect(c.open()).toBe(surviving);
+  });
+
   it('new board reverses the outgoing board and re-hides a fresh double', () => {
     const c = setup();
     const key = cellKey(1, 1); // tier 1 = 10

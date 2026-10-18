@@ -59,6 +59,9 @@ class Top10SingleAddWebTest {
         ObjectNode missingPrompt = top10("Top scorers ever", answers13());
         missingPrompt.remove("prompt");
         postJson(missingPrompt).andExpect(status().isBadRequest());
+        ObjectNode missingAnswers = top10("Top scorers ever", answers13());
+        missingAnswers.remove("answers");
+        postJson(missingAnswers).andExpect(status().isBadRequest());
         postJson(top10("Top scorers ever", mapper.getNodeFactory().textNode("not a list")))
                 .andExpect(status().isBadRequest());
         postJson(top10("Top scorers ever", null)).andExpect(status().isBadRequest());

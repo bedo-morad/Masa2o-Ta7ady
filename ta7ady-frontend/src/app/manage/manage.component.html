@@ -84,21 +84,21 @@
   </div>
 
   @if (pool() === 'players') {
-    <form class="add" (ngSubmit)="addPlayer()">
-      <input [(ngModel)]="newPlayer" name="np" placeholder="اسم لاعب جديد (3 أحرف على الأقل)" />
+    <form class="add" (ngSubmit)="playersEditor.add()">
+      <input [(ngModel)]="basicDrafts.addText" name="np" placeholder="اسم لاعب جديد (3 أحرف على الأقل)" />
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
     </form>
   }
   @if (pool() === 'ihbid') {
-    <form class="add column" (ngSubmit)="addIhbid()">
-      <input [(ngModel)]="newQuestion" name="nq" placeholder="السؤال" />
-      <input [(ngModel)]="newAnswer" name="na" placeholder="الجواب (رقم أو تاريخ)" />
+    <form class="add column" (ngSubmit)="ihbidEditor.add()">
+      <input [(ngModel)]="basicDrafts.addQuestion" name="nq" placeholder="السؤال" />
+      <input [(ngModel)]="basicDrafts.addAnswer" name="na" placeholder="الجواب (رقم أو تاريخ)" />
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة سؤال</button>
     </form>
   }
   @if (pool() === 'offside') {
-    <form class="add" (ngSubmit)="addOffside()">
-      <input [(ngModel)]="newRule" name="nr" placeholder="قاعدة جديدة — مثال: لاعب إيطالي" />
+    <form class="add" (ngSubmit)="offsideEditor.add()">
+      <input [(ngModel)]="basicDrafts.addText" name="nr" placeholder="قاعدة جديدة — مثال: لاعب إيطالي" />
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
     </form>
   }
@@ -179,9 +179,9 @@
     </form>
   }
   @if (pool() === 'bank') {
-    <form class="add column" (ngSubmit)="addBank()">
-      <input [(ngModel)]="newQuestion" name="nbq" placeholder="السؤال" />
-      <input [(ngModel)]="newAnswer" name="nba" placeholder="الجواب (قصير)" />
+    <form class="add column" (ngSubmit)="bankEditor.add()">
+      <input [(ngModel)]="basicDrafts.addQuestion" name="nbq" placeholder="السؤال" />
+      <input [(ngModel)]="basicDrafts.addAnswer" name="nba" placeholder="الجواب (قصير)" />
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة سؤال</button>
     </form>
   }
@@ -269,9 +269,9 @@
       @for (p of playerRows(); track p.id) {
         <li>
           @if (adminOn() && editingId() === p.id) {
-            <form class="edit" (ngSubmit)="saveEditPlayer(p.id)">
+            <form class="edit" (ngSubmit)="playersEditor.save(p.id)">
               <input
-                [(ngModel)]="editText"
+                [(ngModel)]="basicDrafts.editText"
                 name="editPlayer"
                 placeholder="اسم اللاعب"
                 aria-label="تعديل اسم اللاعب"
@@ -285,7 +285,7 @@
             <span>{{ p.playerName }}</span>
             @if (adminOn()) {
               <div class="row-actions">
-                <button type="button" class="edit-btn" (click)="startEditPlayer(p)" aria-label="تعديل" title="تعديل">
+                <button type="button" class="edit-btn" (click)="playersEditor.start(p)" aria-label="تعديل" title="تعديل">
                   <i class="fa-solid fa-pen"></i>
                 </button>
                 <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
@@ -301,9 +301,9 @@
       @for (q of ihbidRows(); track q.id) {
         <li class="wide ihbid-row">
           @if (adminOn() && editingId() === q.id) {
-            <form class="edit column" (ngSubmit)="saveEditIhbid(q.id)">
-              <input [(ngModel)]="editQ" name="editIhbidQ" placeholder="السؤال" aria-label="تعديل السؤال" />
-              <input [(ngModel)]="editA" name="editIhbidA" placeholder="الجواب (رقم أو تاريخ)" aria-label="تعديل الجواب" />
+            <form class="edit column" (ngSubmit)="ihbidEditor.save(q.id)">
+              <input [(ngModel)]="basicDrafts.editQuestion" name="editIhbidQ" placeholder="السؤال" aria-label="تعديل السؤال" />
+              <input [(ngModel)]="basicDrafts.editAnswer" name="editIhbidA" placeholder="الجواب (رقم أو تاريخ)" aria-label="تعديل الجواب" />
               <div class="edit-actions">
                 <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
                 <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
@@ -316,7 +316,7 @@
             </span>
             @if (adminOn()) {
               <div class="row-actions">
-                <button type="button" class="edit-btn" (click)="startEditIhbid(q)" aria-label="تعديل" title="تعديل">
+                <button type="button" class="edit-btn" (click)="ihbidEditor.start(q)" aria-label="تعديل" title="تعديل">
                   <i class="fa-solid fa-pen"></i>
                 </button>
                 <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
@@ -332,9 +332,9 @@
       @for (r of offsideRows(); track r.id) {
         <li>
           @if (adminOn() && editingId() === r.id) {
-            <form class="edit" (ngSubmit)="saveEditOffside(r.id)">
+            <form class="edit" (ngSubmit)="offsideEditor.save(r.id)">
               <input
-                [(ngModel)]="editText"
+                [(ngModel)]="basicDrafts.editText"
                 name="editRule"
                 placeholder="القاعدة"
                 aria-label="تعديل القاعدة"
@@ -348,7 +348,7 @@
             <span>{{ r.ruleText }}</span>
             @if (adminOn()) {
               <div class="row-actions">
-                <button type="button" class="edit-btn" (click)="startEditOffside(r)" aria-label="تعديل" title="تعديل">
+                <button type="button" class="edit-btn" (click)="offsideEditor.start(r)" aria-label="تعديل" title="تعديل">
                   <i class="fa-solid fa-pen"></i>
                 </button>
                 <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
@@ -544,9 +544,9 @@
       @for (b of bankRows(); track b.id) {
         <li class="wide bank-row">
           @if (adminOn() && editingId() === b.id) {
-            <form class="edit column" (ngSubmit)="saveEditBank(b.id)">
-              <input [(ngModel)]="editQ" name="editBankQ" placeholder="السؤال" aria-label="تعديل السؤال" />
-              <input [(ngModel)]="editA" name="editBankA" placeholder="الجواب" aria-label="تعديل الجواب" />
+            <form class="edit column" (ngSubmit)="bankEditor.save(b.id)">
+              <input [(ngModel)]="basicDrafts.editQuestion" name="editBankQ" placeholder="السؤال" aria-label="تعديل السؤال" />
+              <input [(ngModel)]="basicDrafts.editAnswer" name="editBankA" placeholder="الجواب" aria-label="تعديل الجواب" />
               <div class="edit-actions">
                 <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
                 <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
@@ -559,7 +559,7 @@
             </span>
             @if (adminOn()) {
               <div class="row-actions">
-                <button type="button" class="edit-btn" (click)="startEditBank(b)" aria-label="تعديل" title="تعديل">
+                <button type="button" class="edit-btn" (click)="bankEditor.start(b)" aria-label="تعديل" title="تعديل">
                   <i class="fa-solid fa-pen"></i>
                 </button>
                 <button type="button" class="del" (click)="removeBank(b.id)" aria-label="حذف">

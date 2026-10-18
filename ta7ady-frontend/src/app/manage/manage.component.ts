@@ -7,6 +7,13 @@ import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, AnameenSubject, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
 import { ManageCatalog, ManageEditorHost } from './manage-catalog';
+import {
+  BankEditor,
+  IhbidEditor,
+  makeSharedBasicDrafts,
+  OffsideEditor,
+  PlayersEditor,
+} from './pool-editors';
 
 export const TOP10_SIZE = 13;
 export const LINEUP_SIZE = 11;
@@ -29,6 +36,7 @@ function blankRisk(): RiskQuestion[] {
 export class ManageComponent {
   readonly api = inject(ApiService);
   readonly catalog = new ManageCatalog(this.api);
+  readonly basicDrafts = makeSharedBasicDrafts();
   private readonly modal = inject(NgbModal);
   private readonly toast = inject(HotToastService);
 
@@ -40,10 +48,10 @@ export class ManageComponent {
   readonly adminError = signal('');
   readonly adminOn = computed(() => this.api.adminPassword() !== null);
 
-  readonly newPlayer = signal('');
-  readonly newQuestion = signal('');
-  readonly newAnswer = signal('');
-  readonly newRule = signal('');
+  readonly newPlayer = this.basicDrafts.addText;
+  readonly newQuestion = this.basicDrafts.addQuestion;
+  readonly newAnswer = this.basicDrafts.addAnswer;
+  readonly newRule = this.basicDrafts.addText;
   readonly newTop10Prompt = signal('');
   readonly top10Answers = signal<string[]>(Array(TOP10_SIZE).fill(''));
   readonly newMatch = signal('');
@@ -71,9 +79,9 @@ export class ManageComponent {
 
   // Inline edit (SPECV3 §3.1): one row open at a time, admin-unlocked only.
   readonly editingId = signal<number | null>(null);
-  readonly editText = signal('');
-  readonly editQ = signal('');
-  readonly editA = signal('');
+  readonly editText = this.basicDrafts.editText;
+  readonly editQ = this.basicDrafts.editQuestion;
+  readonly editA = this.basicDrafts.editAnswer;
   readonly editPrompt = signal('');
   readonly editAnswers = signal<string[]>(Array(TOP10_SIZE).fill(''));
   readonly editMatch = signal('');
@@ -131,7 +139,30 @@ export class ManageComponent {
       if (intent === 'success') this.toast.success(message);
       else this.toast.error(message);
     },
+    clearFeedback: () => this.msg.set(''),
+    refreshAfterAdd: () => {
+      if (this.page() === 0) this.reloadActive();
+      else this.page.set(0);
+    },
+    reportMutationFailure: (error, fallback) => {
+      const reason = this.apiMsg(error) ?? fallback;
+      this.editorHost.reportFeedback(reason, 'error');
+    },
+    reportEditFailure: (error, fallback) => {
+      if (this.denyIf401(error)) return;
+      const reason = this.apiMsg(error) ?? fallback;
+      this.editorHost.reportFeedback(reason, 'error');
+    },
+    completeEdit: (message) => {
+      this.editorHost.cancelEdit();
+      this.editorHost.refreshAfterMutation();
+      this.editorHost.reportFeedback(message, 'success');
+    },
   };
+  readonly playersEditor = new PlayersEditor(this.api, this.editorHost, this.basicDrafts);
+  readonly ihbidEditor = new IhbidEditor(this.api, this.editorHost, this.basicDrafts);
+  readonly offsideEditor = new OffsideEditor(this.api, this.editorHost, this.basicDrafts);
+  readonly bankEditor = new BankEditor(this.api, this.editorHost, this.basicDrafts);
   select(p: Pool): void {
     this.catalog.select(p);
     this.msg.set('');
@@ -230,22 +261,15 @@ export class ManageComponent {
   // ---- inline edit (admin-unlocked, SPECV3 §3.1) ----
 
   startEditPlayer(p: { id: number; playerName: string }): void {
-    this.editText.set(p.playerName);
-    this.expandedId.set(null);
-    this.editingId.set(p.id);
+    this.playersEditor.start(p);
   }
 
   startEditIhbid(q: { id: number; questionText: string; answerText: string }): void {
-    this.editQ.set(q.questionText);
-    this.editA.set(q.answerText);
-    this.expandedId.set(null);
-    this.editingId.set(q.id);
+    this.ihbidEditor.start(q);
   }
 
   startEditOffside(r: { id: number; ruleText: string }): void {
-    this.editText.set(r.ruleText);
-    this.expandedId.set(null);
-    this.editingId.set(r.id);
+    this.offsideEditor.start(r);
   }
 
   startEditTop10(t: { id: number; prompt: string; answers: string[] }): void {
@@ -273,10 +297,7 @@ export class ManageComponent {
   }
 
   startEditBank(b: { id: number; question: string; answer: string }): void {
-    this.editQ.set(b.question);
-    this.editA.set(b.answer);
-    this.expandedId.set(null);
-    this.editingId.set(b.id);
+    this.bankEditor.start(b);
   }
 
   startEditRisk(p: { id: number; genre: string; questions: RiskQuestion[] }): void {
@@ -331,33 +352,15 @@ export class ManageComponent {
   }
 
   async saveEditPlayer(id: number): Promise<void> {
-    await this.applyEdit(
-      'players',
-      id,
-      { playerName: this.editText() },
-      'تم حفظ تعديل اسم اللاعب.',
-      'خطأ — الاسم قصير أو مكرر.',
-    );
+    return this.playersEditor.save(id);
   }
 
   async saveEditIhbid(id: number): Promise<void> {
-    await this.applyEdit(
-      'ihbid',
-      id,
-      { questionText: this.editQ(), answerText: this.editA() },
-      'تم حفظ تعديل السؤال.',
-      'خطأ — تأكد من طول السؤال والجواب.',
-    );
+    return this.ihbidEditor.save(id);
   }
 
   async saveEditOffside(id: number): Promise<void> {
-    await this.applyEdit(
-      'offside',
-      id,
-      { ruleText: this.editText() },
-      'تم حفظ تعديل القاعدة.',
-      'خطأ — القاعدة قصيرة.',
-    );
+    return this.offsideEditor.save(id);
   }
 
   async saveEditTop10(id: number): Promise<void> {
@@ -410,13 +413,7 @@ export class ManageComponent {
   }
 
   async saveEditBank(id: number): Promise<void> {
-    await this.applyEdit(
-      'bank',
-      id,
-      { question: this.editQ(), answer: this.editA() },
-      'تم حفظ تعديل السؤال.',
-      'خطأ — تأكد من طول السؤال والجواب.',
-    );
+    return this.bankEditor.save(id);
   }
 
   async saveEditRisk(id: number): Promise<void> {
@@ -486,52 +483,15 @@ export class ManageComponent {
   }
 
   async addPlayer(): Promise<void> {
-    this.msg.set('');
-    try {
-      await firstValueFrom(this.api.addPlayer(this.newPlayer()));
-      this.newPlayer.set('');
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      this.msg.set('تمت الإضافة إلى أسماء اللاعبين.');
-      this.toast.success('تمت الإضافة إلى أسماء اللاعبين.');
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — الاسم قصير أو مكرر.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
+    return this.playersEditor.add();
   }
 
   async addIhbid(): Promise<void> {
-    this.msg.set('');
-    try {
-      await firstValueFrom(this.api.addIhbid(this.newQuestion(), this.newAnswer()));
-      this.newQuestion.set('');
-      this.newAnswer.set('');
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      this.msg.set('تمت إضافة السؤال.');
-      this.toast.success('تمت إضافة السؤال.');
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — تأكد من طول السؤال والجواب.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
+    return this.ihbidEditor.add();
   }
 
   async addOffside(): Promise<void> {
-    this.msg.set('');
-    try {
-      await firstValueFrom(this.api.addOffside(this.newRule()));
-      this.newRule.set('');
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      this.msg.set('تمت إضافة القاعدة.');
-      this.toast.success('تمت إضافة القاعدة.');
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — القاعدة قصيرة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
+    return this.offsideEditor.add();
   }
 
   async addTop10(): Promise<void> {
@@ -595,20 +555,7 @@ export class ManageComponent {
   }
 
   async addBank(): Promise<void> {
-    this.msg.set('');
-    try {
-      await firstValueFrom(this.api.addBank(this.newQuestion(), this.newAnswer()));
-      this.newQuestion.set('');
-      this.newAnswer.set('');
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      this.msg.set('تمت إضافة سؤال البنك.');
-      this.toast.success('تمت إضافة سؤال البنك.');
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — تأكد من طول السؤال والجواب.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
+    return this.bankEditor.add();
   }
 
   async addRisk(): Promise<void> {

@@ -99,6 +99,11 @@
     <app-whopicture-editor [editor]="whopictureEditor" />
   }
 
+  @if (pool() === 'players') { <app-players-renderer [editor]="playersEditor" mode="add" /> }
+  @if (pool() === 'ihbid') { <app-ihbid-renderer [editor]="ihbidEditor" mode="add" /> }
+  @if (pool() === 'offside') { <app-offside-renderer [editor]="offsideEditor" mode="add" /> }
+  @if (pool() === 'bank') { <app-bank-renderer [editor]="bankEditor" mode="add" /> }
+
   <app-import-panel [pool]="pool()" (imported)="onImported()" />
 
   @if (msg()) {
@@ -109,13 +114,13 @@
 
   <ul class="rows">
     @if (pool() === 'players') {
-      <app-players-renderer [editor]="playersEditor" [rows]="playerRows()" [ctx]="editorContext" [remove]="removePlayer.bind(this)" />
+      <app-players-renderer [editor]="playersEditor" [rows]="playerRows()" [ctx]="editorContext" [remove]="removePlayer.bind(this)" mode="rows" />
     }
     @if (pool() === 'ihbid') {
-      <app-ihbid-renderer [editor]="ihbidEditor" [rows]="ihbidRows()" [ctx]="editorContext" [remove]="removeIhbid.bind(this)" />
+      <app-ihbid-renderer [editor]="ihbidEditor" [rows]="ihbidRows()" [ctx]="editorContext" [remove]="removeIhbid.bind(this)" mode="rows" />
     }
     @if (pool() === 'offside') {
-      <app-offside-renderer [editor]="offsideEditor" [rows]="offsideRows()" [ctx]="editorContext" [remove]="removeOffside.bind(this)" />
+      <app-offside-renderer [editor]="offsideEditor" [rows]="offsideRows()" [ctx]="editorContext" [remove]="removeOffside.bind(this)" mode="rows" />
     }
     @if (pool() === 'top10') {
       @for (t of top10Rows(); track t.id) {
@@ -212,47 +217,13 @@
       }
     }
     @if (pool() === 'bank') {
-      <app-bank-renderer [editor]="bankEditor" [rows]="bankRows()" [ctx]="editorContext" [remove]="removeBank.bind(this)" />
+      <app-bank-renderer [editor]="bankEditor" [rows]="bankRows()" [ctx]="editorContext" [remove]="removeBank.bind(this)" mode="rows" />
     }
     @if (pool() === 'risk') {
       @for (p of riskRows(); track p.id) {
         <li class="wide managed-row" [class.open]="isOpen(p.id)">
           @if (adminOn() && editingId() === p.id) {
-            <form class="edit column" (ngSubmit)="saveEditRisk(p.id)">
-              <input
-                [(ngModel)]="editGenre"
-                name="editGenre"
-                placeholder="النوع"
-                aria-label="تعديل نوع الحزمة"
-              />
-              <ol class="tiers">
-                @for (tier of riskTiers; track tier; let i = $index) {
-                  <li>
-                    <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
-                    <div class="tier-fields">
-                      <input
-                        [ngModel]="editRisk()[i].question"
-                        (ngModelChange)="setEditRisk(i, 'question', $event)"
-                        [name]="'erq' + tier"
-                        placeholder="السؤال"
-                        [attr.aria-label]="'تعديل سؤال فئة ' + tier"
-                      />
-                      <input
-                        [ngModel]="editRisk()[i].answer"
-                        (ngModelChange)="setEditRisk(i, 'answer', $event)"
-                        [name]="'era' + tier"
-                        placeholder="الجواب"
-                        [attr.aria-label]="'تعديل جواب فئة ' + tier"
-                      />
-                    </div>
-                  </li>
-                }
-              </ol>
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
+            <app-risk-pack-editor [model]="riskEditor" [pack]="p" [editing]="true" />
           } @else {
             <div class="row-head">
               <button

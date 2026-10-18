@@ -4,7 +4,8 @@ import { ApiService, Pool } from '../api.service';
 import { ManageEditorHost } from './manage-catalog';
 
 export interface SharedBasicDrafts {
-  readonly addText: WritableSignal<string>;
+  readonly addPlayer: WritableSignal<string>;
+  readonly addRule: WritableSignal<string>;
   readonly addQuestion: WritableSignal<string>;
   readonly addAnswer: WritableSignal<string>;
   readonly editText: WritableSignal<string>;
@@ -14,7 +15,8 @@ export interface SharedBasicDrafts {
 
 export function makeSharedBasicDrafts(): SharedBasicDrafts {
   return {
-    addText: signal(''),
+    addPlayer: signal(''),
+    addRule: signal(''),
     addQuestion: signal(''),
     addAnswer: signal(''),
     editText: signal(''),
@@ -51,8 +53,8 @@ export class PlayersEditor {
   async add(): Promise<void> {
     this.host.clearFeedback();
     try {
-      await firstValueFrom(this.api.addPlayer(this.drafts.addText()));
-      this.drafts.addText.set('');
+      await firstValueFrom(this.api.addPlayer(this.drafts.addPlayer()));
+      this.drafts.addPlayer.set('');
       this.host.refreshAfterAdd();
       this.host.reportFeedback('تمت الإضافة إلى أسماء اللاعبين.', 'success');
     } catch (e: unknown) {
@@ -85,8 +87,8 @@ export class OffsideEditor {
   async add(): Promise<void> {
     this.host.clearFeedback();
     try {
-      await firstValueFrom(this.api.addOffside(this.drafts.addText()));
-      this.drafts.addText.set('');
+      await firstValueFrom(this.api.addOffside(this.drafts.addRule()));
+      this.drafts.addRule.set('');
       this.host.refreshAfterAdd();
       this.host.reportFeedback('تمت إضافة القاعدة.', 'success');
     } catch (e: unknown) {

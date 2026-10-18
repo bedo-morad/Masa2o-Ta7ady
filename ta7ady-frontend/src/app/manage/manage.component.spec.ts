@@ -417,22 +417,22 @@ describe('ManageComponent add forms', () => {
   });
   it('renders migrated Pools through explicit renderers and preserves the shared text draft across tabs', async () => {
     const { fixture, httpMock } = await setupForms(); const c = fixture.componentInstance;
-    c.basicDrafts.addText.set('مسودة مشتركة'); c.select('offside'); fixture.detectChanges(); flushPool(httpMock, 'offside'); fixture.detectChanges();
+    c.basicDrafts.addPlayer.set('مسودة مشتركة'); c.select('offside'); fixture.detectChanges(); flushPool(httpMock, 'offside'); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-offside-renderer')).not.toBeNull();
-    expect(c.basicDrafts.addText()).toBe('مسودة مشتركة');
+    expect(c.basicDrafts.addPlayer()).toBe('مسودة مشتركة');
     c.select('players'); fixture.detectChanges(); flushPool(httpMock, 'players'); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-players-renderer')).not.toBeNull();
-    expect(c.basicDrafts.addText()).toBe('مسودة مشتركة');
+    expect(c.basicDrafts.addPlayer()).toBe('مسودة مشتركة');
   });
   it('keeps an add draft and reports the backend message when a Pool add fails', async () => {
     const { fixture, apiStub, httpMock } = await setupForms(); const c = fixture.componentInstance;
     apiStub.addPlayer.mockReturnValueOnce(throwError(() => ({ error: { message: 'اسم مكرر' } })));
-    c.basicDrafts.addText.set('اسم مكرر'); await c.playersEditor.add();
-    expect(c.basicDrafts.addText()).toBe('اسم مكرر'); expect(c.msg()).toBe('اسم مكرر'); httpMock.verify();
+    c.basicDrafts.addPlayer.set('اسم مكرر'); await c.playersEditor.add();
+    expect(c.basicDrafts.addPlayer()).toBe('اسم مكرر'); expect(c.msg()).toBe('اسم مكرر'); httpMock.verify();
   });
   it('cancels an admin inline edit at the rendered Manage form seam without a mutation', async () => {
     const { fixture, apiStub, httpMock } = await setupForms(); const c = fixture.componentInstance;
-    c.api.unlock('pw'); c.startEditPlayer({ id: 1, playerName: 'لاعب' });
+    c.api.unlock('pw'); c.playersEditor.start({ id: 1, playerName: 'لاعب' });
     expect(c.editingId()).toBe(1); c.cancelEdit();
     expect(c.editingId()).toBeNull(); httpMock.verify();
   });
@@ -706,19 +706,19 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
     const c = fixture.componentInstance;
     const el = fixture.nativeElement as HTMLElement;
 
-    c.startEditPlayer({ id: 1, playerName: 'لاعب أول' });
+    c.playersEditor.start({ id: 1, playerName: 'لاعب أول' });
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
     expect(c.editingId()).toBe(1);
-    expect(c.editText()).toBe('لاعب أول');
+    expect(c.basicDrafts.editText()).toBe('لاعب أول');
     const box = el.querySelector('.edit > input') as HTMLInputElement;
     expect(box.value).toBe('لاعب أول');
     // Only the editing row swaps to a form; the other row keeps its edit button.
     expect(el.querySelectorAll('.edit').length).toBe(1);
 
-    c.editText.set('لاعب معدّل');
-    await c.saveEditPlayer(1);
+    c.basicDrafts.editText.set('لاعب معدّل');
+    await c.playersEditor.save(1);
     expect(apiStub.update).toHaveBeenCalledWith('players', 1, { playerName: 'لاعب معدّل' });
     expect(c.editingId()).toBeNull();
     expect(c.msg()).toContain('تم حفظ');
@@ -731,9 +731,9 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
     apiStub.update.mockReturnValueOnce(
       throwError(() => ({ error: { message: 'اسم اللاعب مستخدم بالفعل' } })),
     );
-    c.startEditPlayer({ id: 1, playerName: 'لاعب أول' });
-    c.editText.set('لاعب ثانٍ');
-    await c.saveEditPlayer(1);
+    c.playersEditor.start({ id: 1, playerName: 'لاعب أول' });
+    c.basicDrafts.editText.set('لاعب ثانٍ');
+    await c.playersEditor.save(1);
     expect(apiStub.update).toHaveBeenCalledWith('players', 1, { playerName: 'لاعب ثانٍ' });
     expect(c.msg()).toBe('اسم اللاعب مستخدم بالفعل');
     expect(toast.error).toHaveBeenCalledWith('اسم اللاعب مستخدم بالفعل');
@@ -745,7 +745,7 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
   it('cancel closes the inline form without calling the backend', async () => {
     const { fixture, apiStub, httpMock } = await setupEdit();
     const c = fixture.componentInstance;
-    c.startEditPlayer({ id: 1, playerName: 'لاعب أول' });
+    c.playersEditor.start({ id: 1, playerName: 'لاعب أول' });
     c.cancelEdit();
     fixture.detectChanges();
     expect(c.editingId()).toBeNull();
@@ -798,9 +798,9 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
     const { fixture, apiStub, httpMock } = await setupEdit();
     const c = fixture.componentInstance;
 
-    c.newQuestion.set('سؤال البنك');
-    c.newAnswer.set('الجواب');
-    await c.addBank();
+    c.basicDrafts.addQuestion.set('سؤال البنك');
+    c.basicDrafts.addAnswer.set('الجواب');
+    await c.bankEditor.add();
     expect(apiStub.addBank).toHaveBeenCalledWith('سؤال البنك', 'الجواب');
     await drainList(httpMock);
 
@@ -1117,7 +1117,7 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/whopicture/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.startEditWhopicture({ id: 11, title: TITLE, photoUrl: 'https://example.com/p.jpg', players: names11 });
+    c.whopictureEditor.startEdit({ id: 11, title: TITLE, photoUrl: 'https://example.com/p.jpg', players: names11 });
     c.whopictureEditor.editPhotoTitle.set('');
     await c.whopictureEditor.save(11);
     expect(apiStub.update).not.toHaveBeenCalled();

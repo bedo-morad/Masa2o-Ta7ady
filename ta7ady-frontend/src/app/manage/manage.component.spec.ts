@@ -243,6 +243,28 @@ describe('ManageComponent catalog lifecycle', () => {
     }
   });
 
+  it('reads and reloads only the selected pool for every Pool', async () => {
+    const { fixture, httpMock } = await setupCatalog();
+    const c = fixture.componentInstance;
+
+    for (const pool of pools.slice(1)) {
+      c.select(pool);
+      fixture.detectChanges();
+      const read = httpMock.expectOne((r) => r.url.includes(`/${pool}/all`));
+      read.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+      await fixture.whenStable();
+
+      c.catalog.reloadActive();
+      fixture.detectChanges();
+      const reload = httpMock.expectOne((r) => r.url.includes(`/${pool}/all`));
+      expect(reload.request.urlWithParams).toContain('page=0');
+      expect(reload.request.urlWithParams).toContain('size=20');
+      expect(reload.request.urlWithParams).toContain('sort=id,desc');
+      reload.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+      await fixture.whenStable();
+    }
+  });
+
   it('preserves page navigation and resets selection state on paging and import refresh', async () => {
     const { fixture, httpMock } = await setupCatalog();
     const c = fixture.componentInstance;

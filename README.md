@@ -8,11 +8,16 @@ One person plays referee and runs the app on their phone. Everyone else plays to
 
 There's more here than straight question-and-answer trivia:
 
-- **Password and Acting:** help your teammate guess a footballer, either with a one-word hint or by acting it out without speaking.
-- **Ihbid Sahh and Offside:** get as close as you can to a number or date, or come up with a player who fits the prompt without picking the same name as everyone else.
-- **Top 10 and Score Sheet:** test your memory of football rankings and the starting elevens from famous matches.
-- **Risk and Bank:** go for the bigger points on a category board, or build a rapid-fire answer streak and decide when to bank it before a wrong answer wipes it out.
-- **Ana Meen and Who-in-Picture:** work out the mystery footballer from five clues, or put names to the eleven faces in a team photo.
+- **Password (الباسورد):** help your teammate guess a footballer with a one-word hint.
+- **Acting (التمثيل):** act out a footballer's name without speaking and see if your teammate gets it.
+- **Ihbid Sahh (اهبد صح):** get as close as you can to the right number or date.
+- **Offside (أوفسايد):** name a player who fits the prompt without picking the same name as everyone else.
+- **Top 10 (توب 10):** test your memory of football rankings.
+- **Score Sheet (سكور شيت):** piece together the starting elevens from famous matches.
+- **Risk (ريسك):** pick a category and decide how many points you're willing to go for.
+- **Bank (بنك):** build a rapid-fire answer streak and bank it before a wrong answer wipes it out.
+- **Ana Meen (أنا مين؟):** work out the mystery footballer from five clues.
+- **Who-in-Picture (مين في الصورة):** put names to the eleven faces in a team photo.
 
 The referee has the answers, timers, and scores on screen. They decide what counts, award points, and can fix the score whenever needed. The app keeps things moving; the football arguments are still yours to settle.
 
@@ -21,6 +26,10 @@ The screens are in Arabic, work right-to-left, and have light and dark themes. Y
 ## A look at the app
 
 These are screenshots from the running app in dark mode. They're the referee's view, so some screens include the answers.
+
+### Main menu: the whole game night in one place
+
+![The complete main menu, with all ten games, the Settings gear, and Question Management visible](docs/screenshots/main-menu.png)
 
 ### Risk: pick your category and your points
 
@@ -33,6 +42,18 @@ These are screenshots from the running app in dark mode. They're the referee's v
 ### Who-in-Picture: how many faces do you remember?
 
 ![Who-in-Picture showing Chelsea's 2012 Champions League final team photo and the referee's answer list](docs/screenshots/whopicture.png)
+
+## Management
+
+Got a question that will stump your friends? Open Question Management (إدارة الأسئلة) from the menu, pick a game pool, and add it. You can browse what's already there, too. Password and Acting share the same player-name pool, so adding a footballer gives both games someone new to guess.
+
+For a bigger refresh, upload a JSON question pack or paste its contents. The importer lets you check the rows in a dry-run preview and fix or drop invalid entries before confirming the save. If an old question needs correcting or removing, unlock Admin mode with the admin password to edit or delete it.
+
+## Settings
+
+Tap the gear on the main menu to make the night your own. Give both teams names, add two player names per team, and adjust each game's timer, including the extra time for an Acting steal. Leave a timer blank to use the game's default.
+
+You can choose and test the timer alarm, change its volume, toggle vibration when time runs out, and switch between Night, Lapis, and Sand themes. Changes save automatically in this browser, so they stay on the referee's device rather than changing everyone else's setup. The reset button brings the settings back to their defaults.
 
 ## Prerequisites
 

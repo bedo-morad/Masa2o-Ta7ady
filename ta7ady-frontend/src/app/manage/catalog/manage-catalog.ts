@@ -27,7 +27,6 @@ type ScoresheetRow = {
 type BankRow = { id: number; question: string; answer: string };
 type RiskRow = { id: number; genre: string; questions: RiskQuestion[] };
 
-
 /** Owns the Manage catalog lifecycle; editors consume its narrow host contract rather than resources. */
 export class ManageCatalog {
   readonly pool = signal<Pool>('players');
@@ -51,7 +50,9 @@ export class ManageCatalog {
   readonly riskRows = computed(() => this.riskRes.value()?.content ?? []);
   readonly anameenRows = computed(() => this.anameenRes.value()?.content ?? []);
   readonly whopictureRows = computed(() => this.whopictureRes.value()?.content ?? []);
-  readonly activePage = computed<Page<unknown> | undefined>(() => this.pageFor(this.pool()));
+  readonly activePage = computed<Page<unknown> | undefined>(
+    () => this.resourceFor(this.pool()).value() as Page<unknown> | undefined,
+  );
   readonly totalElements = computed(() => this.activePage()?.totalElements ?? 0);
   readonly totalPages = computed(() => this.activePage()?.totalPages ?? 0);
   readonly loading = computed(() =>
@@ -76,18 +77,6 @@ export class ManageCatalog {
       : undefined;
   }
 
-  private pageFor(pool: Pool): Page<unknown> | undefined {
-    if (pool === 'players') return this.playersRes.value() as Page<unknown> | undefined;
-    if (pool === 'ihbid') return this.ihbidRes.value() as Page<unknown> | undefined;
-    if (pool === 'offside') return this.offsideRes.value() as Page<unknown> | undefined;
-    if (pool === 'top10') return this.top10Res.value() as Page<unknown> | undefined;
-    if (pool === 'scoresheet') return this.scoresheetRes.value() as Page<unknown> | undefined;
-    if (pool === 'bank') return this.bankRes.value() as Page<unknown> | undefined;
-    if (pool === 'risk') return this.riskRes.value() as Page<unknown> | undefined;
-    if (pool === 'anameen') return this.anameenRes.value() as Page<unknown> | undefined;
-    return this.whopictureRes.value() as Page<unknown> | undefined;
-  }
-
   select(pool: Pool): void {
     this.pool.set(pool);
     this.page.set(0);
@@ -99,7 +88,7 @@ export class ManageCatalog {
     if (this.page() + 1 < this.totalPages()) this.page.update((p) => p + 1);
   }
   reloadActive(): void {
-    this.pageForResource(this.pool()).reload();
+    this.resourceFor(this.pool()).reload();
   }
 
   async delete(
@@ -115,7 +104,8 @@ export class ManageCatalog {
       else onError();
       return;
     }
-    const leftOnPage = this.pageFor(pool)?.content.length ?? 0;
+    const leftOnPage =
+      (this.resourceFor(pool).value() as Page<unknown> | undefined)?.content.length ?? 0;
     if (leftOnPage <= 1 && this.page() > 0) this.page.update((p) => p - 1);
     else this.reloadActive();
   }
@@ -129,7 +119,7 @@ export class ManageCatalog {
     );
   }
 
-  private pageForResource(pool: Pool) {
+  private resourceFor(pool: Pool) {
     if (pool === 'players') return this.playersRes;
     if (pool === 'ihbid') return this.ihbidRes;
     if (pool === 'offside') return this.offsideRes;

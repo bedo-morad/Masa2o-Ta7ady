@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { vi } from 'vitest';
-import { ManageComponent } from './manage.component';
+import { ManageComponent } from '../../manage.component';
 
 // The Risk catalog's tier/question/answer presentation was not covered by the
 // editor validation tests. Keep this at the approved rendered page seam.

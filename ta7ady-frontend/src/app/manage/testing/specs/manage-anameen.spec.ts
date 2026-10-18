@@ -2,7 +2,7 @@ import { throwError } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { setupV4, showV4, drainList, clues5 } from './testing/manage-v4-fixtures';
+import { setupV4, showV4, drainList, clues5 } from '../manage-v4-fixtures';
 
 describe('ManageComponent v4 pools', () => {
   afterEach(() => {

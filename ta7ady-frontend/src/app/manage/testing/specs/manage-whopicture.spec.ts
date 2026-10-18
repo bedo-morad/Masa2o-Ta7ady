@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { setupV4, showV4, drainList, names11, TITLE } from './testing/manage-v4-fixtures';
+import { setupV4, showV4, drainList, names11, TITLE } from '../manage-v4-fixtures';
 
 describe('ManageComponent v4 pools', () => {
   afterEach(() => {

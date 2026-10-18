@@ -2,7 +2,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { throwError } from 'rxjs';
 
-import { managePools, setupCatalog } from './testing/manage-catalog-fixtures';
+import { managePools, setupCatalog } from '../manage-catalog-fixtures';
 
 describe('ManageComponent catalog lifecycle', () => {
   const pools = managePools;

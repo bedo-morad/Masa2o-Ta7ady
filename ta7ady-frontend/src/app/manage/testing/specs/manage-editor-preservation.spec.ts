@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { vi } from 'vitest';
-import { ManageComponent } from './manage.component';
+import { ManageComponent } from '../../manage.component';
 
 const toast = { success: vi.fn(), error: vi.fn() };
 const modal = { open: vi.fn(), dismissAll: vi.fn() };

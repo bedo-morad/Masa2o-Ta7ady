@@ -7,8 +7,8 @@ import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { ApiService } from '../api.service';
-import { ManageComponent } from './manage.component';
+import { ApiService } from '../../../api.service';
+import { ManageComponent } from '../../manage.component';
 
 const toastStub = () => ({ success: vi.fn(), error: vi.fn() });
 const modalStub = () => ({ open: vi.fn(), dismissAll: vi.fn() });

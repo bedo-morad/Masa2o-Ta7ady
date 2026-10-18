@@ -1,0 +1,52 @@
+// Risk tier question/answer fields for both add and edit. Included under .manage.
+// Compact tier badges in expanded results belong to the catalog.
+
+@mixin tier-fields {
+  /* Risk tiers: one labelled row per points value (5/10/20/40) for add + edit. */
+  .tiers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .tiers li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .tiers .tier {
+    flex: 0 0 2.6rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    background: var(--pitch-surface-2);
+    border: 1px solid var(--pitch-line);
+    border-radius: 10px;
+    color: var(--pitch-ink);
+  }
+  .tiers .tier-fields {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .tiers input {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--pitch-surface);
+    border: 1px solid var(--pitch-line);
+    border-radius: 10px;
+    color: var(--pitch-ink);
+    padding: 0.6rem 0.75rem;
+    min-height: 44px;
+  }
+  .tiers input::placeholder {
+    color: var(--pitch-ink-dim);
+  }
+}

@@ -1,0 +1,60 @@
+// Score Sheet team fieldsets for both add and edit. Included under .manage.
+// Shared lineup inputs live in editors/shared; catalog reveals stay catalog-owned.
+
+@mixin team-fields {
+  .teams {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .team {
+    margin: 0;
+    padding: 0.7rem;
+    border: 1px solid var(--pitch-line);
+    border-radius: var(--radius-card);
+    background: var(--pitch-surface);
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-width: 0;
+  }
+
+  .team-label {
+    font-weight: 900;
+    padding: 0 0.5rem;
+    margin-inline-start: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    i {
+      color: var(--pitch-accent-deep);
+    }
+  }
+
+  .team-name {
+    background: var(--pitch-accent-deep);
+    border: 2px solid var(--pitch-accent-deep);
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 900;
+    padding: 0.65rem 0.8rem;
+    min-height: 48px;
+    width: 100%;
+    box-sizing: border-box;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    &:focus {
+      outline: 2px solid var(--pitch-gold);
+      outline-offset: 1px;
+    }
+  }
+}

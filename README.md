@@ -49,11 +49,15 @@ Got a question that will stump your friends? Open Question Management (إدار�
 
 For a bigger refresh, upload a JSON question pack or paste its contents. The importer lets you check the rows in a dry-run preview and fix or drop invalid entries before confirming the save. If an old question needs correcting or removing, unlock Admin mode with the admin password to edit or delete it.
 
+![Question Management showing the game pools, add-player form, JSON importer, and existing player list](docs/screenshots/management.png)
+
 ## Settings
 
 Tap the gear on the main menu to make the night your own. Give both teams names, add two player names per team, and adjust each game's timer, including the extra time for an Acting steal. Leave a timer blank to use the game's default.
 
 You can choose and test the timer alarm, change its volume, toggle vibration when time runs out, and switch between Night, Lapis, and Sand themes. Changes save automatically in this browser, so they stay on the referee's device rather than changing everyone else's setup. The reset button brings the settings back to their defaults.
+
+![Settings showing team and player names, alarm controls, game timers, themes, and reset](docs/screenshots/settings.png)
 
 ## Prerequisites
 

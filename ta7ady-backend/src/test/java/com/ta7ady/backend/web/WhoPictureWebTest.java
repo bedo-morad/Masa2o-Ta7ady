@@ -1,6 +1,7 @@
 package com.ta7ady.backend.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ta7ady.backend.repository.WhoPicturePhotoRepository;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,6 +36,9 @@ class WhoPictureWebTest {
 
     @Autowired
     MockMvc mvc;
+
+    @Autowired
+    WhoPicturePhotoRepository repository;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -145,11 +149,12 @@ class WhoPictureWebTest {
 
     @Test
     void allIsPaged() throws Exception {
+        long before = repository.count();
         commitBulk(rows(4));
         mvc.perform(get("/api/whopicture/all").param("size", "2").param("page", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.totalElements").value(4));
+                .andExpect(jsonPath("$.totalElements").value(before + 4));
     }
 
     // ---- bulk ----

@@ -92,10 +92,15 @@ h2 {
 }
 
 .gname {
+  flex: 1 1 0;
   min-width: 0;
   font-weight: 800;
   font-size: 0.78rem;
   color: var(--pitch-gold);
+  line-height: 1.25;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .reroll {
@@ -110,6 +115,25 @@ h2 {
 
   &:disabled {
     opacity: 0.5;
+  }
+}
+
+// Four-up phone columns cannot spare a title-width slice for the dice.
+// Stack the control below a full-width caption; keep controls bottom-aligned
+// when one of the genre names needs more lines than its neighbours.
+@media (max-width: 480px) {
+  .genre {
+    flex-direction: column;
+  }
+
+  .gname {
+    flex: none;
+    width: 100%;
+    text-align: center;
+  }
+
+  .reroll {
+    margin-top: auto;
   }
 }
 

@@ -9,19 +9,32 @@ export class ThemeService {
   readonly theme = signal<Theme>(this.read());
 
   constructor() {
+    // Apply the persisted value synchronously. CSS defaults to night until the
+    // signal effect runs, which caused a brief night-theme flash on hard loads.
+    this.apply(this.theme());
     effect(() => {
       const t = this.theme();
-      document.documentElement.dataset['theme'] = t;
-      try {
-        localStorage.setItem(KEY, t);
-      } catch {
-        /* private mode: ignore */
-      }
+      this.apply(t);
+      this.persist(t);
     });
   }
 
   setTheme(t: Theme): void {
     this.theme.set(t);
+    this.apply(t);
+    this.persist(t);
+  }
+
+  private apply(theme: Theme): void {
+    document.documentElement.dataset['theme'] = theme;
+  }
+
+  private persist(theme: Theme): void {
+    try {
+      localStorage.setItem(KEY, theme);
+    } catch {
+      /* private mode: ignore */
+    }
   }
 
   private read(): Theme {

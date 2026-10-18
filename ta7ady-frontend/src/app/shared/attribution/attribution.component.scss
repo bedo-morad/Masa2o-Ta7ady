@@ -32,9 +32,8 @@
   font-weight: 800;
   font-size: 0.85rem;
   max-width: 7rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 
   &.ta.on {
     background: var(--pitch-accent-deep);
@@ -50,7 +49,8 @@
 }
 
 // Risk §3.5: big award buttons side by side on one row, each tap target taking
-// an equal half of the spotlight (long names ellipsize rather than wrap).
+// an equal half of the spotlight. Names wrap rather than disappear behind an
+// ellipsis, which is important for the referee's custom team names.
 .attrib.stretch {
   width: 100%;
 

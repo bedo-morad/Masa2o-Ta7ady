@@ -178,7 +178,7 @@
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="startEditScoresheet(m)" aria-label="تعديل" title="تعديل">
+                  <button type="button" class="edit-btn" (click)="scoresheetEditor.startEdit(m)" aria-label="تعديل" title="تعديل">
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeScoresheet(m.id)" aria-label="حذف">
@@ -267,7 +267,7 @@
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="startEditRisk(p)" aria-label="تعديل" title="تعديل">
+                  <button type="button" class="edit-btn" (click)="riskEditor.startEdit(p)" aria-label="تعديل" title="تعديل">
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeRisk(p.id)" aria-label="حذف">
@@ -355,7 +355,7 @@
               </button>
               @if (adminOn()) {
                 <div class="row-actions">
-                  <button type="button" class="edit-btn" (click)="startEditWhopicture(w)" aria-label="تعديل" title="تعديل">
+                  <button type="button" class="edit-btn" (click)="whopictureEditor.startEdit(w)" aria-label="تعديل" title="تعديل">
                     <i class="fa-solid fa-pen"></i>
                   </button>
                   <button type="button" class="del" (click)="removeWhopicture(w.id)" aria-label="حذف">

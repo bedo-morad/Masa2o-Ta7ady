@@ -1,0 +1,114 @@
+.asked-mark {
+  appearance: none;
+  box-sizing: border-box;
+  position: relative;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pitch-gold);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  .asked-face {
+    position: relative;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--pitch-gold);
+    border-radius: 50%;
+    background: var(--pitch-surface-2);
+    box-shadow:
+      0 3px 0 color-mix(in srgb, var(--pitch-gold) 45%, var(--pitch-bg)),
+      inset 0 1px 0 rgb(255 255 255 / 0.1);
+    transition:
+      transform 140ms ease,
+      box-shadow 140ms ease,
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+
+  .asked-number {
+    // Tajawal's numeral ink sits above its line-box centre; optically balance it.
+    transform: translateY(0.14em);
+  }
+
+  .asked-check {
+    position: absolute;
+    box-sizing: border-box;
+    width: 16px;
+    height: 16px;
+    bottom: -4px;
+    // Physical lower-left, including in the Arabic RTL layout.
+    left: -3px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--pitch-surface);
+    border-radius: 50%;
+    background: #fff;
+    color: #182538;
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      transform 160ms ease,
+      opacity 160ms ease;
+
+    svg {
+      width: 10px;
+      height: 10px;
+      stroke-width: 3;
+    }
+  }
+
+  @media (hover: hover) {
+    &:hover .asked-face {
+      background: color-mix(in srgb, var(--pitch-surface-2) 85%, var(--pitch-gold));
+      transform: translateY(-1px);
+    }
+  }
+
+  &[aria-pressed='true'] {
+    .asked-face {
+      background: var(--pitch-gold);
+      color: var(--pitch-bg);
+      box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.3);
+      transform: translateY(2px);
+    }
+
+    .asked-check {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  &:active .asked-face {
+    transform: translateY(3px);
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.2);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--pitch-gold);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asked-mark .asked-face,
+  .asked-mark .asked-check {
+    transition: none;
+  }
+}

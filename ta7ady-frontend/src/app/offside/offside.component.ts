@@ -23,6 +23,7 @@ export class OffsideComponent {
   readonly scoreB = signal(0);
   readonly count = signal(10);
   readonly rows = signal<OffsideRule[]>([]);
+  readonly asked = signal<Set<number>>(new Set());
   readonly msg = signal('');
   readonly rerolling = signal<number | null>(null);
 
@@ -36,6 +37,7 @@ export class OffsideComponent {
       const rows = this.res.value();
       if (rows) {
         this.rows.set(rows);
+        this.asked.set(new Set());
         this.msg.set(rows.length ? '' : 'لا توجد قواعد بعد — أضف من صفحة إدارة الأسئلة.');
       }
       if (this.res.error()) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
@@ -43,7 +45,24 @@ export class OffsideComponent {
   }
 
   reload(): void {
+    this.asked.set(new Set());
     this.res.reload();
+  }
+
+  countChanged(value: number | string): void {
+    const next = Number(value);
+    if (!Number.isFinite(next)) return;
+    this.count.set(next);
+    this.asked.set(new Set());
+  }
+
+  toggleAsked(index: number): void {
+    this.asked.update((marks) => {
+      const next = new Set(marks);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
   }
 
   async rerollOne(i: number): Promise<void> {
@@ -53,7 +72,14 @@ export class OffsideComponent {
       const fresh = await firstValueFrom(this.api.offsideRandom10(6));
       const ids = new Set(this.rows().map((r) => r.id));
       const pick = fresh.find((r) => !ids.has(r.id)) ?? fresh[0];
-      if (pick) this.rows.update((rows) => rows.map((r, idx) => (idx === i ? pick : r)));
+      if (pick) {
+        this.rows.update((rows) => rows.map((r, idx) => (idx === i ? pick : r)));
+        this.asked.update((marks) => {
+          const next = new Set(marks);
+          next.delete(i);
+          return next;
+        });
+      }
     } catch {
       this.msg.set('تعذر تبديل القاعدة — حاول مجددًا.');
     } finally {

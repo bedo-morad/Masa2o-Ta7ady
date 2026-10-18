@@ -12,7 +12,11 @@
 
   <div class="draw-row">
     <label for="of-count">عدد القواعد</label>
-    <select id="of-count" [(ngModel)]="count">
+    <select
+      id="of-count"
+      [ngModel]="count()"
+      (ngModelChange)="countChanged($event)"
+    >
       <option [ngValue]="5">5</option>
       <option [ngValue]="10">10</option>
       <option [ngValue]="15">15</option>
@@ -30,7 +34,23 @@
   <ol class="rlist">
     @for (r of rows(); track r.id; let i = $index) {
       <li class="ritem">
-        <span class="rnum tabular-nums">{{ i + 1 }}</span>
+        <button
+          type="button"
+          class="rnum asked-mark tabular-nums"
+          [attr.name]="'asked-rule-' + (i + 1)"
+          (click)="toggleAsked(i)"
+          [attr.aria-pressed]="asked().has(i)"
+          [attr.aria-label]="'تحديد القاعدة ' + (i + 1) + ' على أنها طُرحت'"
+        >
+          <span class="asked-face" aria-hidden="true">
+            <span class="asked-number">{{ i + 1 }}</span>
+            <span class="asked-check">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor">
+                <path d="m2 6 2.5 2.5L10 3" />
+              </svg>
+            </span>
+          </span>
+        </button>
         <span class="rtext">{{ r.ruleText }}</span>
         <button
           type="button"

@@ -1,3 +1,5 @@
+@use '../shared/asked-mark';
+
 .challenge {
   max-width: 640px;
   margin: 0 auto;
@@ -93,18 +95,6 @@ h2 {
   border: 1px solid var(--pitch-line);
   border-radius: var(--radius-card);
   padding: 0.9rem 1rem;
-}
-
-.rnum {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--pitch-surface-2);
-  color: var(--pitch-gold);
-  font-weight: 900;
 }
 
 .rtext {

@@ -118,6 +118,25 @@ h2 {
   }
 }
 
+// Four-up phone columns cannot spare a title-width slice for the dice.
+// Stack the control below a full-width caption; keep controls bottom-aligned
+// when one of the genre names needs more lines than its neighbours.
+@media (max-width: 480px) {
+  .genre {
+    flex-direction: column;
+  }
+
+  .gname {
+    flex: none;
+    width: 100%;
+    text-align: center;
+  }
+
+  .reroll {
+    margin-top: auto;
+  }
+}
+
 .cell {
   position: relative;
   display: flex;

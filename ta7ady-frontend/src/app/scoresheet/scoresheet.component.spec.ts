@@ -50,6 +50,35 @@ describe('ScoresheetComponent', () => {
     expect(c.count()).toBe(1);
   });
 
+  it('keeps full long player labels when selecting and unselecting either side', () => {
+    const fixture = TestBed.createComponent(ScoresheetComponent);
+    fixture.detectChanges();
+    const m = match(1);
+    m.lineupA[0] = 'ليوناردو بونوتشي';
+    m.lineupB[0] = 'فيديريكو بالزاريتي';
+    fixture.componentInstance.matches.set([m]);
+    fixture.componentInstance.slotsOf(m);
+    fixture.detectChanges();
+
+    const sides = fixture.nativeElement.querySelectorAll('.side') as NodeListOf<HTMLElement>;
+    sides.forEach((side, i) => {
+      const name = i === 0 ? m.lineupA[0] : m.lineupB[0];
+      const button = side.querySelector<HTMLButtonElement>('.prow')!;
+      expect(button.querySelector('.pname')?.textContent).toBe(name);
+      expect(button.getAttribute('aria-label')).toBe(name);
+      button.click();
+      fixture.detectChanges();
+      expect(button.querySelector('.picked')).not.toBeNull();
+      expect(button.querySelector('.pname')?.textContent).toBe(name);
+      button.click();
+      fixture.detectChanges();
+      expect(button.querySelector('.picked')).toBeNull();
+      expect(button.querySelector('.pname')?.textContent).toBe(name);
+    });
+    expect(fixture.componentInstance.scoreA()).toBe(0);
+    expect(fixture.componentInstance.scoreB()).toBe(0);
+  });
+
   it('tapping a player adds exactly 1 point to the column team', () => {
     const c = setup();
     pick(c, 'A', 0);
@@ -91,9 +120,7 @@ describe('ScoresheetComponent', () => {
     const c = setup();
     pick(c, 'B', 3);
     expect(c.audit().length).toBe(1);
-    expect(c.audit()[0]).toEqual(
-      expect.objectContaining({ team: 'B', delta: 1 }),
-    );
+    expect(c.audit()[0]).toEqual(expect.objectContaining({ team: 'B', delta: 1 }));
   });
 
   it('strike tracker: 3 mistakes eliminates, reset clears', () => {

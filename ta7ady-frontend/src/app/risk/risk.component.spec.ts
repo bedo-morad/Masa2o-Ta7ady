@@ -89,6 +89,32 @@ describe('RiskComponent', () => {
     expect(setup()).toBeTruthy();
   });
 
+  it('keeps full Arabic genre captions paired with their column reroll', () => {
+    const fixture = TestBed.createComponent(RiskComponent);
+    fixture.detectChanges();
+    const genres = [
+      'الدوري الإيطالي',
+      'منتخب مصر',
+      'الأرقام القياسية في كأس الأمم الأوروبية',
+      'الزمالك',
+    ];
+    fixture.componentInstance.loadBoard(genres.map((genre, i) => pack(i + 1, genre)));
+    fixture.detectChanges();
+
+    const headers = fixture.nativeElement.querySelectorAll('.genre') as NodeListOf<HTMLElement>;
+    expect(headers).toHaveLength(4);
+    headers.forEach((header, i) => {
+      expect(header.querySelector('.gname')?.textContent).toBe(genres[i]);
+      expect(header.querySelector('button')?.getAttribute('aria-label')).toBe(
+        `تغيير المجموعة ${genres[i]}`,
+      );
+    });
+
+    const reroll = vi.spyOn(fixture.componentInstance, 'rerollColumn').mockResolvedValue();
+    headers[2].querySelector('button')?.click();
+    expect(reroll).toHaveBeenCalledExactlyOnceWith(2);
+  });
+
   it('hides exactly one double among the 16 cells', () => {
     const c = setup();
     const d = c.double();

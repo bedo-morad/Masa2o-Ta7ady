@@ -7,6 +7,7 @@ import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, AnameenSubject, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
 import { ManageCatalog, ManageEditorHost } from './manage-catalog';
+import { createPoolEditors } from './pool-editors';
 
 export const TOP10_SIZE = 13;
 export const LINEUP_SIZE = 11;
@@ -46,20 +47,12 @@ export class ManageComponent {
   readonly newRule = signal('');
   readonly newTop10Prompt = signal('');
   readonly top10Answers = signal<string[]>(Array(TOP10_SIZE).fill(''));
-  readonly newMatch = signal('');
-  readonly newTeamA = signal('');
-  readonly newTeamB = signal('');
-  readonly lineupA = signal<string[]>(Array(LINEUP_SIZE).fill(''));
-  readonly lineupB = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly newGenre = signal('');
   readonly newRisk = signal<RiskQuestion[]>(blankRisk());
   // Ana Meen (SPECV4 §4.1): subject name + 5 clues, hard -> easy.
   readonly newSubject = signal('');
   readonly newClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
   // Who-in-Picture (SPECV4 §4.3): title + hotlinked photo + 11 pictured names.
-  readonly newPhotoTitle = signal('');
-  readonly newPhotoUrl = signal('');
-  readonly newPhotoPlayers = signal<string[]>(Array(LINEUP_SIZE).fill(''));
 
   readonly top10Ranks = Array.from({ length: TOP10_SIZE }, (_, i) => i + 1);
   readonly lineupSlots = Array.from({ length: LINEUP_SIZE }, (_, i) => i + 1);
@@ -76,18 +69,10 @@ export class ManageComponent {
   readonly editA = signal('');
   readonly editPrompt = signal('');
   readonly editAnswers = signal<string[]>(Array(TOP10_SIZE).fill(''));
-  readonly editMatch = signal('');
-  readonly editTeamA = signal('');
-  readonly editTeamB = signal('');
-  readonly editLineupA = signal<string[]>(Array(LINEUP_SIZE).fill(''));
-  readonly editLineupB = signal<string[]>(Array(LINEUP_SIZE).fill(''));
   readonly editGenre = signal('');
   readonly editRisk = signal<RiskQuestion[]>(blankRisk());
   readonly editSubject = signal('');
   readonly editClues = signal<string[]>(Array(ANAMEEN_CLUES).fill(''));
-  readonly editPhotoTitle = signal('');
-  readonly editPhotoUrl = signal('');
-  readonly editPhotoPlayers = signal<string[]>(Array(LINEUP_SIZE).fill(''));
 
   toggle(id: number): void {
     this.expandedId.update((open) => (open === id ? null : id));
@@ -132,6 +117,26 @@ export class ManageComponent {
       else this.toast.error(message);
     },
   };
+  readonly poolEditors = createPoolEditors();
+  readonly scoresheetEditor = this.poolEditors.scoresheet;
+  readonly whopictureEditor = this.poolEditors.whopicture;
+  // Template-facing aliases keep the established Manage seam while the draft state lives in Pool owners.
+  readonly newMatch = this.scoresheetEditor.newMatch;
+  readonly newTeamA = this.scoresheetEditor.newTeamA;
+  readonly newTeamB = this.scoresheetEditor.newTeamB;
+  readonly lineupA = this.scoresheetEditor.lineupA;
+  readonly lineupB = this.scoresheetEditor.lineupB;
+  readonly editMatch = this.scoresheetEditor.editMatch;
+  readonly editTeamA = this.scoresheetEditor.editTeamA;
+  readonly editTeamB = this.scoresheetEditor.editTeamB;
+  readonly editLineupA = this.scoresheetEditor.editLineupA;
+  readonly editLineupB = this.scoresheetEditor.editLineupB;
+  readonly newPhotoTitle = this.whopictureEditor.newPhotoTitle;
+  readonly newPhotoUrl = this.whopictureEditor.newPhotoUrl;
+  readonly newPhotoPlayers = this.whopictureEditor.newPhotoPlayers;
+  readonly editPhotoTitle = this.whopictureEditor.editPhotoTitle;
+  readonly editPhotoUrl = this.whopictureEditor.editPhotoUrl;
+  readonly editPhotoPlayers = this.whopictureEditor.editPhotoPlayers;
   select(p: Pool): void {
     this.catalog.select(p);
     this.msg.set('');
@@ -183,25 +188,17 @@ export class ManageComponent {
     this.top10Answers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
-  setLineupA(i: number, v: string): void {
-    this.lineupA.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
+  setLineupA(i: number, v: string): void { this.scoresheetEditor.setLineupA(i, v); }
 
-  setLineupB(i: number, v: string): void {
-    this.lineupB.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
+  setLineupB(i: number, v: string): void { this.scoresheetEditor.setLineupB(i, v); }
 
   setEditTop10Answer(i: number, v: string): void {
     this.editAnswers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
-  setEditLineupA(i: number, v: string): void {
-    this.editLineupA.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
+  setEditLineupA(i: number, v: string): void { this.scoresheetEditor.setEditLineupA(i, v); }
 
-  setEditLineupB(i: number, v: string): void {
-    this.editLineupB.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
+  setEditLineupB(i: number, v: string): void { this.scoresheetEditor.setEditLineupB(i, v); }
 
   setNewRisk(i: number, field: 'question' | 'answer', v: string): void {
     this.newRisk.update((arr) => arr.map((q, j) => (j === i ? { ...q, [field]: v } : q)));
@@ -219,13 +216,9 @@ export class ManageComponent {
     this.editClues.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
-  setNewPhotoPlayer(i: number, v: string): void {
-    this.newPhotoPlayers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
+  setNewPhotoPlayer(i: number, v: string): void { this.whopictureEditor.setNewPlayer(i, v); }
 
-  setEditPhotoPlayer(i: number, v: string): void {
-    this.editPhotoPlayers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
-  }
+  setEditPhotoPlayer(i: number, v: string): void { this.whopictureEditor.setEditPlayer(i, v); }
 
   // ---- inline edit (admin-unlocked, SPECV3 §3.1) ----
 
@@ -263,11 +256,7 @@ export class ManageComponent {
     lineupA: string[];
     lineupB: string[];
   }): void {
-    this.editMatch.set(m.matchLabel);
-    this.editTeamA.set(m.teamA);
-    this.editTeamB.set(m.teamB);
-    this.editLineupA.set([...m.lineupA]);
-    this.editLineupB.set([...m.lineupB]);
+    this.scoresheetEditor.prefill(m);
     this.expandedId.set(null);
     this.editingId.set(m.id);
   }
@@ -294,9 +283,7 @@ export class ManageComponent {
   }
 
   startEditWhopicture(w: WhoPicturePhoto): void {
-    this.editPhotoTitle.set(w.title);
-    this.editPhotoUrl.set(w.photoUrl);
-    this.editPhotoPlayers.set([...w.players]);
+    this.whopictureEditor.prefill(w);
     this.expandedId.set(null);
     this.editingId.set(w.id);
   }

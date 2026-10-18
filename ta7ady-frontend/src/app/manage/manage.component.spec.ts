@@ -809,7 +809,7 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/risk/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.riskEditor.newGenre = 'ريال مدريد';
+    c.riskEditor.newGenre.set('ريال مدريد');
     for (const i of [0, 1, 2, 3]) {
       c.riskEditor.setNewRisk(i, 'question', `سؤال ${i}`);
       c.riskEditor.setNewRisk(i, 'answer', `جواب ${i}`);

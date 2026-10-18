@@ -24,13 +24,13 @@ export class RiskPackEditorModel {
   setNewRisk(index: number, field: 'question' | 'answer', value: string): void {
     this.newRisk.update((questions) => questions.map((question, i) =>
       i === index ? { ...question, [field]: value } : question,
-    );
+    ));
   }
 
   setEditRisk(index: number, field: 'question' | 'answer', value: string): void {
     this.editRisk.update((questions) => questions.map((question, i) =>
       i === index ? { ...question, [field]: value } : question,
-    );
+    ));
   }
 
   startEdit(pack: RiskPack): void {

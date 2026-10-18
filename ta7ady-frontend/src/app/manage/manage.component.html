@@ -90,33 +90,7 @@
     <app-scoresheet-editor [editor]="scoresheetEditor" />
   }
   @if (pool() === 'risk') {
-    <form class="add column" (ngSubmit)="addRisk()">
-      <input [(ngModel)]="newGenre" name="ngr" placeholder="النوع — مثال: ريال مدريد" />
-      <ol class="tiers">
-        @for (tier of riskTiers; track tier; let i = $index) {
-          <li>
-            <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
-            <div class="tier-fields">
-              <input
-                [ngModel]="newRisk()[i].question"
-                (ngModelChange)="setNewRisk(i, 'question', $event)"
-                [name]="'nrq' + tier"
-                placeholder="السؤال"
-                [attr.aria-label]="'سؤال فئة ' + tier"
-              />
-              <input
-                [ngModel]="newRisk()[i].answer"
-                (ngModelChange)="setNewRisk(i, 'answer', $event)"
-                [name]="'nra' + tier"
-                placeholder="الجواب"
-                [attr.aria-label]="'جواب فئة ' + tier"
-              />
-            </div>
-          </li>
-        }
-      </ol>
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة حزمة</button>
-    </form>
+    <app-risk-pack-editor [model]="riskEditor" />
   }
   @if (pool() === 'anameen') {
     <app-anameen-editor [editor]="anameenEditor" />

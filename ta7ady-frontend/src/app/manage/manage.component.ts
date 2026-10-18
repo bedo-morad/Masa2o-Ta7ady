@@ -198,34 +198,7 @@ export class ManageComponent {
     this.msg.set('تم الاستيراد — القائمة محدثة.');
   }
 
-  async removePlayer(id: number): Promise<void> {
-    return this.removeFromCatalog('players', id);
-  }
-  async removeIhbid(id: number): Promise<void> {
-    return this.removeFromCatalog('ihbid', id);
-  }
-  async removeOffside(id: number): Promise<void> {
-    return this.removeFromCatalog('offside', id);
-  }
-  async removeTop10(id: number): Promise<void> {
-    return this.removeFromCatalog('top10', id);
-  }
-  async removeScoresheet(id: number): Promise<void> {
-    return this.removeFromCatalog('scoresheet', id);
-  }
-  async removeBank(id: number): Promise<void> {
-    return this.removeFromCatalog('bank', id);
-  }
-  async removeRisk(id: number): Promise<void> {
-    return this.removeFromCatalog('risk', id);
-  }
-  async removeAnameen(id: number): Promise<void> {
-    return this.removeFromCatalog('anameen', id);
-  }
-  async removeWhopicture(id: number): Promise<void> {
-    return this.removeFromCatalog('whopicture', id);
-  }
-  private removeFromCatalog(pool: Pool, id: number): Promise<void> {
+  public removeFromCatalog(pool: Pool, id: number): Promise<void> {
     return this.catalog.delete(
       pool,
       id,
@@ -236,7 +209,6 @@ export class ManageComponent {
       () => this.msg.set('تعذّر الحذف — أعد المحاولة.'),
     );
   }
-
   private denyIf401(e: unknown): boolean {
     if (typeof e === 'object' && e !== null && 'status' in e) {
       if ((e as { status: unknown }).status === 401) {

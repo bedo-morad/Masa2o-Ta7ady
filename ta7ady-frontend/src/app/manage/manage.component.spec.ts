@@ -158,6 +158,122 @@ describe('ManageComponent admin unlock', () => {
   });
 });
 
+describe('ManageComponent catalog lifecycle', () => {
+  const pools = [
+    'players',
+    'ihbid',
+    'offside',
+    'top10',
+    'scoresheet',
+    'bank',
+    'risk',
+    'anameen',
+    'whopicture',
+  ] as const;
+
+  async function setupCatalog() {
+    const adminPassword = signal<string | null>('pw');
+    const apiStub = {
+      adminPassword,
+      unlock: vi.fn(),
+      lock: vi.fn(),
+      del: vi.fn(() => of(undefined)),
+      bulk: vi.fn(() => of([])),
+    };
+    await TestBed.configureTestingModule({
+      imports: [ManageComponent],
+      providers: [
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ApiService, useValue: apiStub },
+        { provide: NgbModal, useValue: modalStub() },
+        { provide: HotToastService, useValue: toastStub() },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ManageComponent);
+    fixture.detectChanges();
+    const httpMock = TestBed.inject(HttpTestingController);
+    httpMock.expectOne((r) => r.url.includes('/players/all')).flush({
+      content: [{ id: 1, playerName: 'لاعب' }],
+      totalElements: 21,
+      totalPages: 2,
+      number: 0,
+      size: 20,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return { fixture, apiStub, httpMock };
+  }
+
+  function page(httpMock: HttpTestingController, pool: string, content: unknown[] = []): void {
+    httpMock.expectOne((r) => r.url.includes(`/${pool}/all`)).flush({
+      content,
+      totalElements: content.length,
+      totalPages: content.length ? 1 : 0,
+      number: 0,
+      size: 20,
+    });
+  }
+
+  afterEach(() => TestBed.inject(HttpTestingController).verify());
+
+  it('uses the size-20 descending-id page contract for every Pool', async () => {
+    const { fixture, httpMock } = await setupCatalog();
+    const c = fixture.componentInstance;
+    for (const pool of pools.slice(1)) {
+      c.select(pool);
+      fixture.detectChanges();
+      const request = httpMock.expectOne((r) => r.url.includes(`/${pool}/all`));
+      expect(request.request.urlWithParams).toContain('page=0');
+      expect(request.request.urlWithParams).toContain('size=20');
+      expect(request.request.urlWithParams).toContain('sort=id,desc');
+      expect(c.loading()).toBe(true);
+      request.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+      await fixture.whenStable();
+    }
+  });
+
+  it('preserves page navigation and resets selection state on paging and import refresh', async () => {
+    const { fixture, httpMock } = await setupCatalog();
+    const c = fixture.componentInstance;
+    c.expandedId.set(4);
+    c.editingId.set(4);
+    c.next();
+    fixture.detectChanges();
+    const nextRequest = httpMock.expectOne((r) => r.url.includes('/players/all'));
+    expect(nextRequest.request.urlWithParams).toContain('page=1');
+    expect(c.expandedId()).toBeNull();
+    expect(c.editingId()).toBeNull();
+    nextRequest.flush({ content: [{ id: 2, playerName: 'لاعب آخر' }], totalElements: 21, totalPages: 2, number: 1, size: 20 });
+    await fixture.whenStable();
+    c.onImported();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const refresh = httpMock.expectOne((r) => r.url.includes('/players/all'));
+    expect(refresh.request.urlWithParams).toContain('page=1');
+    refresh.flush({ content: [], totalElements: 0, totalPages: 0, number: 1, size: 20 });
+    expect(c.msg()).toBe('تم الاستيراد — القائمة محدثة.');
+  });
+
+  it('refreshes after delete and preserves the existing failure and authorization outcomes', async () => {
+    const { fixture, apiStub, httpMock } = await setupCatalog();
+    const c = fixture.componentInstance;
+    await c.removePlayer(1);
+    expect(apiStub.del).toHaveBeenCalledWith('players', 1);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const refresh = httpMock.expectOne((r) => r.url.includes('/players/all'));
+    refresh.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+
+    apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 500 })));
+    await c.removePlayer(1);
+    expect(c.msg()).toBe('تعذّر الحذف — أعد المحاولة.');
+
+    apiStub.del.mockReturnValueOnce(throwError(() => ({ status: 401 })));
+    await c.removePlayer(1);
+    expect(apiStub.lock).toHaveBeenCalled();
+    expect(c.adminError()).toBe('كلمة المرور غير صحيحة.');
+  });
+});
+
 describe('ManageComponent add forms', () => {
   async function setupForms() {
     const adminPassword = signal<string | null>(null);

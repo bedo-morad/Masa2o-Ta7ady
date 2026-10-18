@@ -92,10 +92,15 @@ h2 {
 }
 
 .gname {
+  flex: 1 1 0;
   min-width: 0;
   font-weight: 800;
   font-size: 0.78rem;
   color: var(--pitch-gold);
+  line-height: 1.25;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .reroll {

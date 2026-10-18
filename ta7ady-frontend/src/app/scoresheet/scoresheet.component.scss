@@ -175,8 +175,12 @@ h2 {
 
 .sides {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.6rem;
+}
+
+.side {
+  min-width: 0;
 }
 
 .side-name {
@@ -203,6 +207,7 @@ h2 {
   align-items: center;
   gap: 0.45rem;
   width: 100%;
+  box-sizing: border-box;
   background: var(--pitch-surface-2);
   border: 1px solid var(--pitch-line);
   border-radius: 12px;

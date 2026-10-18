@@ -282,11 +282,30 @@ a:focus-visible {
 .nm {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
   font-weight: 900;
   color: var(--pitch-ink);
+}
+
+// The attribution controls carry both full custom team names. On a phone they
+// must move below the player name instead of consuming its only few pixels.
+@media (max-width: 480px) {
+  .name-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .nm {
+    flex: 1 1 calc(100% - 2.5rem);
+    min-width: calc(100% - 2.5rem);
+    padding-block: 0.25rem;
+  }
+
+  .name-row app-attribution {
+    flex: 1 0 100%;
+    min-width: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

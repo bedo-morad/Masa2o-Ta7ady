@@ -406,12 +406,12 @@ describe('ManageComponent add forms', () => {
     c.select('scoresheet');
     fixture.detectChanges();
     flushPool(httpMock, 'scoresheet');
-    c.newMatch.set('نهائي');
-    c.newTeamA.set('أ');
-    c.newTeamB.set('ب');
-    c.lineupA.set(Array(11).fill('لاعب'));
-    c.lineupB.set(Array(11).fill('لاعب').map((v, i) => (i === 0 ? '' : v)));
-    await c.addScoresheet();
+    c.scoresheetEditor.newMatch.set('نهائي');
+    c.scoresheetEditor.newTeamA.set('أ');
+    c.scoresheetEditor.newTeamB.set('ب');
+    c.scoresheetEditor.lineupA.set(Array(11).fill('لاعب'));
+    c.scoresheetEditor.lineupB.set(Array(11).fill('لاعب').map((v, i) => (i === 0 ? '' : v)));
+    await c.scoresheetEditor.add();
     expect(apiStub.addScoresheet).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
   });
@@ -977,14 +977,14 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/whopicture/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.newPhotoUrl.set('https://example.com/p.jpg');
-    c.newPhotoPlayers.set([...names11]);
-    await c.addWhopicture(); // title missing → blocked
+    c.whopictureEditor.newPhotoUrl.set('https://example.com/p.jpg');
+    c.whopictureEditor.newPhotoPlayers.set([...names11]);
+    await c.whopictureEditor.add(); // title missing → blocked
     expect(apiStub.addWhopicture).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
-    c.newPhotoTitle.set(TITLE);
-    c.newPhotoPlayers.set([...names11].map((v, i) => (i === 10 ? '' : v)));
-    await c.addWhopicture(); // 11th name missing → blocked
+    c.whopictureEditor.newPhotoTitle.set(TITLE);
+    c.whopictureEditor.newPhotoPlayers.set([...names11].map((v, i) => (i === 10 ? '' : v)));
+    await c.whopictureEditor.add(); // 11th name missing → blocked
     expect(apiStub.addWhopicture).not.toHaveBeenCalled();
     expect(c.msg()).toContain('11');
   });
@@ -997,15 +997,15 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/whopicture/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.newPhotoTitle.set(TITLE);
-    c.newPhotoUrl.set('https://example.com/p.jpg');
-    c.newPhotoPlayers.set([...names11]);
-    await c.addWhopicture();
+    c.whopictureEditor.newPhotoTitle.set(TITLE);
+    c.whopictureEditor.newPhotoUrl.set('https://example.com/p.jpg');
+    c.whopictureEditor.newPhotoPlayers.set([...names11]);
+    await c.whopictureEditor.add();
     expect(apiStub.addWhopicture).toHaveBeenCalledWith(TITLE, 'https://example.com/p.jpg', names11);
     expect(toast.success).toHaveBeenCalledWith('تمت إضافة الصورة (#9).');
-    expect(c.newPhotoTitle()).toBe('');
-    expect(c.newPhotoUrl()).toBe('');
-    expect(c.newPhotoPlayers().every((v) => v === '')).toBe(true);
+    expect(c.whopictureEditor.newPhotoTitle()).toBe('');
+    expect(c.whopictureEditor.newPhotoUrl()).toBe('');
+    expect(c.whopictureEditor.newPhotoPlayers().every((v) => v === '')).toBe(true);
     await drainList(httpMock, 'whopicture');
   });
 
@@ -1072,13 +1072,13 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     (fixture.nativeElement.querySelector('.edit-btn') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(c.editingId()).toBe(11);
-    expect(c.editPhotoTitle()).toBe(TITLE);
-    expect(c.editPhotoUrl()).toBe('https://example.com/p.jpg');
-    expect(c.editPhotoPlayers()).toEqual(names11);
+    expect(c.whopictureEditor.editPhotoTitle()).toBe(TITLE);
+    expect(c.whopictureEditor.editPhotoUrl()).toBe('https://example.com/p.jpg');
+    expect(c.whopictureEditor.editPhotoPlayers()).toEqual(names11);
 
-    c.editPhotoTitle.set('ريال مدريد 2022');
-    c.editPhotoUrl.set('https://example.com/new.jpg');
-    await c.saveEditWhopicture(11);
+    c.whopictureEditor.editPhotoTitle.set('ريال مدريد 2022');
+    c.whopictureEditor.editPhotoUrl.set('https://example.com/new.jpg');
+    await c.whopictureEditor.save(11);
     expect(apiStub.update).toHaveBeenCalledWith('whopicture', 11, {
       title: 'ريال مدريد 2022',
       photoUrl: 'https://example.com/new.jpg',
@@ -1097,13 +1097,13 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
       .expectOne((r) => r.url.includes('/whopicture/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
     c.startEditWhopicture({ id: 11, title: TITLE, photoUrl: 'https://example.com/p.jpg', players: names11 });
-    c.editPhotoTitle.set('');
-    await c.saveEditWhopicture(11);
+    c.whopictureEditor.editPhotoTitle.set('');
+    await c.whopictureEditor.save(11);
     expect(apiStub.update).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
-    c.editPhotoTitle.set(TITLE);
-    c.setEditPhotoPlayer(0, '');
-    await c.saveEditWhopicture(11);
+    c.whopictureEditor.editPhotoTitle.set(TITLE);
+    c.whopictureEditor.setEditPlayer(0, '');
+    await c.whopictureEditor.save(11);
     expect(apiStub.update).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
     expect(c.msg()).toContain('11');

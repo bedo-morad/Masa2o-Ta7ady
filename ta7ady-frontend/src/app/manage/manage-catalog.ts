@@ -38,6 +38,9 @@ export interface ManageEditorHost {
   cancelEdit(): void;
   refreshAfterMutation(): void;
   reportFeedback(message: string, intent: 'success' | 'error'): void;
+  refreshAfterAdd(): void;
+  reportMutationFailure(error: unknown, fallback: string): void;
+  completeEdit(message: string): void;
 }
 
 /** Owns the Manage catalog lifecycle; editors consume its narrow host contract rather than resources. */

@@ -7,7 +7,10 @@ import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, AnameenSubject, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
 import { ManageCatalog, ManageEditorHost } from './manage-catalog';
-import { createPoolEditors } from './pool-editors';
+import { ScoreSheetEditor } from './scoresheet-editor';
+import { WhoPictureEditor } from './whopicture-editor';
+import { ScoreSheetEditorComponent } from './scoresheet-editor.component';
+import { WhoPictureEditorComponent } from './whopicture-editor.component';
 
 export const TOP10_SIZE = 13;
 export const LINEUP_SIZE = 11;
@@ -23,7 +26,7 @@ function blankRisk(): RiskQuestion[] {
 @Component({
   selector: 'app-manage',
   standalone: true,
-  imports: [FormsModule, RouterLink, ImportPanelComponent],
+  imports: [FormsModule, RouterLink, ImportPanelComponent, ScoreSheetEditorComponent, WhoPictureEditorComponent],
   templateUrl: './manage.component.html',
   styleUrl: './manage.component.scss',
 })
@@ -105,38 +108,16 @@ export class ManageComponent {
   readonly loading = this.catalog.loading;
   readonly editorHost: ManageEditorHost = {
     authorization: () => this.adminOn(),
-    requestEdit: (id) => {
-      this.expandedId.set(null);
-      this.editingId.set(id);
-    },
+    requestEdit: (id) => { this.expandedId.set(null); this.editingId.set(id); },
     cancelEdit: () => this.editingId.set(null),
     refreshAfterMutation: () => this.reloadActive(),
-    reportFeedback: (message, intent) => {
-      this.msg.set(message);
-      if (intent === 'success') this.toast.success(message);
-      else this.toast.error(message);
-    },
+    refreshAfterAdd: () => { if (this.page() === 0) this.reloadActive(); else this.page.set(0); },
+    reportFeedback: (message, intent) => { this.msg.set(message); if (intent === 'success') this.toast.success(message); else this.toast.error(message); },
+    reportMutationFailure: (error, fallback) => { if (this.denyIf401(error)) return; const reason = this.apiMsg(error) ?? fallback; this.msg.set(reason); this.toast.error(reason); },
+    completeEdit: (message) => { this.editingId.set(null); this.reloadActive(); this.msg.set(message); this.toast.success(message); },
   };
-  readonly poolEditors = createPoolEditors();
-  readonly scoresheetEditor = this.poolEditors.scoresheet;
-  readonly whopictureEditor = this.poolEditors.whopicture;
-  // Template-facing aliases keep the established Manage seam while the draft state lives in Pool owners.
-  readonly newMatch = this.scoresheetEditor.newMatch;
-  readonly newTeamA = this.scoresheetEditor.newTeamA;
-  readonly newTeamB = this.scoresheetEditor.newTeamB;
-  readonly lineupA = this.scoresheetEditor.lineupA;
-  readonly lineupB = this.scoresheetEditor.lineupB;
-  readonly editMatch = this.scoresheetEditor.editMatch;
-  readonly editTeamA = this.scoresheetEditor.editTeamA;
-  readonly editTeamB = this.scoresheetEditor.editTeamB;
-  readonly editLineupA = this.scoresheetEditor.editLineupA;
-  readonly editLineupB = this.scoresheetEditor.editLineupB;
-  readonly newPhotoTitle = this.whopictureEditor.newPhotoTitle;
-  readonly newPhotoUrl = this.whopictureEditor.newPhotoUrl;
-  readonly newPhotoPlayers = this.whopictureEditor.newPhotoPlayers;
-  readonly editPhotoTitle = this.whopictureEditor.editPhotoTitle;
-  readonly editPhotoUrl = this.whopictureEditor.editPhotoUrl;
-  readonly editPhotoPlayers = this.whopictureEditor.editPhotoPlayers;
+  readonly scoresheetEditor = new ScoreSheetEditor(this.api, this.editorHost);
+  readonly whopictureEditor = new WhoPictureEditor(this.api, this.editorHost);
   select(p: Pool): void {
     this.catalog.select(p);
     this.msg.set('');
@@ -187,18 +168,10 @@ export class ManageComponent {
   setTop10Answer(i: number, v: string): void {
     this.top10Answers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
-
-  setLineupA(i: number, v: string): void { this.scoresheetEditor.setLineupA(i, v); }
-
-  setLineupB(i: number, v: string): void { this.scoresheetEditor.setLineupB(i, v); }
-
   setEditTop10Answer(i: number, v: string): void {
     this.editAnswers.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
-  setEditLineupA(i: number, v: string): void { this.scoresheetEditor.setEditLineupA(i, v); }
-
-  setEditLineupB(i: number, v: string): void { this.scoresheetEditor.setEditLineupB(i, v); }
 
   setNewRisk(i: number, field: 'question' | 'answer', v: string): void {
     this.newRisk.update((arr) => arr.map((q, j) => (j === i ? { ...q, [field]: v } : q)));
@@ -216,9 +189,6 @@ export class ManageComponent {
     this.editClues.update((arr) => arr.map((old, j) => (j === i ? v : old)));
   }
 
-  setNewPhotoPlayer(i: number, v: string): void { this.whopictureEditor.setNewPlayer(i, v); }
-
-  setEditPhotoPlayer(i: number, v: string): void { this.whopictureEditor.setEditPlayer(i, v); }
 
   // ---- inline edit (admin-unlocked, SPECV3 §3.1) ----
 
@@ -248,18 +218,7 @@ export class ManageComponent {
     this.editingId.set(t.id);
   }
 
-  startEditScoresheet(m: {
-    id: number;
-    matchLabel: string;
-    teamA: string;
-    teamB: string;
-    lineupA: string[];
-    lineupB: string[];
-  }): void {
-    this.scoresheetEditor.prefill(m);
-    this.expandedId.set(null);
-    this.editingId.set(m.id);
-  }
+  startEditScoresheet(m: Parameters<ScoreSheetEditor['startEdit']>[0]): void { this.scoresheetEditor.startEdit(m); }
 
   startEditBank(b: { id: number; question: string; answer: string }): void {
     this.editQ.set(b.question);
@@ -282,11 +241,7 @@ export class ManageComponent {
     this.editingId.set(a.id);
   }
 
-  startEditWhopicture(w: WhoPicturePhoto): void {
-    this.whopictureEditor.prefill(w);
-    this.expandedId.set(null);
-    this.editingId.set(w.id);
-  }
+  startEditWhopicture(w: WhoPicturePhoto): void { this.whopictureEditor.startEdit(w); }
 
   cancelEdit(): void {
     this.editingId.set(null);
@@ -365,37 +320,6 @@ export class ManageComponent {
     );
   }
 
-  async saveEditScoresheet(id: number): Promise<void> {
-    this.msg.set('');
-    const a = this.editLineupA().map((p) => p.trim());
-    const b = this.editLineupB().map((p) => p.trim());
-    if (
-      !this.editMatch().trim() ||
-      !this.editTeamA().trim() ||
-      !this.editTeamB().trim() ||
-      a.some((p) => !p) ||
-      b.some((p) => !p)
-    ) {
-      const reason = 'أكمل اسم المباراة والفريقين و22 لاعبًا قبل الحفظ.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    await this.applyEdit(
-      'scoresheet',
-      id,
-      {
-        match: this.editMatch(),
-        teamA: this.editTeamA(),
-        teamB: this.editTeamB(),
-        lineupA: a,
-        lineupB: b,
-      },
-      'تم حفظ تعديل المباراة.',
-      'خطأ — يلزم اسم مباراة وفريقان و11 لاعبًا لكل تشكيلة.',
-    );
-  }
-
   async saveEditBank(id: number): Promise<void> {
     await this.applyEdit(
       'bank',
@@ -448,25 +372,6 @@ export class ManageComponent {
     );
   }
 
-  async saveEditWhopicture(id: number): Promise<void> {
-    this.msg.set('');
-    const title = this.editPhotoTitle().trim();
-    const photoUrl = this.editPhotoUrl().trim();
-    const players = this.editPhotoPlayers().map((p) => p.trim());
-    if (!title || !photoUrl || players.some((p) => !p)) {
-      const reason = 'أكمل العنوان ورابط الصورة وأسماء اللاعبين الـ11 قبل الحفظ.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    await this.applyEdit(
-      'whopicture',
-      id,
-      { title, photoUrl, players },
-      `تم حفظ تعديل الصورة (#${id}).`,
-      'خطأ — يلزم عنوان ورابط صالح و11 اسمًا مميزًا.',
-    );
-  }
 
   private reloadActive(): void {
     this.catalog.reloadActive();
@@ -545,42 +450,6 @@ export class ManageComponent {
     }
   }
 
-  async addScoresheet(): Promise<void> {
-    this.msg.set('');
-    const a = this.lineupA().map((p) => p.trim());
-    const b = this.lineupB().map((p) => p.trim());
-    if (
-      !this.newMatch().trim() ||
-      !this.newTeamA().trim() ||
-      !this.newTeamB().trim() ||
-      a.some((p) => !p) ||
-      b.some((p) => !p)
-    ) {
-      const reason = 'أكمل اسم المباراة والفريقين و22 لاعبًا قبل الإضافة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    try {
-      await firstValueFrom(
-        this.api.addScoresheet(this.newMatch(), this.newTeamA(), this.newTeamB(), a, b),
-      );
-      this.newMatch.set('');
-      this.newTeamA.set('');
-      this.newTeamB.set('');
-      this.lineupA.set(Array(LINEUP_SIZE).fill(''));
-      this.lineupB.set(Array(LINEUP_SIZE).fill(''));
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      this.msg.set('تمت إضافة المباراة.');
-      this.toast.success('تمت إضافة المباراة.');
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — يلزم اسم مباراة وفريقان و11 لاعبًا لكل تشكيلة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
-  }
-
   async addBank(): Promise<void> {
     this.msg.set('');
     try {
@@ -648,34 +517,6 @@ export class ManageComponent {
       this.toast.success(ok);
     } catch (e: unknown) {
       const reason = this.apiMsg(e) ?? 'خطأ — يلزم اسم وخمسة تلميحات مميزة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-    }
-  }
-
-  async addWhopicture(): Promise<void> {
-    this.msg.set('');
-    const title = this.newPhotoTitle().trim();
-    const photoUrl = this.newPhotoUrl().trim();
-    const players = this.newPhotoPlayers().map((p) => p.trim());
-    if (!title || !photoUrl || players.some((p) => !p)) {
-      const reason = 'أكمل العنوان ورابط الصورة وأسماء اللاعبين الـ11 قبل الإضافة.';
-      this.msg.set(reason);
-      this.toast.error(reason);
-      return;
-    }
-    try {
-      const saved = await firstValueFrom(this.api.addWhopicture(title, photoUrl, players));
-      this.newPhotoTitle.set('');
-      this.newPhotoUrl.set('');
-      this.newPhotoPlayers.set(Array(LINEUP_SIZE).fill(''));
-      if (this.page() === 0) this.reloadActive();
-      else this.page.set(0);
-      const ok = `تمت إضافة الصورة (#${saved.id}).`;
-      this.msg.set(ok);
-      this.toast.success(ok);
-    } catch (e: unknown) {
-      const reason = this.apiMsg(e) ?? 'خطأ — يلزم رابط صالح و11 اسمًا مميزًا.';
       this.msg.set(reason);
       this.toast.error(reason);
     }

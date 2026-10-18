@@ -777,7 +777,7 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/risk/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.startEditRisk({
+    c.riskEditor.startEdit({
       id: 9,
       genre: 'ريال مدريد',
       questions: [
@@ -787,8 +787,8 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
         { points: 40, question: 'س3', answer: 'ج3' },
       ],
     });
-    c.setEditRisk(3, 'answer', '');
-    await c.saveEditRisk(9);
+    c.riskEditor.setEditRisk(3, 'answer', '');
+    await c.riskEditor.save(9);
     expect(apiStub.update).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
     expect(c.msg()).toContain('أربعة');
@@ -809,12 +809,12 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/risk/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.newGenre.set('ريال مدريد');
+    c.riskEditor.newGenre = 'ريال مدريد';
     for (const i of [0, 1, 2, 3]) {
-      c.setNewRisk(i, 'question', `سؤال ${i}`);
-      c.setNewRisk(i, 'answer', `جواب ${i}`);
+      c.riskEditor.setNewRisk(i, 'question', `سؤال ${i}`);
+      c.riskEditor.setNewRisk(i, 'answer', `جواب ${i}`);
     }
-    await c.addRisk();
+    await c.riskEditor.add();
     expect(apiStub.addRisk).toHaveBeenCalledWith('ريال مدريد', [
       { points: 5, question: 'سؤال 0', answer: 'جواب 0' },
       { points: 10, question: 'سؤال 1', answer: 'جواب 1' },

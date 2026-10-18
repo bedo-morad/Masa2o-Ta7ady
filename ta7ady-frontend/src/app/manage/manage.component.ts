@@ -16,6 +16,8 @@ import { ScoreSheetEditor } from './scoresheet-editor';
 import { ScoreSheetEditorComponent } from './scoresheet-editor.component';
 import { WhoPictureEditor } from './whopicture-editor';
 import { WhoPictureEditorComponent } from './whopicture-editor.component';
+import { RiskPackEditorModel } from './risk-pack-editor';
+import { RiskPackEditorComponent } from './risk-pack-editor.component';
 import {
   BankEditor,
   IhbidEditor,
@@ -38,7 +40,7 @@ function blankRisk(): RiskQuestion[] {
 @Component({
   selector: 'app-manage',
   standalone: true,
-  imports: [FormsModule, RouterLink, ImportPanelComponent, PlayersRenderer, IhbidRenderer, OffsideRenderer, BankRenderer, Top10EditorComponent, AnameenEditorComponent, ScoreSheetEditorComponent, WhoPictureEditorComponent],
+  imports: [FormsModule, RouterLink, ImportPanelComponent, PlayersRenderer, IhbidRenderer, OffsideRenderer, BankRenderer, Top10EditorComponent, AnameenEditorComponent, ScoreSheetEditorComponent, WhoPictureEditorComponent, RiskPackEditorComponent],
   templateUrl: './manage.component.html',
   styleUrl: './manage.component.scss',
 })
@@ -177,6 +179,7 @@ export class ManageComponent {
   readonly anameenEditor = new AnameenEditor(this.api, this.editorHost);
   readonly scoresheetEditor = new ScoreSheetEditor(this.api, this.editorHost);
   readonly whopictureEditor = new WhoPictureEditor(this.api, this.editorHost);
+  readonly riskEditor = new RiskPackEditorModel(this.api, this.editorHost);
   select(p: Pool): void {
     this.catalog.select(p);
     this.msg.set('');

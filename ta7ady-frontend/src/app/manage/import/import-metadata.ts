@@ -28,11 +28,10 @@ const whopictureLabel = (row: ImportRow | null, index: number): string =>
   (row ? firstPlayer(row) : '') ||
   `صف ${index + 1}`;
 
-const legacyMatchLabel = (row: ImportRow | null, index: number): string =>
-  text(row?.['match']) ||
-  text(row?.['matchLabel']) ||
-  text(row?.['match_label']) ||
-  `صف ${index + 1}`;
+const legacyMatchLabel = (row: ImportRow | null, index: number): string => {
+  const match = row?.['match'] ?? row?.['matchLabel'] ?? row?.['match_label'];
+  return text(match) || `صف ${index + 1}`;
+};
 
 export const POOL_METADATA: Record<Pool, ImportMetadata> = {
   players: {

@@ -166,3 +166,24 @@ it('keeps the current preview naming for every pool metadata variant', () => {
     expect(fixture.componentInstance.labelFor(0)).toBe(expected);
   }
 });
+
+it.each<Pool>(['scoresheet', 'bank', 'risk'])(
+  'preserves nullish legacy match selection in %s previews',
+  (pool) => {
+    const { fixture } = setup(pool);
+    const c = fixture.componentInstance;
+    c.rows.set([
+      { match: '', matchLabel: 'تسمية بديلة' },
+      { match: '   ', matchLabel: 'تسمية بديلة' },
+      { match: null, matchLabel: '  تسمية بديلة  ' },
+      { matchLabel: '', match_label: 'تسمية أخرى' },
+      { match: null, matchLabel: null, match_label: '  تسمية أخرى  ' },
+    ]);
+
+    expect(c.labelFor(0)).toBe('صف 1');
+    expect(c.labelFor(1)).toBe('صف 2');
+    expect(c.labelFor(2)).toBe('تسمية بديلة');
+    expect(c.labelFor(3)).toBe('صف 4');
+    expect(c.labelFor(4)).toBe('تسمية أخرى');
+  },
+);

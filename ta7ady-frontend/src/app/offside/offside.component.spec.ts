@@ -67,21 +67,24 @@ describe('OffsideComponent asked marks (rendered screen)', () => {
     expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
   });
 
-  it('leaves rendered content, order, scoreboard, timer, score changes, and HTTP untouched by toggles', async () => {
+  it('undoes a mark without changing content, order, scores, timer, or draw HTTP', async () => {
     await setup();
     const content = rows().map((r) => r.querySelector('.rtext')?.textContent?.trim());
-    const board = fixture.nativeElement.querySelector('.scoreboard')?.innerHTML;
+    const order = rows().map((r) => r.querySelector('.rnum')?.textContent?.trim());
     const timer = fixture.nativeElement.querySelector('.timer')?.innerHTML;
     click(marks()[1]);
-    http.expectNone((r) => r.url.includes('/offside'));
-    expect(rows().map((r) => r.querySelector('.rtext')?.textContent?.trim())).toEqual(content);
-    expect(fixture.nativeElement.querySelector('.scoreboard')?.innerHTML).toBe(board);
-    expect(fixture.nativeElement.querySelector('.timer')?.innerHTML).toBe(timer);
+    expect(marks()[1].getAttribute('aria-pressed')).toBe('true');
     click(fixture.nativeElement.querySelector('.team-b .plus')!);
-    expect(fixture.nativeElement.querySelector('.team-b .score')?.textContent?.trim()).toBe('1');
+    expect(marks()[1].getAttribute('aria-pressed')).toBe('true');
+    const scoreboard = fixture.nativeElement.querySelector('.scoreboard')?.innerHTML;
     click(marks()[1]);
-    click(fixture.nativeElement.querySelector('.team-b .plus')!);
-    expect(fixture.nativeElement.querySelector('.team-b .score')?.textContent?.trim()).toBe('2');
+    expect(marks()[1].getAttribute('aria-pressed')).toBe('false');
+    expect(rows().map((r) => r.querySelector('.rtext')?.textContent?.trim())).toEqual(content);
+    expect(rows().map((r) => r.querySelector('.rnum')?.textContent?.trim())).toEqual(order);
+    expect(fixture.nativeElement.querySelector('.scoreboard')?.innerHTML).toBe(scoreboard);
+    expect(fixture.nativeElement.querySelector('.timer')?.innerHTML).toBe(timer);
+    expect(fixture.nativeElement.querySelector('.team-b .score')?.textContent?.trim()).toBe('1');
+    http.expectNone((r) => r.url.includes('/offside'));
   });
 
   it('clears marks after count change, new draw, and a fresh fixture', async () => {

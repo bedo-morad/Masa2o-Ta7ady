@@ -76,21 +76,24 @@ describe('IhbidComponent asked marks (rendered screen)', () => {
     expect(marks().map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'true']);
   });
 
-  it('does not draw or change content, order, scores, or timer when toggling', async () => {
+  it('undoes a mark without changing content, order, scores, timer, or draw HTTP', async () => {
     await setup();
     const beforeRows = rows().map((r) => r.querySelector('.qbody')?.textContent?.trim());
-    const scoreboard = fixture.nativeElement.querySelector('.scoreboard')?.innerHTML;
+    const beforeOrder = rows().map((r) => r.querySelector('.qnum')?.textContent?.trim());
     const timer = fixture.nativeElement.querySelector('.timer')?.innerHTML;
     click(marks()[1]);
-    http.expectNone((r) => r.url.includes('/ihbid'));
+    expect(marks()[1].getAttribute('aria-pressed')).toBe('true');
+    click(fixture.nativeElement.querySelector('.team-a .plus')!);
+    expect(marks()[1].getAttribute('aria-pressed')).toBe('true');
+    const scoreboard = fixture.nativeElement.querySelector('.scoreboard')?.innerHTML;
+    click(marks()[1]);
+    expect(marks()[1].getAttribute('aria-pressed')).toBe('false');
     expect(rows().map((r) => r.querySelector('.qbody')?.textContent?.trim())).toEqual(beforeRows);
+    expect(rows().map((r) => r.querySelector('.qnum')?.textContent?.trim())).toEqual(beforeOrder);
     expect(fixture.nativeElement.querySelector('.scoreboard')?.innerHTML).toBe(scoreboard);
     expect(fixture.nativeElement.querySelector('.timer')?.innerHTML).toBe(timer);
-    click(fixture.nativeElement.querySelector('.team-a .plus'));
     expect(fixture.nativeElement.querySelector('.team-a .score')?.textContent?.trim()).toBe('1');
-    click(marks()[1]);
-    click(fixture.nativeElement.querySelector('.team-a .plus'));
-    expect(fixture.nativeElement.querySelector('.team-a .score')?.textContent?.trim()).toBe('2');
+    http.expectNone((r) => r.url.includes('/ihbid'));
   });
 
   it('keeps reveal visibility and asked marks independent across all four state combinations', async () => {

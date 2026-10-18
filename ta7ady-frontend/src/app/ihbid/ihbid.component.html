@@ -15,9 +15,7 @@
     <select
       id="ih-count"
       [ngModel]="count()"
-      (change)="
-        countChanged($any($event.target).options[$any($event.target).selectedIndex].textContent)
-      "
+      (ngModelChange)="countChanged($event)"
     >
       <option [ngValue]="5">5</option>
       <option [ngValue]="10">10</option>

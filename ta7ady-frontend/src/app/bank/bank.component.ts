@@ -9,6 +9,7 @@ import {
   AuditEntry,
   AuditStripComponent,
 } from '../shared/attribution/attribution.component';
+import { ScoreBooking } from '../shared/score-booking';
 
 // Bank (RULES.md / SPECV3 §3.3): six rounds, three per team, alternating — the
 // referee picks who opens once and the site alternates from there. The whole
@@ -65,7 +66,7 @@ export class BankComponent {
   readonly banked = signal<number[]>(freshBanked());
   readonly audit = signal<AuditEntry[]>([]);
   readonly msg = signal('');
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   readonly rounds = Array.from({ length: BANK_ROUNDS }, (_, i) => i);
   readonly total = BANK_TOTAL;
@@ -185,7 +186,7 @@ export class BankComponent {
     const amount = this.chainOf(i);
     const team = this.teamOfRound(i);
     if (!team || amount <= 0) return;
-    this.applyScore(team, amount, `بنك الدور ${i + 1}`);
+    this.booking.book(team, amount, `بنك الدور ${i + 1}`);
     this.banked.update((bs) => {
       const next = [...bs];
       next[i] = (next[i] ?? 0) + amount;
@@ -208,7 +209,7 @@ export class BankComponent {
     this.audit.set([]);
     this.scoreA.set(0);
     this.scoreB.set(0);
-    this.seq = 0;
+    this.booking.resetSequence();
     this.msg.set('');
     this.res.reload();
   }
@@ -222,13 +223,4 @@ export class BankComponent {
     });
   }
 
-  /** Applies delta directly (scores may go negative); audits the actual
-   * amount, so the strip always sums to the score. Returns the delta. */
-  private applyScore(team: BankTeam, delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
-  }
 }

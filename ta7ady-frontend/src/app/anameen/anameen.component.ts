@@ -16,6 +16,7 @@ import {
   AuditStripComponent,
   attributionDeltas,
 } from '../shared/attribution/attribution.component';
+import { ScoreBooking } from '../shared/score-booking';
 
 // Ana Meen (RULES.md / SPECV4 §4.2): a hidden player, five clues hard → easy,
 // one subject on screen at a time — all five clues visible from the start, the
@@ -57,7 +58,7 @@ export class AnameenComponent {
   readonly audit = signal<AuditEntry[]>([]);
   readonly msg = signal('');
   readonly rerolling = signal(false);
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   readonly counts = ANAMEEN_COUNTS;
   readonly points = ANAMEEN_POINTS;
@@ -113,7 +114,7 @@ export class AnameenComponent {
     this.scoreB.set(0);
     this.audit.set([]);
     this.msg.set('');
-    this.seq = 0;
+    this.booking.resetSequence();
     this.reload();
   }
 
@@ -126,8 +127,8 @@ export class AnameenComponent {
     const subject = this.current();
     if (!subject) return;
     const { deltaA, deltaB } = attributionDeltas(ch.points, ch.from, ch.to);
-    this.applyScore('A', deltaA, subject.player);
-    this.applyScore('B', deltaB, subject.player);
+    this.booking.book('A', deltaA, subject.player);
+    this.booking.book('B', deltaB, subject.player);
     this.assignments.update((m) => {
       const next = { ...m };
       if (ch.to) next[subject.id] = ch.to;
@@ -147,7 +148,7 @@ export class AnameenComponent {
       const old = this.subjects()[i];
       if (old) {
         const team = this.assignments()[old.id] ?? null;
-        if (team) this.applyScore(team, -ANAMEEN_POINTS, old.player);
+        if (team) this.booking.book(team, -ANAMEEN_POINTS, old.player);
         this.assignments.update((m) => {
           const next = { ...m };
           delete next[old.id];
@@ -164,15 +165,6 @@ export class AnameenComponent {
     }
   }
 
-  /** Applies a delta directly (scores may go negative); audits the actual
-   * amount so the strip always sums to the score. */
-  private applyScore(team: AnameenTeam, delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
-  }
 
   private moveTo(i: number): void {
     const last = Math.max(0, this.subjects().length - 1);

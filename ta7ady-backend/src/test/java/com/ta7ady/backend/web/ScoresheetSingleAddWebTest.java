@@ -1,10 +1,9 @@
 package com.ta7ady.backend.web;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,104 +27,141 @@ class ScoresheetSingleAddWebTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    void acceptsCanonicalFieldsAndLegacyMatchAliases() throws Exception {
-        postJson(row("match", "Big Final"))
+    void acceptsCanonicalFieldsAndEachLegacyMatchAlias() throws Exception {
+        postJson(scoresheetWith("match", "Big Final"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.matchLabel").value("Big Final"))
                 .andExpect(jsonPath("$.lineupA", hasSize(11)));
-        postJson(row("matchLabel", "Legacy Final")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.matchLabel").value("Legacy Final"));
-        postJson(row("match_label", "Snake Final")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.matchLabel").value("Snake Final"));
+        postJson(scoresheetWith("matchLabel", "Legacy Final"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.matchLabel").value("Legacy Final"));
+        postJson(scoresheetWith("match_label", "Snake Final"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.matchLabel").value("Snake Final"));
     }
 
     @Test
-    void canonicalMatchWinsOverAliasesAndNullCanonicalFallsBack() throws Exception {
-        Map<String, Object> canonicalWins = row("match", "Canonical Final");
-        canonicalWins.put("matchLabel", "Camel Final");
-        canonicalWins.put("match_label", "Snake Final");
-        postJson(canonicalWins).andExpect(status().isOk())
+    void canonicalMatchWinsOverCompetingAliases() throws Exception {
+        ObjectNode body = scoresheetWith("match", "Canonical Final");
+        body.put("matchLabel", "Camel Final");
+        body.put("match_label", "Snake Final");
+        postJson(body).andExpect(status().isOk())
                 .andExpect(jsonPath("$.matchLabel").value("Canonical Final"));
+    }
 
-        Map<String, Object> nullFallsBack = row("match", null);
-        nullFallsBack.put("matchLabel", "Camel Final");
-        nullFallsBack.put("match_label", "Snake Final");
-        postJson(nullFallsBack).andExpect(status().isOk())
+    @Test
+    void nullCanonicalFallsBackToAliasesButNullAliasesContinueInOrder() throws Exception {
+        ObjectNode camelFallback = scoresheetWith("match", (String) null);
+        camelFallback.put("matchLabel", "Camel Final");
+        camelFallback.put("match_label", "Snake Final");
+        postJson(camelFallback).andExpect(status().isOk())
                 .andExpect(jsonPath("$.matchLabel").value("Camel Final"));
 
-        Map<String, Object> nullBothFallsBack = row("match", null);
-        nullBothFallsBack.put("matchLabel", null);
-        nullBothFallsBack.put("match_label", "Snake Final");
-        postJson(nullBothFallsBack).andExpect(status().isOk())
+        ObjectNode snakeFallback = scoresheetWith("match", (String) null);
+        snakeFallback.putNull("matchLabel");
+        snakeFallback.put("match_label", "Snake Final");
+        postJson(snakeFallback).andExpect(status().isOk())
                 .andExpect(jsonPath("$.matchLabel").value("Snake Final"));
+
+        ObjectNode noMatch = scoresheetWith("match", (String) null);
+        noMatch.putNull("matchLabel");
+        noMatch.putNull("match_label");
+        postJson(noMatch).andExpect(status().isBadRequest());
     }
 
     @Test
-    void coercesScalarStringsAndNumbersButWrongLineupShapesFailValidation() throws Exception {
-        Map<String, Object> body = row("match", "123");
+    void canonicalEmptyOrWrongTypeDoesNotFallBackToAliases() throws Exception {
+        ObjectNode empty = scoresheetWith("match", "");
+        empty.put("matchLabel", "Alias Final");
+        postJson(empty).andExpect(status().isBadRequest());
+
+        ObjectNode wrongType = scoresheetWith("match", mapper.createObjectNode());
+        wrongType.put("matchLabel", "Alias Final");
+        postJson(wrongType).andExpect(status().isBadRequest());
+
+        ObjectNode numeric = scoresheetWith("match", mapper.getNodeFactory().numberNode(123));
+        numeric.put("matchLabel", "Alias Final");
+        postJson(numeric).andExpect(status().isOk())
+                .andExpect(jsonPath("$.matchLabel").value("123"));
+    }
+
+    @Test
+    void coercesScalarStringsAndNumbersWhileWrongLineupShapesFailValidation() throws Exception {
+        ObjectNode body = scoresheetWith("match", "123");
         body.put("teamA", 123);
         body.put("teamB", 456);
-        body.put("lineupA", numericLineup());
-        body.put("lineupB", numericLineup());
+        body.set("lineupA", numericLineup());
+        body.set("lineupB", numericLineup());
         postJson(body).andExpect(status().isOk())
                 .andExpect(jsonPath("$.teamA").value("123"))
                 .andExpect(jsonPath("$.lineupA[0]").value("101"));
 
-        Map<String, Object> wrongLineup = row("match", "Big Final");
-        wrongLineup.put("lineupA", "not a list");
-        postJson(wrongLineup).andExpect(status().isBadRequest());
+        ObjectNode wrongA = scoresheetWith("match", "Big Final");
+        wrongA.put("lineupA", "not a list");
+        postJson(wrongA).andExpect(status().isBadRequest());
+        ObjectNode wrongB = scoresheetWith("match", "Big Final");
+        wrongB.put("lineupB", "not a list");
+        postJson(wrongB).andExpect(status().isBadRequest());
     }
 
     @Test
     void missingFieldsAndUnknownAliasesAreBadRequest() throws Exception {
-        Map<String, Object> missingMatch = row("match", null);
+        ObjectNode missingMatch = scoresheetWith("match", "Big Final");
         missingMatch.remove("match");
         postJson(missingMatch).andExpect(status().isBadRequest());
 
-        Map<String, Object> unknown = row("match", null);
+        ObjectNode unknown = scoresheetWith("match", "Big Final");
         unknown.remove("match");
         unknown.put("fixture", "Big Final");
         postJson(unknown).andExpect(status().isBadRequest());
 
-        Map<String, Object> missingTeam = row("match", "Big Final");
-        missingTeam.remove("teamA");
-        postJson(missingTeam).andExpect(status().isBadRequest());
+        ObjectNode missingTeamA = scoresheetWith("match", "Big Final");
+        missingTeamA.remove("teamA");
+        postJson(missingTeamA).andExpect(status().isBadRequest());
+        ObjectNode missingLineup = scoresheetWith("match", "Big Final");
+        missingLineup.remove("lineupB");
+        postJson(missingLineup).andExpect(status().isBadRequest());
     }
 
     @Test
     void malformedAndNonObjectBodiesAreBadRequest() throws Exception {
-        mvc.perform(post("/api/scoresheet").contentType(MediaType.APPLICATION_JSON).content("{"))
+        postRaw("{").andExpect(status().isBadRequest());
+        postJson(mapper.createArrayNode().add(scoresheetWith("match", "Big Final")))
                 .andExpect(status().isBadRequest());
-        mvc.perform(post("/api/scoresheet").contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(List.of(row("match", "Big Final")))))
-                .andExpect(status().isBadRequest());
-        mvc.perform(post("/api/scoresheet").contentType(MediaType.APPLICATION_JSON).content("null"))
-                .andExpect(status().isBadRequest());
+        postRaw("null").andExpect(status().isBadRequest());
     }
 
-    private org.springframework.test.web.servlet.ResultActions postJson(Object body) throws Exception {
-        return mvc.perform(post("/api/scoresheet").contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(body)));
+    private org.springframework.test.web.servlet.ResultActions postJson(JsonNode body) throws Exception {
+        return postRaw(mapper.writeValueAsString(body));
     }
 
-    private static Map<String, Object> row(String matchKey, Object match) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put(matchKey, match);
+    private org.springframework.test.web.servlet.ResultActions postRaw(String body) throws Exception {
+        return mvc.perform(post("/api/scoresheet").contentType(MediaType.APPLICATION_JSON).content(body));
+    }
+
+    private static ObjectNode scoresheetWith(String matchKey, String match) {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode body = mapper.createObjectNode();
+        if (match == null) body.putNull(matchKey); else body.put(matchKey, match);
         body.put("teamA", "Team Alpha");
         body.put("teamB", "Team Beta");
-        body.put("lineupA", lineup("Side A"));
-        body.put("lineupB", lineup("Side B"));
+        body.set("lineupA", lineup("Side A"));
+        body.set("lineupB", lineup("Side B"));
         return body;
     }
 
-    private static List<String> lineup(String prefix) {
-        List<String> names = new ArrayList<>();
+    private static ObjectNode scoresheetWith(String matchKey, JsonNode match) {
+        ObjectNode body = scoresheetWith(matchKey, "Big Final");
+        body.set(matchKey, match);
+        return body;
+    }
+
+    private static ArrayNode lineup(String prefix) {
+        ArrayNode names = new ObjectMapper().createArrayNode();
         for (int i = 1; i <= 11; i++) names.add(prefix + " " + String.format("%02d", i));
         return names;
     }
 
-    private static List<Integer> numericLineup() {
-        List<Integer> names = new ArrayList<>();
+    private static ArrayNode numericLineup() {
+        ArrayNode names = new ObjectMapper().createArrayNode();
         for (int i = 1; i <= 11; i++) names.add(100 + i);
         return names;
     }

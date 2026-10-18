@@ -415,6 +415,27 @@ describe('ManageComponent add forms', () => {
     expect(apiStub.addScoresheet).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
   });
+  it('renders migrated Pools through explicit renderers and preserves the shared text draft across tabs', async () => {
+    const { fixture, httpMock } = await setupForms(); const c = fixture.componentInstance;
+    c.basicDrafts.addText.set('مسودة مشتركة'); c.select('offside'); fixture.detectChanges(); flushPool(httpMock, 'offside'); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-offside-renderer')).not.toBeNull();
+    expect(c.basicDrafts.addText()).toBe('مسودة مشتركة');
+    c.select('players'); fixture.detectChanges(); flushPool(httpMock, 'players'); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-players-renderer')).not.toBeNull();
+    expect(c.basicDrafts.addText()).toBe('مسودة مشتركة');
+  });
+  it('keeps an add draft and reports the backend message when a Pool add fails', async () => {
+    const { fixture, apiStub, httpMock } = await setupForms(); const c = fixture.componentInstance;
+    apiStub.addPlayer.mockReturnValueOnce(throwError(() => ({ error: { message: 'اسم مكرر' } })));
+    c.basicDrafts.addText.set('اسم مكرر'); await c.playersEditor.add();
+    expect(c.basicDrafts.addText()).toBe('اسم مكرر'); expect(c.msg()).toBe('اسم مكرر'); httpMock.verify();
+  });
+  it('cancels an admin inline edit at the rendered Manage form seam without a mutation', async () => {
+    const { fixture, apiStub, httpMock } = await setupForms(); const c = fixture.componentInstance;
+    c.api.unlock('pw'); c.startEditPlayer({ id: 1, playerName: 'لاعب' });
+    expect(c.editingId()).toBe(1); c.cancelEdit();
+    expect(c.editingId()).toBeNull(); httpMock.verify();
+  });
 });
 
 describe('ManageComponent polish', () => {

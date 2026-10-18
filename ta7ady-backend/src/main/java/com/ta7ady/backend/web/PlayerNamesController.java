@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 // same rows so both frontend screens stay separate while backend stays merged.
 @RestController
 @RequestMapping({"/api/players", "/api/password", "/api/acting"})
-public class PlayerNamesController extends BulkAdminController<PlayerNameBulkRow> {
+public class PlayerNamesController extends BulkAdminController<PlayerNameBulkRow, PlayerName> {
     private final PlayerNameService service;
 
     public PlayerNamesController(PlayerNameService service, AdminGate admin) {
@@ -31,19 +32,19 @@ public class PlayerNamesController extends BulkAdminController<PlayerNameBulkRow
 
     // GET /api/players?count=10 -> N random rows as JSON (same for /api/password, /api/acting)
     @GetMapping
-    public List<PlayerName> random(@RequestParam(defaultValue = "10") int count) {
-        return service.random(count);
+    public ResponseEntity<List<PlayerName>> random(@RequestParam(defaultValue = "10") int count) {
+        return ResponseEntity.ok(service.random(count));
     }
 
     @GetMapping("/all")
-    public Page<PlayerName> all(Pageable pageable) {
-        return service.all(pageable);
+    public ResponseEntity<Page<PlayerName>> all(Pageable pageable) {
+        return ResponseEntity.ok(service.all(pageable));
     }
 
     // POST JSON: { "playerName": "..." }
     @PostMapping
-    public PlayerName create(@RequestBody Map<String, String> body) {
-        return service.create(body.getOrDefault("playerName", ""));
+    public ResponseEntity<PlayerName> create(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(service.create(body.getOrDefault("playerName", "")));
     }
 
     @Override

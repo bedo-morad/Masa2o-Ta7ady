@@ -48,6 +48,10 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
 - `GET ?count=` defaults/clamps per spec (`anameen` 3 / 1–10, `whopicture` 1 / 1–5);
   `/all` paged; POST schemas exactly per `AUTHORING.md`; PUT/DELETE admin-gated via
   `AdminGate` (no flag → 401/403). CORS allows PUT.
+- New controller endpoints must return explicit `ResponseEntity<T>` types; adopt
+  this for existing endpoints when refactoring them. Preserve deliberate status
+  codes and serialized body contracts, including existing POST/DELETE success
+  codes; do not change them merely to follow REST conventions.
 - Tests per endpoint: validation, clamps/defaults, admin gates, order preservation.
   `mvn verify` green before landing.
 

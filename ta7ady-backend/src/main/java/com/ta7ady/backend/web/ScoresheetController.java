@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/scoresheet")
-public class ScoresheetController extends BulkAdminController<ScoresheetBulkRow> {
+public class ScoresheetController extends BulkAdminController<ScoresheetBulkRow, ScoresheetMatch> {
     private final ScoresheetService service;
 
     public ScoresheetController(ScoresheetService service, AdminGate admin) {
@@ -28,22 +29,22 @@ public class ScoresheetController extends BulkAdminController<ScoresheetBulkRow>
 
     // GET /api/scoresheet?count=1 -> N random matches with both lineups
     @GetMapping
-    public List<ScoresheetMatch> random(@RequestParam(defaultValue = "1") int count) {
-        return service.random(count);
+    public ResponseEntity<List<ScoresheetMatch>> random(@RequestParam(defaultValue = "1") int count) {
+        return ResponseEntity.ok(service.random(count));
     }
 
     @GetMapping("/all")
-    public Page<ScoresheetMatch> all(Pageable pageable) {
-        return service.all(pageable);
+    public ResponseEntity<Page<ScoresheetMatch>> all(Pageable pageable) {
+        return ResponseEntity.ok(service.all(pageable));
     }
 
     // POST JSON: { "match": "...", "teamA": "...", "teamB": "...",
     //              "lineupA": [... x11], "lineupB": [... x11] }
     @PostMapping
-    public ScoresheetMatch create(@RequestBody Map<String, Object> body) {
-        return service.create(ScoresheetService.matchOf(body), BulkHelper.str(body.get("teamA")),
+    public ResponseEntity<ScoresheetMatch> create(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(service.create(ScoresheetService.matchOf(body), BulkHelper.str(body.get("teamA")),
                 BulkHelper.str(body.get("teamB")), BulkHelper.list(body.get("lineupA")),
-                BulkHelper.list(body.get("lineupB")));
+                BulkHelper.list(body.get("lineupB"))));
     }
 
     @Override

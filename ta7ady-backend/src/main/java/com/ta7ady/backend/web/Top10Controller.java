@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/top10")
-public class Top10Controller extends BulkAdminController<Top10BulkRow> {
+public class Top10Controller extends BulkAdminController<Top10BulkRow, Top10List> {
     private final Top10Service service;
 
     public Top10Controller(Top10Service service, AdminGate admin) {
@@ -28,21 +29,21 @@ public class Top10Controller extends BulkAdminController<Top10BulkRow> {
 
     // GET /api/top10?count=1 -> N random lists with all 13 answers
     @GetMapping
-    public List<Top10List> random(@RequestParam(defaultValue = "1") int count) {
-        return service.random(count);
+    public ResponseEntity<List<Top10List>> random(@RequestParam(defaultValue = "1") int count) {
+        return ResponseEntity.ok(service.random(count));
     }
 
     @GetMapping("/all")
-    public Page<Top10List> all(Pageable pageable) {
-        return service.all(pageable);
+    public ResponseEntity<Page<Top10List>> all(Pageable pageable) {
+        return ResponseEntity.ok(service.all(pageable));
     }
 
     // POST JSON: { "prompt": "...", "answers": ["rank1", ..., "rank13"] }
     @PostMapping
-    public Top10List create(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<Top10List> create(@RequestBody Map<String, Object> body) {
         Object answers = body.get("answers");
-        return service.create(BulkHelper.str(body.get("prompt")),
-                answers instanceof List ? (List<?>) answers : null);
+        return ResponseEntity.ok(service.create(BulkHelper.str(body.get("prompt")),
+                answers instanceof List ? (List<?>) answers : null));
     }
 
     @Override

@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiService, RiskPack, RiskQuestion } from '../api.service';
-import { ManageEditorHost } from './manage-catalog';
+import { ApiService, RiskPack, RiskQuestion } from '../../../api.service';
+import { ManageEditorHost } from '../shared/editor-host';
 
 export const RISK_TIERS = [5, 10, 20, 40] as const;
 

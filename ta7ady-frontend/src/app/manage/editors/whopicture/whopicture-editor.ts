@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiService, WhoPicturePhoto } from '../api.service';
-import { ManageEditorHost } from './manage-catalog';
+import { ApiService, WhoPicturePhoto } from '../../../api.service';
+import { ManageEditorHost } from '../shared/editor-host';
 
 export const WHO_PICTURE_EDITOR_SIZE = 11;
 const empty = () => Array(WHO_PICTURE_EDITOR_SIZE).fill('');

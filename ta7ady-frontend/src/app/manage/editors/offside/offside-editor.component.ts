@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { OffsideEditor } from './pool-editors';
+import { OffsideEditor } from './offside-editor';
 
 @Component({
   selector: 'app-offside-renderer',

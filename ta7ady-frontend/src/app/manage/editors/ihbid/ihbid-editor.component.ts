@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IhbidEditor } from './pool-editors';
+import { IhbidEditor } from './ihbid-editor';
 
 @Component({
   selector: 'app-ihbid-renderer',

@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RiskPack } from '../api.service';
+import { RiskPack } from '../../../api.service';
 import { RiskPackEditorModel } from './risk-pack-editor';
 
 @Component({

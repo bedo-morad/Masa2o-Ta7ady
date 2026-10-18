@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AnameenSubject, ApiService } from '../api.service';
-import { ManageEditorHost } from './manage-catalog';
+import { AnameenSubject, ApiService } from '../../../api.service';
+import { ManageEditorHost } from '../shared/editor-host';
 
 export const ANAMEEN_EDITOR_CLUES = 5;
 const emptyClues = () => Array(ANAMEEN_EDITOR_CLUES).fill('');

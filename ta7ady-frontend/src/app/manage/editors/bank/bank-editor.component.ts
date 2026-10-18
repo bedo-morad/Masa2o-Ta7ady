@@ -1,15 +1,15 @@
 import { Component, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PlayersEditor } from './pool-editors';
+import { BankEditor } from './bank-editor';
 
 @Component({
-  selector: 'app-players-renderer',
+  selector: 'app-bank-renderer',
   standalone: true,
   imports: [FormsModule],
-  templateUrl: './players-editor.component.html',
+  templateUrl: './bank-editor.component.html',
 })
-export class PlayersEditorComponent {
-  readonly editor = input.required<PlayersEditor>();
+export class BankEditorComponent {
+  readonly editor = input.required<BankEditor>();
   readonly mode = input<'add' | 'edit'>('add');
   readonly id = input<number>();
 }

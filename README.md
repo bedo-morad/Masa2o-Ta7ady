@@ -49,7 +49,7 @@ Got a question that will stump your friends? Open Question Management (إدار�
 
 For a bigger refresh, upload a JSON question pack or paste its contents. The importer lets you check the rows in a dry-run preview and fix or drop invalid entries before confirming the save. If an old question needs correcting or removing, unlock Admin mode with the admin password to edit or delete it.
 
-![Question Management showing the game pools, add-player form, JSON importer, and existing player list](docs/screenshots/management.png)
+![Question Management showing the game pools, add-player form, and JSON importer](docs/screenshots/management.png)
 
 ## Settings
 

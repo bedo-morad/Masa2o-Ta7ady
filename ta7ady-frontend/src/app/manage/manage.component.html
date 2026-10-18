@@ -83,25 +83,6 @@
     </button>
   </div>
 
-  @if (pool() === 'players') {
-    <form class="add" (ngSubmit)="playersEditor.add()">
-      <input [(ngModel)]="basicDrafts.addText" name="np" placeholder="اسم لاعب جديد (3 أحرف على الأقل)" />
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
-    </form>
-  }
-  @if (pool() === 'ihbid') {
-    <form class="add column" (ngSubmit)="ihbidEditor.add()">
-      <input [(ngModel)]="basicDrafts.addQuestion" name="nq" placeholder="السؤال" />
-      <input [(ngModel)]="basicDrafts.addAnswer" name="na" placeholder="الجواب (رقم أو تاريخ)" />
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة سؤال</button>
-    </form>
-  }
-  @if (pool() === 'offside') {
-    <form class="add" (ngSubmit)="offsideEditor.add()">
-      <input [(ngModel)]="basicDrafts.addText" name="nr" placeholder="قاعدة جديدة — مثال: لاعب إيطالي" />
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
-    </form>
-  }
   @if (pool() === 'top10') {
     <form class="add column" (ngSubmit)="addTop10()">
       <input [(ngModel)]="newTop10Prompt" name="ntp" placeholder="عنوان القائمة — مثال: أعلى 13 هدافًا…" />
@@ -176,13 +157,6 @@
         </fieldset>
       </div>
       <button type="submit"><i class="fa-solid fa-plus"></i> إضافة مباراة</button>
-    </form>
-  }
-  @if (pool() === 'bank') {
-    <form class="add column" (ngSubmit)="bankEditor.add()">
-      <input [(ngModel)]="basicDrafts.addQuestion" name="nbq" placeholder="السؤال" />
-      <input [(ngModel)]="basicDrafts.addAnswer" name="nba" placeholder="الجواب (قصير)" />
-      <button type="submit"><i class="fa-solid fa-plus"></i> إضافة سؤال</button>
     </form>
   }
   @if (pool() === 'risk') {
@@ -266,99 +240,13 @@
 
   <ul class="rows">
     @if (pool() === 'players') {
-      @for (p of playerRows(); track p.id) {
-        <li>
-          @if (adminOn() && editingId() === p.id) {
-            <form class="edit" (ngSubmit)="playersEditor.save(p.id)">
-              <input
-                [(ngModel)]="basicDrafts.editText"
-                name="editPlayer"
-                placeholder="اسم اللاعب"
-                aria-label="تعديل اسم اللاعب"
-              />
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
-          } @else {
-            <span>{{ p.playerName }}</span>
-            @if (adminOn()) {
-              <div class="row-actions">
-                <button type="button" class="edit-btn" (click)="playersEditor.start(p)" aria-label="تعديل" title="تعديل">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button type="button" class="del" (click)="removePlayer(p.id)" aria-label="حذف">
-                  <i class="fa-solid fa-trash"></i> حذف
-                </button>
-              </div>
-            }
-          }
-        </li>
-      }
+      <app-players-renderer [editor]="playersEditor" [rows]="playerRows()" [ctx]="editorContext" [remove]="removePlayer.bind(this)" />
     }
     @if (pool() === 'ihbid') {
-      @for (q of ihbidRows(); track q.id) {
-        <li class="wide ihbid-row">
-          @if (adminOn() && editingId() === q.id) {
-            <form class="edit column" (ngSubmit)="ihbidEditor.save(q.id)">
-              <input [(ngModel)]="basicDrafts.editQuestion" name="editIhbidQ" placeholder="السؤال" aria-label="تعديل السؤال" />
-              <input [(ngModel)]="basicDrafts.editAnswer" name="editIhbidA" placeholder="الجواب (رقم أو تاريخ)" aria-label="تعديل الجواب" />
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
-          } @else {
-            <span class="qa">
-              <span class="q">{{ q.questionText }}</span>
-              <span class="answer-chip">{{ q.answerText }}</span>
-            </span>
-            @if (adminOn()) {
-              <div class="row-actions">
-                <button type="button" class="edit-btn" (click)="ihbidEditor.start(q)" aria-label="تعديل" title="تعديل">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button type="button" class="del" (click)="removeIhbid(q.id)" aria-label="حذف">
-                  <i class="fa-solid fa-trash"></i> حذف
-                </button>
-              </div>
-            }
-          }
-        </li>
-      }
+      <app-ihbid-renderer [editor]="ihbidEditor" [rows]="ihbidRows()" [ctx]="editorContext" [remove]="removeIhbid.bind(this)" />
     }
     @if (pool() === 'offside') {
-      @for (r of offsideRows(); track r.id) {
-        <li>
-          @if (adminOn() && editingId() === r.id) {
-            <form class="edit" (ngSubmit)="offsideEditor.save(r.id)">
-              <input
-                [(ngModel)]="basicDrafts.editText"
-                name="editRule"
-                placeholder="القاعدة"
-                aria-label="تعديل القاعدة"
-              />
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
-          } @else {
-            <span>{{ r.ruleText }}</span>
-            @if (adminOn()) {
-              <div class="row-actions">
-                <button type="button" class="edit-btn" (click)="offsideEditor.start(r)" aria-label="تعديل" title="تعديل">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button type="button" class="del" (click)="removeOffside(r.id)" aria-label="حذف">
-                  <i class="fa-solid fa-trash"></i> حذف
-                </button>
-              </div>
-            }
-          }
-        </li>
-      }
+      <app-offside-renderer [editor]="offsideEditor" [rows]="offsideRows()" [ctx]="editorContext" [remove]="removeOffside.bind(this)" />
     }
     @if (pool() === 'top10') {
       @for (t of top10Rows(); track t.id) {
@@ -541,35 +429,7 @@
       }
     }
     @if (pool() === 'bank') {
-      @for (b of bankRows(); track b.id) {
-        <li class="wide bank-row">
-          @if (adminOn() && editingId() === b.id) {
-            <form class="edit column" (ngSubmit)="bankEditor.save(b.id)">
-              <input [(ngModel)]="basicDrafts.editQuestion" name="editBankQ" placeholder="السؤال" aria-label="تعديل السؤال" />
-              <input [(ngModel)]="basicDrafts.editAnswer" name="editBankA" placeholder="الجواب" aria-label="تعديل الجواب" />
-              <div class="edit-actions">
-                <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
-                <button type="button" class="cancel" (click)="cancelEdit()">إلغاء</button>
-              </div>
-            </form>
-          } @else {
-            <span class="qa">
-              <span class="q">{{ b.question }}</span>
-              <span class="answer-chip">{{ b.answer }}</span>
-            </span>
-            @if (adminOn()) {
-              <div class="row-actions">
-                <button type="button" class="edit-btn" (click)="bankEditor.start(b)" aria-label="تعديل" title="تعديل">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button type="button" class="del" (click)="removeBank(b.id)" aria-label="حذف">
-                  <i class="fa-solid fa-trash"></i> حذف
-                </button>
-              </div>
-            }
-          }
-        </li>
-      }
+      <app-bank-renderer [editor]="bankEditor" [rows]="bankRows()" [ctx]="editorContext" [remove]="removeBank.bind(this)" />
     }
     @if (pool() === 'risk') {
       @for (p of riskRows(); track p.id) {

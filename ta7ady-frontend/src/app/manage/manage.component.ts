@@ -6,6 +6,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { ApiService, AnameenSubject, Pool, RiskQuestion, WhoPicturePhoto } from '../api.service';
 import { ImportPanelComponent } from './import/import-panel.component';
+import { BankRenderer, IhbidRenderer, OffsideRenderer, PlayersRenderer } from './pool-renderers';
 import { ManageCatalog, ManageEditorHost } from './manage-catalog';
 import {
   BankEditor,
@@ -29,7 +30,7 @@ function blankRisk(): RiskQuestion[] {
 @Component({
   selector: 'app-manage',
   standalone: true,
-  imports: [FormsModule, RouterLink, ImportPanelComponent],
+  imports: [FormsModule, RouterLink, ImportPanelComponent, PlayersRenderer, IhbidRenderer, OffsideRenderer, BankRenderer],
   templateUrl: './manage.component.html',
   styleUrl: './manage.component.scss',
 })
@@ -126,6 +127,7 @@ export class ManageComponent {
   readonly totalElements = this.catalog.totalElements;
   readonly totalPages = this.catalog.totalPages;
   readonly loading = this.catalog.loading;
+  readonly editorContext = { adminOn: this.adminOn, editingId: this.editingId, cancelEdit: () => this.cancelEdit() };
   readonly editorHost: ManageEditorHost = {
     authorization: () => this.adminOn(),
     requestEdit: (id) => {

@@ -340,9 +340,9 @@ describe('ManageComponent add forms', () => {
     c.select('top10');
     fixture.detectChanges();
     flushPool(httpMock, 'top10');
-    c.newTop10Prompt.set('عنوان');
-    c.top10Answers.set(Array(13).fill('إجابة').map((v, i) => (i === 12 ? '' : v)));
-    await c.addTop10();
+    c.top10Editor.prompt.set('عنوان');
+    c.top10Editor.answers.set(Array(13).fill('إجابة').map((v, i) => (i === 12 ? '' : v)));
+    await c.top10Editor.add();
     expect(apiStub.addTop10).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
     expect(c.msg()).toContain('13');
@@ -354,15 +354,15 @@ describe('ManageComponent add forms', () => {
     c.select('top10');
     fixture.detectChanges();
     flushPool(httpMock, 'top10');
-    c.newTop10Prompt.set('عنوان');
-    c.top10Answers.set(Array.from({ length: 13 }, (_, i) => `إجابة ${i + 1}`));
-    await c.addTop10();
+    c.top10Editor.prompt.set('عنوان');
+    c.top10Editor.answers.set(Array.from({ length: 13 }, (_, i) => `إجابة ${i + 1}`));
+    await c.top10Editor.add();
     expect(apiStub.addTop10).toHaveBeenCalledWith(
       'عنوان',
       Array.from({ length: 13 }, (_, i) => `إجابة ${i + 1}`),
     );
     expect(toast.success).toHaveBeenCalled();
-    expect(c.top10Answers().every((a) => a === '')).toBe(true);
+    expect(c.top10Editor.answers().every((a) => a === '')).toBe(true);
     // The post-add list reload fires async; drain it if it landed so no
     // HttpTestingController state leaks between tests.
     await new Promise((r) => setTimeout(r, 0));
@@ -377,12 +377,12 @@ describe('ManageComponent add forms', () => {
     c.select('top10');
     fixture.detectChanges();
     flushPool(httpMock, 'top10');
-    c.newTop10Prompt.set('عنوان');
-    c.top10Answers.set(Array.from({ length: 13 }, (_, i) => `إجابة ${i + 1}`));
+    c.top10Editor.prompt.set('عنوان');
+    c.top10Editor.answers.set(Array.from({ length: 13 }, (_, i) => `إجابة ${i + 1}`));
     apiStub.addTop10.mockReturnValueOnce(
       throwError(() => ({ error: { message: 'سبب من الخادم' } })),
     );
-    await c.addTop10();
+    await c.top10Editor.add();
     expect(c.msg()).toBe('سبب من الخادم');
     expect(toast.error).toHaveBeenCalledWith('سبب من الخادم');
   });
@@ -761,9 +761,9 @@ describe('ManageComponent inline edit (SPECV3 3.1)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/top10/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.startEditTop10({ id: 5, prompt: 'عنوان', answers: Array(13).fill('إجابة') });
-    c.setEditTop10Answer(12, '');
-    await c.saveEditTop10(5);
+    c.top10Editor.startEdit({ id: 5, prompt: 'عنوان', answers: Array(13).fill('إجابة') });
+    c.top10Editor.setEditAnswer(12, '');
+    await c.top10Editor.save(5);
     expect(apiStub.update).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
     expect(c.msg()).toContain('13');
@@ -946,9 +946,9 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/anameen/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.newSubject.set('محمد صلاح');
-    c.newClues.set([...clues5].map((v, i) => (i === 4 ? '' : v)));
-    await c.addAnameen();
+    c.anameenEditor.subject.set('محمد صلاح');
+    c.anameenEditor.clues.set([...clues5].map((v, i) => (i === 4 ? '' : v)));
+    await c.anameenEditor.add();
     expect(apiStub.addAnameen).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
     expect(c.msg()).toContain('خمس');
@@ -962,13 +962,13 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/anameen/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.newSubject.set('محمد صلاح');
-    c.newClues.set([...clues5]);
-    await c.addAnameen();
+    c.anameenEditor.subject.set('محمد صلاح');
+    c.anameenEditor.clues.set([...clues5]);
+    await c.anameenEditor.add();
     expect(apiStub.addAnameen).toHaveBeenCalledWith('محمد صلاح', clues5);
     expect(toast.success).toHaveBeenCalledWith('تمت إضافة الشخصية (#7).');
-    expect(c.newSubject()).toBe('');
-    expect(c.newClues().every((v) => v === '')).toBe(true);
+    expect(c.anameenEditor.subject()).toBe('');
+    expect(c.anameenEditor.clues().every((v) => v === '')).toBe(true);
     await drainList(httpMock, 'anameen');
   });
 
@@ -980,12 +980,12 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/anameen/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.newSubject.set('محمد صلاح');
-    c.newClues.set([...clues5]);
+    c.anameenEditor.subject.set('محمد صلاح');
+    c.anameenEditor.clues.set([...clues5]);
     apiStub.addAnameen.mockReturnValueOnce(
       throwError(() => ({ error: { message: 'المستخدم موجود بالفعل' } })),
     );
-    await c.addAnameen();
+    await c.anameenEditor.add();
     expect(c.msg()).toBe('المستخدم موجود بالفعل');
     expect(toast.error).toHaveBeenCalledWith('المستخدم موجود بالفعل');
   });
@@ -1038,11 +1038,11 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     (el.querySelector('.edit-btn') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(c.editingId()).toBe(4);
-    expect(c.editSubject()).toBe('محمد صلاح');
-    expect(c.editClues()).toEqual(clues5);
+    expect(c.anameenEditor.editSubject()).toBe('محمد صلاح');
+    expect(c.anameenEditor.editClues()).toEqual(clues5);
 
-    c.editSubject.set('منصور');
-    await c.saveEditAnameen(4);
+    c.anameenEditor.editSubject.set('منصور');
+    await c.anameenEditor.save(4);
     expect(apiStub.update).toHaveBeenCalledWith('anameen', 4, { player: 'منصور', clues: clues5 });
     expect(toast.success).toHaveBeenCalledWith('تم حفظ تعديل الشخصية (#4).');
     expect(c.editingId()).toBeNull();
@@ -1055,9 +1055,9 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     apiStub.update.mockReturnValueOnce(
       throwError(() => ({ error: { message: 'المستخدم موجود بالفعل' } })),
     );
-    c.startEditAnameen({ id: 4, player: 'محمد صلاح', clues: clues5 });
-    c.editSubject.set('اسم مستخدم آخر');
-    await c.saveEditAnameen(4);
+    c.anameenEditor.startEdit({ id: 4, player: 'محمد صلاح', clues: clues5 });
+    c.anameenEditor.editSubject.set('اسم مستخدم آخر');
+    await c.anameenEditor.save(4);
     expect(apiStub.update).toHaveBeenCalledWith('anameen', 4, {
       player: 'اسم مستخدم آخر',
       clues: clues5,
@@ -1076,9 +1076,9 @@ describe('ManageComponent v4 pools (anameen + whopicture)', () => {
     httpMock
       .expectOne((r) => r.url.includes('/anameen/all'))
       .flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-    c.startEditAnameen({ id: 4, player: 'محمد صلاح', clues: clues5 });
-    c.setEditClue(4, '');
-    await c.saveEditAnameen(4);
+    c.anameenEditor.startEdit({ id: 4, player: 'محمد صلاح', clues: clues5 });
+    c.anameenEditor.setEditClue(4, '');
+    await c.anameenEditor.save(4);
     expect(apiStub.update).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
     expect(c.msg()).toContain('خمس');

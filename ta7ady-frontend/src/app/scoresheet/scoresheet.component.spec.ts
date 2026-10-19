@@ -50,6 +50,21 @@ describe('ScoresheetComponent', () => {
     expect(c.count()).toBe(1);
   });
 
+  it('shows سكور شيت as the heading and keeps strikes below the match lineups', () => {
+    const fixture = TestBed.createComponent(ScoresheetComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.matches.set([match(1)]);
+    fixture.componentInstance.slotsOf(match(1));
+    fixture.detectChanges();
+
+    const page = fixture.nativeElement.querySelector('.challenge') as HTMLElement;
+    expect(page.querySelector('h2')?.textContent?.trim()).toBe('سكور شيت');
+    expect(page.lastElementChild?.tagName.toLowerCase()).toBe('app-strike-tracker');
+    const lineups = page.querySelector('app-scoresheet-lineups')!;
+    const strikes = page.querySelector('app-strike-tracker')!;
+    expect(lineups.compareDocumentPosition(strikes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('keeps full long player labels when selecting and unselecting either side', () => {
     const fixture = TestBed.createComponent(ScoresheetComponent);
     fixture.detectChanges();

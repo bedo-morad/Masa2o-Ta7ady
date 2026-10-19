@@ -1,5 +1,5 @@
 <div class="challenge">
-  <app-game-header title="ورقة النتائج" />
+  <app-game-header title="سكور شيت" />
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
@@ -9,16 +9,6 @@
     </button>
   </div>
   <app-timer timerKey="scoresheet" [defaultSeconds]="10" label="مؤقت المحاولة" />
-
-  @if (current(); as strikeMatch) {
-    <app-strike-tracker
-      [slots]="slotsOf(strikeMatch)"
-      [eliminationThreshold]="3"
-      (bump)="onSlotBump(strikeMatch.id, $event)"
-      (reset)="onSlotReset(strikeMatch.id, $event)"
-      (rename)="onSlotRename(strikeMatch.id, $event)"
-    />
-  }
 
   <app-count-selector
     controlId="ss-count"
@@ -49,6 +39,16 @@
       [match]="match"
       [assignments]="assignments()[match.id] ?? {}"
       (playerToggle)="onToggle(match, $event.side, $event.index, $event.player)"
+    />
+  }
+
+  @if (current(); as strikeMatch) {
+    <app-strike-tracker
+      [slots]="slotsOf(strikeMatch)"
+      [eliminationThreshold]="3"
+      (bump)="onSlotBump(strikeMatch.id, $event)"
+      (reset)="onSlotReset(strikeMatch.id, $event)"
+      (rename)="onSlotRename(strikeMatch.id, $event)"
     />
   }
 </div>

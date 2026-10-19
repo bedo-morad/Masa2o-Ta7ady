@@ -8,6 +8,7 @@ import { AnameenTeam, ANAMEEN_COUNTS, ANAMEEN_COUNT_DEFAULT, ANAMEEN_POINTS } fr
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
+import { AskedMarkerComponent } from '../shared/asked-marker/asked-marker.component';
 import { SettingsService } from '../services/settings.service';
 import {
   AssignedTeam,
@@ -35,6 +36,7 @@ import { ScoreBooking } from '../shared/score-booking';
     ScoreboardComponent,
     TimerComponent,
     ItemNavigationComponent,
+    AskedMarkerComponent,
     AttributionComponent,
   ],
   templateUrl: './anameen.component.html',
@@ -52,6 +54,8 @@ export class AnameenComponent {
   readonly count = signal<number>(ANAMEEN_COUNT_DEFAULT);
   readonly subjects = signal<AnameenSubject[]>([]);
   readonly idx = signal(0);
+  /** Asked markers belong only to the currently displayed card. */
+  readonly askedClues = signal<Set<number>>(new Set());
   readonly assignments = signal<Record<number, AssignedTeam>>({});
   readonly audit = signal<AuditEntry[]>([]);
   readonly msg = signal('');
@@ -75,6 +79,7 @@ export class AnameenComponent {
       if (rows) {
         this.subjects.set(rows);
         this.idx.set(0);
+        this.resetAskedClues();
         this.msg.set(rows.length ? '' : 'لا يوجد لاعبون مخفيون بعد — أضف من صفحة إدارة الأسئلة.');
       }
       if (this.res.error()) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
@@ -95,14 +100,29 @@ export class AnameenComponent {
     return subject.clues[k - 1] ?? '';
   }
 
+  asked(k: number): boolean {
+    return this.askedClues().has(k);
+  }
+
+  toggleAsked(k: number): void {
+    this.askedClues.update((asked) => {
+      const next = new Set(asked);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  }
+
   setCount(n: number): void {
     if (!this.counts.includes(n) || n === this.count()) return;
     this.count.set(n);
     this.idx.set(0);
+    this.resetAskedClues();
   }
 
   reload(): void {
     this.idx.set(0);
+    this.resetAskedClues();
     this.res.reload();
   }
 
@@ -154,7 +174,10 @@ export class AnameenComponent {
         });
       }
       this.subjects.update((ss) => ss.map((s, k) => (k === i ? subject : s)));
-      if (i === this.idx()) this.timer()?.reset();
+      if (i === this.idx()) {
+        this.resetAskedClues();
+        this.timer()?.reset();
+      }
       this.msg.set('');
     } catch {
       this.msg.set('تعذر دسّة هذا الموضوع — حاول مجددًا.');
@@ -167,7 +190,12 @@ export class AnameenComponent {
   private moveTo(i: number): void {
     const last = Math.max(0, this.subjects().length - 1);
     this.idx.set(Math.min(last, Math.max(0, i)));
+    this.resetAskedClues();
     this.timer()?.reset();
+  }
+
+  private resetAskedClues(): void {
+    this.askedClues.set(new Set());
   }
 
   prev(): void {

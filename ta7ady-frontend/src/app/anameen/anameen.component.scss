@@ -120,6 +120,10 @@ a:focus-visible {
   padding: 0.5rem 0.65rem;
   min-height: 48px;
 
+  &.asked {
+    background: color-mix(in srgb, var(--pitch-surface-2) 88%, var(--pitch-gold));
+  }
+
   .no {
     flex: none;
     font-weight: 900;

@@ -133,6 +133,30 @@ describe('AnameenComponent', () => {
     expect(c.idx()).toBe(0);
   });
 
+  it('toggles an asked clue without revealing, scoring, or changing other clues', () => {
+    const c = setup();
+    expect(c.asked(1)).toBe(false);
+    expect(c.asked(2)).toBe(false);
+    c.toggleAsked(1);
+    expect(c.asked(1)).toBe(true);
+    expect(c.asked(2)).toBe(false);
+    expect(c.current()?.clues).toEqual(subject(1).clues);
+    expect(c.scoreA()).toBe(0);
+    expect(c.scoreB()).toBe(0);
+    c.toggleAsked(1);
+    expect(c.asked(1)).toBe(false);
+  });
+
+  it('resets asked clues when moving to a new card or redrawing', () => {
+    const c = setup();
+    c.toggleAsked(1);
+    c.go(1);
+    expect(c.asked(1)).toBe(false);
+    c.toggleAsked(3);
+    c.reload();
+    expect(c.asked(3)).toBe(false);
+  });
+
   it('per-subject dice swaps the player and reverses its +1 with an audited -1', async () => {
     const c = setup();
     const api = TestBed.inject(ApiService);
@@ -140,6 +164,7 @@ describe('AnameenComponent', () => {
     vi.spyOn(api, 'anameenRandom').mockReturnValue(of([subject(99)]));
     await c.reroll(0);
     expect(c.subjects()[0].id).toBe(99);
+    expect(c.asked(1)).toBe(false);
     expect(c.assigned(99)).toBeNull();
     expect(c.scoreA()).toBe(0);
     expect(c.audit().at(-1)).toEqual(

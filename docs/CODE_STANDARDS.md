@@ -33,6 +33,18 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
   `ApiService` + `firstValueFrom`. No manual subscriptions without `takeUntilDestroyed`.
 - Standalone 4-file components (`.ts` + `.html` + `.scss` + `.spec.ts`). Every component
   ships a spec covering its math/state transitions (attribution, strikes, audit).
+- **One folder per child component.** Keep the main game component's four files at
+  the game folder root. Put each game-owned child component's four files together
+  inside a nested folder with the same component name (without `.component`). For
+  example, `bank/bank.component.ts` coordinates
+  `bank/bank-question-card/bank-question-card.component.{ts,html,scss,spec.ts}` and
+  `bank/bank-chain-controls/bank-chain-controls.component.{ts,html,scss,spec.ts}`.
+  Use descriptive names that explain the child's responsibility; do not scatter
+  child files across the game root. Keep the child's template, styles, and tests
+  local to that folder and update relative imports when moving it. Apply this
+  layout to new and extracted components; do not move unrelated existing features
+  merely to normalize folders. Truly repeated responsibilities belong in `shared/`
+  with the same one-component-per-folder convention, not in another game's folder.
 - `SettingsService` + `ThemeService` remain the only writers of settings/theme.
   New timers add a settings key (`anameen` 60s, `whopicture` 10s) + `timerKey` wiring.
 - Arabic-only RTL UI. No English strings in templates. No rule-explainer text on play pages.

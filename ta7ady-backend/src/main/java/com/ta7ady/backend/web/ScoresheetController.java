@@ -5,6 +5,9 @@ import com.ta7ady.backend.bulk.BulkRowResult;
 import com.ta7ady.backend.entity.ScoresheetMatch;
 import com.ta7ady.backend.service.ScoresheetService;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,14 +20,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/scoresheet")
 public class ScoresheetController extends BulkAdminController<ScoresheetBulkRow, ScoresheetMatch> {
     private final ScoresheetService service;
 
-    public ScoresheetController(ScoresheetService service, AdminGate admin) {
-        super(admin);
-        this.service = service;
-    }
+    @Getter(AccessLevel.PROTECTED)
+    private final AdminGate admin;
 
     // GET /api/scoresheet?count=1 -> N random matches with both lineups
     @GetMapping

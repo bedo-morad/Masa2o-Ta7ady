@@ -5,6 +5,9 @@ import com.ta7ady.backend.bulk.BulkRowResult;
 import com.ta7ady.backend.entity.Top10List;
 import com.ta7ady.backend.service.Top10Service;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,14 +20,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/top10")
 public class Top10Controller extends BulkAdminController<Top10BulkRow, Top10List> {
     private final Top10Service service;
 
-    public Top10Controller(Top10Service service, AdminGate admin) {
-        super(admin);
-        this.service = service;
-    }
+    @Getter(AccessLevel.PROTECTED)
+    private final AdminGate admin;
 
     // GET /api/top10?count=1 -> N random lists with all 13 answers
     @GetMapping

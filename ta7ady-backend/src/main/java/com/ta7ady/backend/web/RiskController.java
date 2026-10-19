@@ -5,6 +5,9 @@ import com.ta7ady.backend.bulk.BulkRowResult;
 import com.ta7ady.backend.entity.RiskPack;
 import com.ta7ady.backend.service.RiskService;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/risk")
 public class RiskController extends BulkAdminController<RiskBulkRow, RiskPack> {
     private final RiskService service;
 
-    public RiskController(RiskService service, AdminGate admin) {
-        super(admin);
-        this.service = service;
-    }
+    @Getter(AccessLevel.PROTECTED)
+    private final AdminGate admin;
 
     // GET /api/risk?count=4 -> N random packs (one board = 4 packs = 16 questions)
     @GetMapping

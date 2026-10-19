@@ -45,6 +45,14 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
 - One controller/service/repo per pool, same validation spirit: trim, ≥3 chars
   (Ihbid answer non-empty), case-insensitive dedupe → 409, ordered-list lengths enforced
   (Ana Meen exactly 5 distinct clues; Who-picture exactly 11 distinct names + non-empty URL).
+- Concrete Pool controllers use Lombok `@RequiredArgsConstructor` with final service
+  and `AdminGate` fields for constructor injection; do not hand-write these constructors
+  or use field/setter injection. Lombok cannot supply a parameterized `super(...)` call:
+  keep `BulkAdminController` stateless and implement its protected `getAdmin()` hook
+  with field-level `@Getter(AccessLevel.PROTECTED)` on the concrete controller's final
+  gate field. The injected gate remains the shared Spring bean; inherited mappings and
+  authorization checks stay in `BulkAdminController`, with no forwarding endpoints or
+  duplicated checks. Do not add ineffective constructor annotations beside manual constructors.
 - `GET ?count=` defaults/clamps per spec (`anameen` 3 / 1–10, `whopicture` 1 / 1–5);
   `/all` paged; POST schemas exactly per `AUTHORING.md`; PUT/DELETE admin-gated via
   `AdminGate` (no flag → 401/403). CORS allows PUT.

@@ -5,6 +5,9 @@ import com.ta7ady.backend.bulk.BulkRowResult;
 import com.ta7ady.backend.entity.BankQuestion;
 import com.ta7ady.backend.service.BankService;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/bank")
 public class BankController extends BulkAdminController<BankBulkRow, BankQuestion> {
     private final BankService service;
 
-    public BankController(BankService service, AdminGate admin) {
-        super(admin);
-        this.service = service;
-    }
+    @Getter(AccessLevel.PROTECTED)
+    private final AdminGate admin;
 
     // GET /api/bank?count=12 -> N random questions (the game draws ?count=72 once)
     @GetMapping

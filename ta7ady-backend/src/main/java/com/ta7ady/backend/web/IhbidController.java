@@ -5,6 +5,9 @@ import com.ta7ady.backend.bulk.BulkRowResult;
 import com.ta7ady.backend.entity.IhbidQuestion;
 import com.ta7ady.backend.service.IhbidService;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,14 +20,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/ihbid")
 public class IhbidController extends BulkAdminController<IhbidBulkRow, IhbidQuestion> {
     private final IhbidService service;
 
-    public IhbidController(IhbidService service, AdminGate admin) {
-        super(admin);
-        this.service = service;
-    }
+    @Getter(AccessLevel.PROTECTED)
+    private final AdminGate admin;
 
     // GET /api/ihbid?count=10 -> N random rows as JSON
     @GetMapping

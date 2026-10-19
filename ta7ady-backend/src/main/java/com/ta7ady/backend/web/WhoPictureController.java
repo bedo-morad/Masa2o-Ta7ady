@@ -5,6 +5,9 @@ import com.ta7ady.backend.bulk.BulkRowResult;
 import com.ta7ady.backend.entity.WhoPicturePhoto;
 import com.ta7ady.backend.service.WhoPictureService;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/whopicture")
 public class WhoPictureController extends BulkAdminController<WhoPictureBulkRow, WhoPicturePhoto> {
     private final WhoPictureService service;
 
-    public WhoPictureController(WhoPictureService service, AdminGate admin) {
-        super(admin);
-        this.service = service;
-    }
+    @Getter(AccessLevel.PROTECTED)
+    private final AdminGate admin;
 
     // GET /api/whopicture?count=X -> N random photos; one is a full game, so
     // default 1 clamps 1–5 (SPECV4 §4.3).

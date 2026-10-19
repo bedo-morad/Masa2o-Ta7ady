@@ -5,6 +5,9 @@ import com.ta7ady.backend.bulk.BulkRowResult;
 import com.ta7ady.backend.entity.PlayerName;
 import com.ta7ady.backend.service.PlayerNameService;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,14 +24,13 @@ import org.springframework.web.bind.annotation.RestController;
 // Canonical: /api/players. Aliases /api/password and /api/acting serve the
 // same rows so both frontend screens stay separate while backend stays merged.
 @RestController
+@RequiredArgsConstructor
 @RequestMapping({"/api/players", "/api/password", "/api/acting"})
 public class PlayerNamesController extends BulkAdminController<PlayerNameBulkRow, PlayerName> {
     private final PlayerNameService service;
 
-    public PlayerNamesController(PlayerNameService service, AdminGate admin) {
-        super(admin);
-        this.service = service;
-    }
+    @Getter(AccessLevel.PROTECTED)
+    private final AdminGate admin;
 
     // GET /api/players?count=10 -> N random rows as JSON (same for /api/password, /api/acting)
     @GetMapping

@@ -16,11 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 // bulk-row DTO (which is also the single-add/edit body) and supplies its
 // service for the three operations.
 public abstract class BulkAdminController<R, E> {
-    private final AdminGate admin;
-
-    protected BulkAdminController(AdminGate admin) {
-        this.admin = admin;
-    }
+    // Concrete controllers constructor-inject the gate; Lombok supplies this hook
+    // without needing a generated constructor to call a parameterized super().
+    protected abstract AdminGate getAdmin();
 
     protected abstract List<BulkRowResult> bulkRows(List<R> rows, boolean dryRun);
 
@@ -39,14 +37,14 @@ public abstract class BulkAdminController<R, E> {
     @PutMapping("/{id}")
     public ResponseEntity<E> update(@PathVariable Long id, @RequestBody R body,
             @RequestHeader(value = "X-Admin-Password", required = false) String adminPassword) {
-        admin.requireAdmin(adminPassword);
+        getAdmin().requireAdmin(adminPassword);
         return ResponseEntity.ok(updateRow(id, body));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id,
             @RequestHeader(value = "X-Admin-Password", required = false) String adminPassword) {
-        admin.requireAdmin(adminPassword);
+        getAdmin().requireAdmin(adminPassword);
         deleteRow(id);
         return ResponseEntity.ok().build();
     }

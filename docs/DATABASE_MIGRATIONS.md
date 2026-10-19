@@ -22,6 +22,46 @@ Do not move the existing `public` tables, baseline that database, or create an e
 
 Only use this path for a confirmed new database with no existing application tables in any schema.
 
+### Compose: empty data directories only
+
+Both Compose configurations mount the same read-only initializer,
+`docker/postgres/init/10-create-ta7ady-schema.sh`. The official Postgres entrypoint
+runs it **only on first initialization of an empty PostgreSQL data directory**.
+It creates schema `ta7ady` in `POSTGRES_DB`, owned by `POSTGRES_USER`, before the
+final server accepts TCP connections. Keep `SPRING_DATASOURCE_USERNAME` equal to
+`POSTGRES_USER` (and the corresponding database/password settings in sync): that
+role is both the application and Flyway migration role in this stack. A separate
+migration/application role arrangement requires deliberate provisioning and grants.
+
+For a confirmed fresh local Compose database, set `PGDATA=/data/postgres` in
+the shell or project-root `.env`, then run `docker compose up -d --wait` before
+starting the backend. For confirmed fresh production, set
+`PGDATA=/var/lib/postgresql/data`. Production waits for the Postgres TCP healthcheck;
+the socket-only temporary initialization server cannot release that dependency.
+Flyway then applies V1 and Hibernate validates; the initializer does not create
+tables, run migrations, import seeds, or baseline anything.
+
+**Mandatory storage gate:** both Compose files reject an unset/empty `PGDATA`;
+there is deliberately no default in `.env.example`. For a fresh database, the
+paths above match the existing named-volume mounts rather than PostgreSQL 18's
+different image default. Volume names and mount locations are unchanged.
+Before setting `PGDATA` or upgrading an existing deployment, an operator must
+inspect its actual data directory and mounts: earlier configurations may have
+stored data outside the named mount. Do not select the fresh-database examples
+for such a deployment. Retain the verified existing path only after the storage
+and existing-database rollout gates have been satisfied.
+Do not switch storage locations, copy data, or reset volumes to make startup pass;
+resolve any discrepancy through a separately approved storage/rollout plan.
+
+The entrypoint skips all init scripts when the data directory is already
+initialized, even if `ta7ady` is missing. Restarting or updating Compose therefore
+does not repair, alter ownership, or baseline an existing database. **Never delete
+an existing volume to trigger initialization, and never run the initializer
+manually against an existing database.** The existing-database gate above still
+applies, including the prohibition on concealing legacy `public` tables.
+
+### Non-Compose provisioning
+
 1. Provision the database and role through the environment's normal authorized process. Set `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD` using the secret store. Do not place passwords in source, logs, or command-line arguments.
 2. Connect as the database owner and explicitly provision the target schema, owned by the migration role. For a role named `ta7ady_app`, for example:
 
@@ -120,6 +160,14 @@ Deploy compatible **expand** SQL before code that needs it; Boot migrates at sta
 If migration or validation fails, leave traffic off and retain logs/history. PostgreSQL transactional migrations roll back on failure (covered by the test-only division-by-zero case); verify actual state before retrying. Do not blindly downgrade the application after committed DDL: first prove compatibility. Restore the verified backup into a **new** recovery database and switch over only with operator authorization, or apply a reviewed forward fix. Never erase the original target or discard post-backup writes without a recovery decision.
 
 ## Running the checks
+
+Run `./docker/postgres/verify-init.sh` from the repository root with Docker and
+Compose 2.24.4 or later. It tests both Compose configurations in uniquely named
+disposable projects, using new volumes and loopback port `55447` (override with
+`SCHEMA_TEST_PORT`). No real `.env` is loaded. It checks schema ownership using a
+role containing a quote, then recreates the container and proves persisted data
+survives and initialization is not rerun even when the schema is absent. Only
+the test's own resources are removed, including on failure; CI runs this check.
 
 Use an isolated PostgreSQL instance and a role with `CREATEDB`. All database-backed tests provision uniquely named databases and explicit `ta7ady` schemas, rather than using the developer's existing database. Databases remain in the disposable server for inspection; stop/remove the disposable server through its normal lifecycle after testing. The fixture never drops an existing database. CI supplies its ephemeral PostgreSQL 18 service; local verification uses PostgreSQL 16.
 

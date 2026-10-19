@@ -55,6 +55,9 @@ Copy-Item .env.example .env
 #   POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB — must match
 #     SPRING_DATASOURCE_USERNAME / SPRING_DATASOURCE_PASSWORD and the DB in
 #     SPRING_DATASOURCE_URL (jdbc:postgresql://postgres:5432/<db>)
+#   PGDATA — required; only for a confirmed fresh production database:
+#     PGDATA=/var/lib/postgresql/data (fresh local dev: /data/postgres)
+#     Existing deployment: inspect actual data/mounts and pass rollout gates first.
 ```
 
 Rules:
@@ -65,6 +68,11 @@ Rules:
 - Local connection defaults are `${ADMIN_PASSWORD:admin}` and `localhost:5432`.
   An approved/provisioned `ta7ady` schema is still required; Hibernate never
   creates or updates it. See the migration guide before using an existing database.
+- On an empty Compose PostgreSQL data directory, the mounted init script creates
+  `ta7ady` owned by `POSTGRES_USER` before backend startup. Keep it equal to
+  `SPRING_DATASOURCE_USERNAME`. Local dev can use `docker compose up -d --wait`
+  before starting the backend. Init scripts run only on first initialization;
+  they are skipped for existing data directories and do not repair older volumes.
 
 ## 2. Deploy / update
 
@@ -73,7 +81,14 @@ already contains application data, stop and follow
 [`DATABASE_MIGRATIONS.md`](DATABASE_MIGRATIONS.md). The current public-schema
 database is not an approved Flyway target; do not point the app at an empty
 `ta7ady` schema or baseline it without a separately reviewed plan. Fresh
-databases must have `ta7ady` created explicitly before startup.
+Compose databases provision `ta7ady` through the first-start initializer; outside
+Compose it must be created explicitly. Never reset an existing volume to rerun
+initialization. **Compose refuses to run without an explicit `PGDATA`.** Before
+setting it for an existing deployment, inspect its actual data directory/mounts;
+the earlier PostgreSQL 18 default may have stored data outside the named mount.
+Do not copy the fresh-database paths into an existing deployment. A storage
+discrepancy requires its own approved rollout plan, not an automatic relocation;
+see the mandatory storage gate in the migration guide.
 
 ```powershell
 docker compose -f docker-compose.prod.yml up -d --build

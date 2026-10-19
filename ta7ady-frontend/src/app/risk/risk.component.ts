@@ -1,3 +1,4 @@
+import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -33,7 +34,7 @@ type CardState = { A: boolean[]; B: boolean[] };
 @Component({
   selector: 'app-risk',
   standalone: true,
-  imports: [RouterLink, ScoreboardComponent, TimerComponent, AttributionComponent, AuditStripComponent],
+  imports: [GoogleSearchComponent, RouterLink, ScoreboardComponent, TimerComponent, AttributionComponent, AuditStripComponent],
   templateUrl: './risk.component.html',
   styleUrl: './risk.component.scss',
 })
@@ -84,7 +85,6 @@ export class RiskComponent {
 
   keyOf(packId: number, tier: number): string { return cellKey(packId, tier); }
   pts(tier: number): number { return tierPoints(tier); }
-  googleUrl(text: string): string { return `https://www.google.com/search?q=${encodeURIComponent(text)}`; }
 
   loadBoard(rows: RiskPack[]): void { this.lifecycle.loadBoard(rows); }
   reload(): void { this.res.reload(); }

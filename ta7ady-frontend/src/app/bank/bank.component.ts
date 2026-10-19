@@ -1,3 +1,4 @@
+import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
@@ -41,7 +42,7 @@ const freshBanked = (): number[] => Array.from({ length: BANK_ROUNDS }, () => 0)
 @Component({
   selector: 'app-bank',
   standalone: true,
-  imports: [RouterLink, ScoreboardComponent, TimerComponent, AuditStripComponent],
+  imports: [GoogleSearchComponent, RouterLink, ScoreboardComponent, TimerComponent, AuditStripComponent],
   templateUrl: './bank.component.html',
   styleUrl: './bank.component.scss',
 })
@@ -125,9 +126,6 @@ export class BankComponent {
     return this.currentRoundQuestions().length;
   }
 
-  googleUrl(text: string): string {
-    return `https://www.google.com/search?q=${encodeURIComponent(text)}`;
-  }
 
   chainOf(i: number): number {
     return this.chains()[i] ?? 0;

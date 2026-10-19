@@ -1,3 +1,4 @@
+import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
 import { Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -10,7 +11,7 @@ import { TimerComponent } from '../shared/timer/timer.component';
 @Component({
   selector: 'app-ihbid',
   standalone: true,
-  imports: [FormsModule, RouterLink, ScoreboardComponent, TimerComponent],
+  imports: [GoogleSearchComponent, FormsModule, RouterLink, ScoreboardComponent, TimerComponent],
   templateUrl: './ihbid.component.html',
   styleUrl: './ihbid.component.scss',
 })
@@ -67,9 +68,6 @@ export class IhbidComponent {
     });
   }
 
-  googleUrl(text: string): string {
-    return `https://www.google.com/search?q=${encodeURIComponent(text)}`;
-  }
 
   toggle(id: number): void {
     this.revealed.update((s) => {

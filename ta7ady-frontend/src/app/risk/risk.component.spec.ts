@@ -280,10 +280,26 @@ describe('RiskComponent', () => {
     expect(c.double()).not.toBeNull();
   });
 
-  it('builds an encoded Google fact-check link for a question', () => {
-    const c = setup();
-    const q = 'من فاز بكأس العالم 2022؟';
-    expect(c.googleUrl(q)).toBe(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
+  it('renders the selected question search link and follows its reveal state', () => {
+    const fixture = TestBed.createComponent(RiskComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    c.loadBoard([pack(1), pack(2), pack(3), pack(4)]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.gq')).toBeNull();
+    const question = c.packs()[0].questions[0].question;
+    const cell = fixture.nativeElement.querySelector('.cell:not(.empty)') as HTMLButtonElement;
+    cell.click();
+    fixture.detectChanges();
+    const link = fixture.nativeElement.querySelector('.spotlight .gq') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe(
+      `https://www.google.com/search?q=${encodeURIComponent(question)}`,
+    );
+    expect(link.getAttribute('aria-label')).toBe('بحث عن السؤال');
+    cell.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.gq')).toBeNull();
   });
 
   it('card tracker toggles used/unused and stays out of the audit strip', () => {

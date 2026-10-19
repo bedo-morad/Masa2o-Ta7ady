@@ -25,16 +25,7 @@
       <header class="qcard-head">
         <span class="qcard-pos tabular-nums">{{ qIdx() + 1 }}/{{ qCount() }}</span>
         @if (currentQuestion(); as q) {
-          <a
-            class="gq"
-            [href]="googleUrl(q.question)"
-            target="_blank"
-            rel="noopener"
-            aria-label="بحث عن السؤال"
-            title="بحث"
-          >
-            <i class="fa-brands fa-google"></i>
-          </a>
+          <a class="gq" [appGoogleSearch]="q.question"></a>
         }
       </header>
 

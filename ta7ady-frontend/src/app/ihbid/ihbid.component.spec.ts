@@ -226,10 +226,18 @@ describe('IhbidComponent asked marks (rendered screen)', () => {
     expect(marks()[0].getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('preserves the existing google URL contract', async () => {
+  it('renders the selected question search link without changing reveal visibility', async () => {
     await setup();
-    expect(fixture.componentInstance.googleUrl('كم هدفا سجل؟')).toBe(
-      `https://www.google.com/search?q=${encodeURIComponent('كم هدفا سجل؟')}`,
+    const first = rows()[0];
+    const link = () => first.querySelector('.gq') as HTMLAnchorElement;
+    expect(link().getAttribute('href')).toBe(
+      `https://www.google.com/search?q=${encodeURIComponent(questions[0].questionText)}`,
     );
+    expect(link().getAttribute('aria-label')).toBe('بحث عن السؤال');
+    expect(first.querySelector('.answer .value')).toBeNull();
+    click(first.querySelector('.qactions .mini.ghost')!);
+    expect(first.querySelector('.answer .value')?.textContent?.trim()).toBe(questions[0].answerText);
+    expect(first.querySelector('.gq')).not.toBeNull();
+    expect(link().getAttribute('href')).toContain(encodeURIComponent(questions[0].questionText));
   });
 });

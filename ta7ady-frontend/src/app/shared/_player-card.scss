@@ -87,21 +87,10 @@
     z-index: 2;
     width: 40px;
     height: 40px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
     line-height: 1;
-    border-radius: 50%;
-    border: 1px solid var(--pitch-line);
-    background: var(--pitch-surface-2);
-    // Theme-aware ink, never fixed white: stays readable on the sand theme.
-    color: var(--pitch-ink-dim);
     font-size: 1rem;
-    text-decoration: none;
-
-    i {
-      color: inherit;
-    }
 
     &:hover,
     &:focus-visible {

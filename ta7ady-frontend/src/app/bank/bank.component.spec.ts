@@ -236,10 +236,26 @@ describe('BankComponent', () => {
     expect(c.qIdx()).toBe(0);
   });
 
-  it('builds an encoded google search url per question', () => {
-    const c = setup();
-    expect(c.googleUrl('من فاز 1990؟')).toBe(
+  it('renders the encoded search for the selected question and updates on navigation', () => {
+    const fixture = TestBed.createComponent(BankComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    c.questions.set([
+      { id: 1, question: 'من فاز 1990؟', answer: 'فريق' },
+      { id: 2, question: 'سؤال ثانٍ', answer: 'جواب' },
+    ]);
+    c.pickStart('A');
+    fixture.detectChanges();
+
+    const link = () => fixture.nativeElement.querySelector('.gq') as HTMLAnchorElement;
+    expect(link().getAttribute('href')).toBe(
       `https://www.google.com/search?q=${encodeURIComponent('من فاز 1990؟')}`,
+    );
+    expect(link().getAttribute('aria-label')).toBe('بحث عن السؤال');
+    (fixture.nativeElement.querySelector('.qnav[aria-label="السؤال التالي"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(link().getAttribute('href')).toBe(
+      `https://www.google.com/search?q=${encodeURIComponent('سؤال ثانٍ')}`,
     );
   });
 

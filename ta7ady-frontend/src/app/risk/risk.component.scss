@@ -268,18 +268,6 @@ h2 {
   inset-inline-end: 0;
   top: 50%;
   transform: translateY(-50%);
-  flex: none;
-  min-width: 44px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: 1px solid var(--pitch-line);
-  background: var(--pitch-surface-2);
-  color: var(--pitch-ink-dim);
-  font-size: 0.95rem;
-  text-decoration: none;
 }
 
 .spot-a {

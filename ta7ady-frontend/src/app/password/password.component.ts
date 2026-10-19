@@ -1,3 +1,4 @@
+import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
 import { Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -15,7 +16,7 @@ interface Card {
 @Component({
   selector: 'app-password',
   standalone: true,
-  imports: [FormsModule, RouterLink, ScoreboardComponent, TimerComponent],
+  imports: [GoogleSearchComponent, FormsModule, RouterLink, ScoreboardComponent, TimerComponent],
   templateUrl: './password.component.html',
   styleUrl: './password.component.scss',
 })
@@ -55,9 +56,6 @@ export class PasswordComponent {
     this.cards.update((cs) => cs.map((c, idx) => (idx === i ? { ...c, flipped: !c.flipped } : c)));
   }
 
-  googleUrl(name: string): string {
-    return `https://www.google.com/search?q=${encodeURIComponent(name)}`;
-  }
 
   async rerollOne(i: number): Promise<void> {
     if (this.rerolling() !== null) return;

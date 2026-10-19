@@ -1,0 +1,126 @@
+// ── The commission: chain hero + the 3 taps ──────────────────
+.chain {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  transition: border-color 0.2s ease-out;
+
+  &.maxed {
+    border-color: var(--pitch-gold);
+    box-shadow: 0 0 0 1px var(--pitch-gold) inset;
+  }
+}
+
+.chain-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.chain-label {
+  color: var(--pitch-ink-dim);
+  font-weight: 800;
+}
+
+.chain-flag {
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  background: var(--pitch-gold);
+  color: var(--pitch-on-gold);
+}
+
+.chain-team {
+  margin-inline-start: auto;
+  font-weight: 900;
+  color: var(--pitch-ink);
+  white-space: nowrap;
+}
+
+.chain-hero {
+  text-align: center;
+  font-size: clamp(2.8rem, 16vw, 4.2rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--pitch-gold);
+  transition: color 0.2s ease-out;
+
+  // An unbanked, zeroed chain is a calm "nothing here", not an alarm.
+  &.zero {
+    color: var(--pitch-ink-dim);
+  }
+}
+
+.chain-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 56px;
+  border-radius: 14px;
+  border: 1px solid var(--pitch-line);
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &.correct {
+    background: var(--pitch-accent-deep);
+    border-color: var(--pitch-accent-deep);
+    color: var(--pitch-on-accent-deep);
+  }
+
+  &.miss {
+    background: none;
+    border-color: var(--pitch-danger);
+    color: var(--pitch-danger);
+  }
+
+  &.bank {
+    background: var(--pitch-gold);
+    border-color: var(--pitch-gold);
+    color: var(--pitch-on-gold);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+  }
+}
+
+.chain-saved {
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--pitch-ink-dim);
+
+  span {
+    color: var(--pitch-gold);
+    font-weight: 900;
+  }
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--pitch-gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chain,
+  .chain-hero {
+    transition: none;
+  }
+}

@@ -49,6 +49,25 @@ describe('BankComponent', () => {
     expect(c.bankedOf(0)).toBe(0);
     expect(c.audit().length).toBe(0);
   });
+  it('renders all history cells and wires child controls to parent banking', () => {
+    const fixture = TestBed.createComponent(BankComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.pickStart('A');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.hcell').length).toBe(6);
+    expect(fixture.nativeElement.querySelectorAll('.hamount')[0].textContent).toContain('0');
+
+    (fixture.nativeElement.querySelector('.act.correct') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.chainOf(0)).toBe(1);
+
+    (fixture.nativeElement.querySelector('.act.bank') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.scoreA()).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('.hamount')[0].textContent).toContain('1');
+  });
 
   it('chunks the single 72-draw 12 per round with no repeats', () => {
     const c = setup();
@@ -252,7 +271,9 @@ describe('BankComponent', () => {
       `https://www.google.com/search?q=${encodeURIComponent('من فاز 1990؟')}`,
     );
     expect(link().getAttribute('aria-label')).toBe('بحث عن السؤال');
-    (fixture.nativeElement.querySelector('.qnav[aria-label="السؤال التالي"]') as HTMLButtonElement).click();
+    (
+      fixture.nativeElement.querySelector('.qnav[aria-label="السؤال التالي"]') as HTMLButtonElement
+    ).click();
     fixture.detectChanges();
     expect(link().getAttribute('href')).toBe(
       `https://www.google.com/search?q=${encodeURIComponent('سؤال ثانٍ')}`,

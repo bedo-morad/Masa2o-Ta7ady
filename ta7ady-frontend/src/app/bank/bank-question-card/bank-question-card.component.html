@@ -1,0 +1,36 @@
+<section class="qcard" aria-label="سؤال الدور">
+  <header class="qcard-head">
+    <span class="qcard-pos tabular-nums">{{ position() + 1 }}/{{ count() }}</span>
+    @if (question(); as q) {
+      <a class="gq" [appGoogleSearch]="q.question"></a>
+    }
+  </header>
+  @if (question(); as q) {
+    <p class="q">{{ q.question }}</p>
+    <p class="answer">
+      <span class="answer-label">الجواب</span><span class="answer-value">{{ q.answer }}</span>
+    </p>
+  } @else {
+    <p class="qempty">لم تُسحب أسئلة هذا الدور بعد.</p>
+  }
+  <footer class="qcard-foot">
+    <button
+      type="button"
+      class="qnav"
+      (click)="previous.emit()"
+      [disabled]="position() === 0"
+      aria-label="السؤال السابق"
+    >
+      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    </button>
+    <button
+      type="button"
+      class="qnav"
+      (click)="next.emit()"
+      [disabled]="position() >= count() - 1"
+      aria-label="السؤال التالي"
+    >
+      <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+    </button>
+  </footer>
+</section>

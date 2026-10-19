@@ -1,4 +1,3 @@
-import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
 import { httpResource } from '@angular/common/http';
@@ -6,11 +5,10 @@ import { API_BASE, BankQuestion } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { SettingsService } from '../shared/settings/settings.service';
-import {
-  AuditEntry,
-  AuditStripComponent,
-} from '../shared/attribution/attribution.component';
+import { AuditEntry, AuditStripComponent } from '../shared/attribution/attribution.component';
 import { ScoreBooking } from '../shared/score-booking';
+import { BankQuestionCardComponent } from './bank-question-card/bank-question-card.component';
+import { BankChainControlsComponent } from './bank-chain-controls/bank-chain-controls.component';
 
 // Bank (RULES.md / SPECV3 §3.3): six rounds, three per team, alternating — the
 // referee picks who opens once and the site alternates from there. The whole
@@ -42,7 +40,14 @@ const freshBanked = (): number[] => Array.from({ length: BANK_ROUNDS }, () => 0)
 @Component({
   selector: 'app-bank',
   standalone: true,
-  imports: [GameHeaderComponent, GoogleSearchComponent, ScoreboardComponent, TimerComponent, AuditStripComponent],
+  imports: [
+    GameHeaderComponent,
+    ScoreboardComponent,
+    TimerComponent,
+    AuditStripComponent,
+    BankQuestionCardComponent,
+    BankChainControlsComponent,
+  ],
   templateUrl: './bank.component.html',
   styleUrl: './bank.component.scss',
 })
@@ -74,9 +79,7 @@ export class BankComponent {
   readonly perRound = BANK_PER_ROUND;
   readonly maxChain = BANK_CHAIN_MAX;
 
-  private readonly res = httpResource<BankQuestion[]>(
-    () => `${API_BASE}/bank?count=${BANK_TOTAL}`,
-  );
+  private readonly res = httpResource<BankQuestion[]>(() => `${API_BASE}/bank?count=${BANK_TOTAL}`);
   readonly loading = this.res.isLoading;
 
   /** Held so a round change can hand the referee a fresh 120s clock. */
@@ -125,7 +128,6 @@ export class BankComponent {
   qCount(): number {
     return this.currentRoundQuestions().length;
   }
-
 
   chainOf(i: number): number {
     return this.chains()[i] ?? 0;
@@ -220,5 +222,4 @@ export class BankComponent {
       return next;
     });
   }
-
 }

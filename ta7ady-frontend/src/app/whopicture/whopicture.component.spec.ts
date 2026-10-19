@@ -78,15 +78,21 @@ describe('sharePhotoUrl', () => {
 describe('sharePhotoImage', () => {
   const TITLE = 'الأهلي 2021';
   const blob = new Blob([new Uint8Array(4)], { type: 'image/jpeg' });
-  const okFetch = () => Promise.resolve({ ok: true, blob: () => Promise.resolve(blob) } as Response);
+  const okFetch = () =>
+    Promise.resolve({ ok: true, blob: () => Promise.resolve(blob) } as Response);
 
   it('opens the native sheet with the image file when canShare accepts files', async () => {
     const shared: unknown[] = [];
-    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
-      share: (d) => (shared.push(d), Promise.resolve()),
-      canShare: (d) => Array.isArray(d.files) && d.files.length === 1,
-      clipboard: { writeText: () => Promise.resolve() },
-    }, okFetch);
+    const out = await sharePhotoImage(
+      'https://x/p.jpg',
+      TITLE,
+      {
+        share: (d) => (shared.push(d), Promise.resolve()),
+        canShare: (d) => Array.isArray(d.files) && d.files.length === 1,
+        clipboard: { writeText: () => Promise.resolve() },
+      },
+      okFetch,
+    );
     expect(out).toBe('sheet');
     expect((shared[0] as { files?: File[] }).files?.length).toBe(1);
     expect(shared[0]).toEqual(expect.objectContaining({ title: `مين في الصورة؟ — ${TITLE}` }));
@@ -94,11 +100,16 @@ describe('sharePhotoImage', () => {
 
   it('copies the link when canShare refuses files', async () => {
     const copied: string[] = [];
-    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
-      share: () => Promise.resolve(),
-      canShare: () => false,
-      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
-    }, okFetch);
+    const out = await sharePhotoImage(
+      'https://x/p.jpg',
+      TITLE,
+      {
+        share: () => Promise.resolve(),
+        canShare: () => false,
+        clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+      },
+      okFetch,
+    );
     expect(out).toBe('copied');
     expect(copied).toEqual(['https://x/p.jpg']);
   });
@@ -106,20 +117,30 @@ describe('sharePhotoImage', () => {
   it('copies the link when the fetch fails — image share is best-effort', async () => {
     const copied: string[] = [];
     const bad = () => Promise.reject(new Error('offline'));
-    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
-      share: () => Promise.resolve(),
-      canShare: () => true,
-      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
-    }, bad);
+    const out = await sharePhotoImage(
+      'https://x/p.jpg',
+      TITLE,
+      {
+        share: () => Promise.resolve(),
+        canShare: () => true,
+        clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+      },
+      bad,
+    );
     expect(out).toBe('copied');
     expect(copied).toEqual(['https://x/p.jpg']);
   });
 
   it('copies when there is no share API at all (feature-detected browser)', async () => {
     const copied: string[] = [];
-    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
-      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
-    }, okFetch);
+    const out = await sharePhotoImage(
+      'https://x/p.jpg',
+      TITLE,
+      {
+        clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+      },
+      okFetch,
+    );
     expect(out).toBe('copied');
     expect(copied).toEqual(['https://x/p.jpg']);
   });
@@ -228,8 +249,8 @@ describe('WhopictureComponent', () => {
     c.teamB.set('النمور');
     fixture.detectChanges();
     const view = el();
-    const labels = Array.from(view.querySelectorAll('[aria-label]')).map((b) =>
-      (b.getAttribute('aria-label') ?? '') + ' ' + b.textContent,
+    const labels = Array.from(view.querySelectorAll('[aria-label]')).map(
+      (b) => (b.getAttribute('aria-label') ?? '') + ' ' + b.textContent,
     );
     const joined = labels.join(' ');
     expect(joined).toContain('الصقور');
@@ -241,6 +262,28 @@ describe('WhopictureComponent', () => {
     const view = el();
     expect(view.querySelector('[aria-label="مشاركة صورة الفريق نفسها"]')).toBeTruthy();
     expect(view.querySelector('[aria-label="مشاركة رابط الصورة"]')).toBeTruthy();
+  });
+
+  it('parent click-through routes rendered attribution to scoring state', () => {
+    const c = setup();
+    c.teamA.set('الصقور');
+    c.teamB.set('النمور');
+    fixture.detectChanges();
+    (el().querySelector('[aria-label="الصقور"]') as HTMLButtonElement).click();
+    expect(c.assigned(1, 0)).toBe('A');
+    expect(c.scoreA()).toBe(1);
+  });
+
+  it('parent click-through routes both rendered share actions', () => {
+    const c = setup();
+    const imageShare = vi.spyOn(c, 'shareImage').mockResolvedValue();
+    const urlShare = vi.spyOn(c, 'shareUrl').mockResolvedValue();
+    el()
+      .querySelector('[aria-label="مشاركة صورة الفريق نفسها"]')
+      ?.dispatchEvent(new Event('click'));
+    el().querySelector('[aria-label="مشاركة رابط الصورة"]')?.dispatchEvent(new Event('click'));
+    expect(imageShare).toHaveBeenCalledOnce();
+    expect(urlShare).toHaveBeenCalledOnce();
   });
 
   it('each attributed name books exactly +1 to the picked team', () => {
@@ -282,9 +325,7 @@ describe('WhopictureComponent', () => {
     const c = setup();
     pick(c, 7, 'B');
     expect(c.audit().length).toBe(1);
-    expect(c.audit()[0]).toEqual(
-      expect.objectContaining({ team: 'B', delta: 1, label: 'لعب8' }),
-    );
+    expect(c.audit()[0]).toEqual(expect.objectContaining({ team: 'B', delta: 1, label: 'لعب8' }));
   });
 
   it('strikes eliminate at 2 (not 3) and reset clears', () => {

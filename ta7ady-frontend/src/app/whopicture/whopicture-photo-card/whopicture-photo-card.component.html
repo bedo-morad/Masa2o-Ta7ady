@@ -1,0 +1,43 @@
+<section class="photo-card" aria-label="الصورة">
+  <h3 class="title">{{ photo().title }}</h3>
+  <div class="shot-frame" [class.is-ready]="imageState() === 'ready'">
+    @if (imageState() === 'failed') {
+      <div class="shot-failed" role="status">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <span>تعذّر تحميل الصورة — جرّب «مشاركة الرابط» لفتحها خارج التطبيق.</span>
+      </div>
+    } @else if (imageState() !== 'ready') {
+      <div class="shot-skeleton" aria-hidden="true">
+        <i class="fa-regular fa-image"></i>
+      </div>
+    }
+    <img
+      class="shot"
+      [src]="photo().photoUrl"
+      alt="صورة تشكيلة الفريق"
+      loading="lazy"
+      [class.is-ready]="imageState() === 'ready'"
+      [class.is-failed]="imageState() === 'failed'"
+      (load)="imageLoaded.emit(photo().id)"
+      (error)="imageFailed.emit(photo().id)"
+    />
+  </div>
+  <div class="share-row">
+    <button
+      type="button"
+      class="share"
+      (click)="shareImage.emit()"
+      aria-label="مشاركة صورة الفريق نفسها"
+    >
+      <i class="fa-solid fa-images" aria-hidden="true"></i> مشاركة الصورة
+    </button>
+    <button
+      type="button"
+      class="share link"
+      (click)="shareUrl.emit()"
+      aria-label="مشاركة رابط الصورة"
+    >
+      <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> مشاركة الرابط
+    </button>
+  </div>
+</section>

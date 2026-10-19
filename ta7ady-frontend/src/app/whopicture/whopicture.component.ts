@@ -8,6 +8,8 @@ import { TimerComponent } from '../shared/timer/timer.component';
 import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
 import { SettingsService } from '../shared/settings/settings.service';
 import { ScoreBooking } from '../shared/score-booking';
+import { WhopicturePhotoCardComponent } from './whopicture-photo-card/whopicture-photo-card.component';
+import { WhopictureNameListComponent } from './whopicture-name-list/whopicture-name-list.component';
 
 // Who-in-Picture (SPECV4 §4.4): referee screen over one hotlinked team photo.
 // All 11 names stay visible from the start in ONE column; the shared
@@ -42,7 +44,6 @@ import {
 import {
   AssignedTeam,
   AttributionChange,
-  AttributionComponent,
   AuditEntry,
   AuditStripComponent,
 } from '../shared/attribution/attribution.component';
@@ -57,13 +58,16 @@ import {
 @Component({
   selector: 'app-whopicture',
   standalone: true,
-  imports: [GameHeaderComponent, CountSelectorComponent,
+  imports: [
+    GameHeaderComponent,
+    CountSelectorComponent,
     ScoreboardComponent,
     TimerComponent,
     ItemNavigationComponent,
-    AttributionComponent,
     AuditStripComponent,
     StrikeTrackerComponent,
+    WhopicturePhotoCardComponent,
+    WhopictureNameListComponent,
   ],
   templateUrl: './whopicture.component.html',
   styleUrl: './whopicture.component.scss',
@@ -127,7 +131,6 @@ export class WhopictureComponent {
     this.imageState.update((st) => (st[photoId] === 'ready' ? st : { ...st, [photoId]: 'failed' }));
   }
 
-
   prev(): void {
     this.idx.update((i) => Math.max(0, i - 1));
   }
@@ -148,6 +151,13 @@ export class WhopictureComponent {
 
   /** Attribution tap on one name: toggle the team, steer the booked amount
    * toward the target contribution (+1 per assigned name). */
+  onNameAttribution(
+    photo: WhoPicturePhoto,
+    event: { index: number; change: AttributionChange },
+  ): void {
+    this.onName(photo, event.index, event.change);
+  }
+
   onName(photo: WhoPicturePhoto, i: number, ch: AttributionChange): void {
     const all = { ...this.assignments() };
     const prevMap = all[photo.id] ?? {};
@@ -196,7 +206,6 @@ export class WhopictureComponent {
     for (const p of rows) this.slotsOf(p);
     this.idx.update((i) => Math.min(i, Math.max(0, rows.length - 1)));
   }
-
 
   // Per-photo mistake tracker (display only): 4 named slots, 2 per team.
   // Stored per photo id, cleared when the photo leaves the run. Defaults

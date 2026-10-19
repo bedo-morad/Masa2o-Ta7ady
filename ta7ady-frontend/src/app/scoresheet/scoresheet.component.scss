@@ -20,29 +20,6 @@
 }
 
 
-.board {
-  background: var(--pitch-surface);
-  border: 1px solid var(--pitch-line);
-  border-radius: var(--radius-card);
-  padding: 0.9rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.prompt-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.prompt {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 900;
-  flex: 1;
-}
-
 .swap-row {
   display: flex;
   justify-content: center;

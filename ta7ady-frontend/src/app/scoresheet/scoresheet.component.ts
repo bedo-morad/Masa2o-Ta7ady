@@ -4,6 +4,14 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import { API_BASE, ScoresheetMatch } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
+import {
+  PlayerMap,
+  ScoresheetLineupsComponent,
+  Side,
+  playerKey,
+} from './scoresheet-lineups/scoresheet-lineups.component';
+export type { PlayerMap, Side } from './scoresheet-lineups/scoresheet-lineups.component';
+export { playerKey } from './scoresheet-lineups/scoresheet-lineups.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
 import { ScoreBooking } from '../shared/score-booking';
@@ -31,13 +39,6 @@ import {
 // `booked` tracks the net attributed amount actually in the score, so reversals
 // always land exactly. Scores may go below zero.
 
-export type Side = 'A' | 'B';
-export type PlayerMap = Record<string, AssignedTeam>; // "A:3" / "B:7" -> team
-
-export function playerKey(side: Side, index: number): string {
-  return `${side}:${index}`;
-}
-
 function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
   let n = 0;
   for (const t of Object.values(m)) if (t === team) n += 1;
@@ -47,12 +48,15 @@ function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
 @Component({
   selector: 'app-scoresheet',
   standalone: true,
-  imports: [GameHeaderComponent, CountSelectorComponent,
+  imports: [
+    GameHeaderComponent,
+    CountSelectorComponent,
     ScoreboardComponent,
     TimerComponent,
     ItemNavigationComponent,
     AuditStripComponent,
     StrikeTrackerComponent,
+    ScoresheetLineupsComponent,
   ],
   templateUrl: './scoresheet.component.html',
   styleUrl: './scoresheet.component.scss',
@@ -101,7 +105,6 @@ export class ScoresheetComponent {
   keyOf(side: Side, i: number): string {
     return playerKey(side, i);
   }
-
 
   prev(): void {
     this.idx.update((i) => Math.max(0, i - 1));

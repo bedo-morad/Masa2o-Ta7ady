@@ -70,13 +70,24 @@ describe('ScoresheetComponent', () => {
       fixture.detectChanges();
       expect(button.querySelector('.picked')).not.toBeNull();
       expect(button.querySelector('.pname')?.textContent).toBe(name);
-      button.click();
-      fixture.detectChanges();
-      expect(button.querySelector('.picked')).toBeNull();
-      expect(button.querySelector('.pname')?.textContent).toBe(name);
     });
+    expect(fixture.componentInstance.scoreA()).toBe(1);
+    expect(fixture.componentInstance.scoreB()).toBe(1);
+    expect(fixture.componentInstance.audit()).toEqual([
+      { seq: 1, team: 'A', label: 'ليوناردو بونوتشي', delta: 1 },
+      { seq: 2, team: 'B', label: 'فيديريكو بالزاريتي', delta: 1 },
+    ]);
+
+    sides.forEach((side) => (side.querySelector('.prow') as HTMLButtonElement).click());
+    fixture.detectChanges();
     expect(fixture.componentInstance.scoreA()).toBe(0);
     expect(fixture.componentInstance.scoreB()).toBe(0);
+    expect(fixture.componentInstance.audit()).toEqual([
+      { seq: 1, team: 'A', label: 'ليوناردو بونوتشي', delta: 1 },
+      { seq: 2, team: 'B', label: 'فيديريكو بالزاريتي', delta: 1 },
+      { seq: 3, team: 'A', label: 'ليوناردو بونوتشي', delta: -1 },
+      { seq: 4, team: 'B', label: 'فيديريكو بالزاريتي', delta: -1 },
+    ]);
   });
 
   it('tapping a player adds exactly 1 point to the column team', () => {

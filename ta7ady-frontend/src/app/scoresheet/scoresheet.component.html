@@ -45,61 +45,11 @@
       (select)="go($event)"
     />
 
-    <section class="board">
-      <div class="prompt-row">
-        <h3 class="prompt">{{ match.matchLabel }}</h3>
-      </div>
-
-      <div class="sides">
-        <div class="side">
-          <h4 class="side-name">{{ match.teamA }}</h4>
-          <ol class="lineup">
-            @for (p of match.lineupA; track $index; let i = $index) {
-              <li>
-                <button
-                  type="button"
-                  class="prow"
-                  [class.is-a]="assigned(match.id, keyOf('A', i)) === 'A'"
-                  (click)="onToggle(match, 'A', i, p)"
-                  [attr.aria-pressed]="assigned(match.id, keyOf('A', i)) === 'A'"
-                  [attr.aria-label]="p"
-                >
-                  <span class="pnum tabular-nums">{{ i + 1 }}</span>
-                  <span class="pname">{{ p }}</span>
-                  @if (assigned(match.id, keyOf('A', i)) === 'A') {
-                    <i class="fa-solid fa-check picked"></i>
-                  }
-                </button>
-              </li>
-            }
-          </ol>
-        </div>
-
-        <div class="side">
-          <h4 class="side-name">{{ match.teamB }}</h4>
-          <ol class="lineup">
-            @for (p of match.lineupB; track $index; let i = $index) {
-              <li>
-                <button
-                  type="button"
-                  class="prow"
-                  [class.is-b]="assigned(match.id, keyOf('B', i)) === 'B'"
-                  (click)="onToggle(match, 'B', i, p)"
-                  [attr.aria-pressed]="assigned(match.id, keyOf('B', i)) === 'B'"
-                  [attr.aria-label]="p"
-                >
-                  <span class="pnum tabular-nums">{{ i + 1 }}</span>
-                  <span class="pname">{{ p }}</span>
-                  @if (assigned(match.id, keyOf('B', i)) === 'B') {
-                    <i class="fa-solid fa-check picked"></i>
-                  }
-                </button>
-              </li>
-            }
-          </ol>
-        </div>
-      </div>
-    </section>
+    <app-scoresheet-lineups
+      [match]="match"
+      [assignments]="assignments()[match.id] ?? {}"
+      (playerToggle)="onToggle(match, $event.side, $event.index, $event.player)"
+    />
 
     <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
   }

@@ -1,28 +1,33 @@
 # DEPLOY — Masa2o Ta7ady
 
-Production deploy is container-only. Local dev is unchanged
+Production deploy is container-only. Local dev uses
 (`docker compose up -d` for postgres, `.\mvnw spring-boot:run`, `npx ng serve`).
 
-### Running locally on another frontend port
+### Local frontend and API
 
-The official frontend calls `http://localhost:8080/api` directly. The backend
-allows `http://localhost:4200` by default; a different port is a different origin
-and is blocked by the browser unless explicitly allowed. For example, set this
-in the project-root `.env`, restart the backend, and run `npx ng serve --port 4300`:
+The frontend API base is `/api`. Angular's default dev-server proxy config routes
+`/api` and its subpaths to `http://localhost:8080`, preserving the `/api` prefix.
+Therefore `npx ng serve --port 4300` uses the proxy automatically: the browser
+stays same-origin and no backend CORS allowlist change is needed. Use
+`http://localhost:4300/manage` locally, not a forwarded preview URL.
+
+For direct cross-origin clients, the backend allows `http://localhost:4200` by
+default. A different origin must be added explicitly in the project-root `.env`,
+then the backend must be restarted; use exact origins only, never wildcards:
 
 ```dotenv
 CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:4300
 ```
 
-Use `http://localhost:4300/manage` locally, not a forwarded preview URL. If using
-`127.0.0.1` instead of `localhost`, add that exact frontend origin too. Do not use
-wildcard origins. Edit and delete still require the existing admin password;
-changing the origin allowlist does not bypass authorization.
+If using `127.0.0.1` instead of `localhost`, add that exact origin too. Edit and
+delete still require the existing admin password; changing the origin allowlist
+does not bypass authorization.
 
-## How configuration reaches the app (read once, it's simple)
+## How backend and container configuration reaches the app
 
-Everything configurable lives in **one `.env` file at the project root** — no exceptions,
-that's the point. The chain is:
+Backend and container settings can live in **one `.env` file at the project root**.
+Frontend settings remain in the frontend project/configuration. For backend and
+container values, the chain is:
 
 ```
 .env  --(compose env_file)-->  environment variables inside each container
@@ -69,10 +74,8 @@ docker compose -f docker-compose.prod.yml logs -f backend frontend
 
 What you get:
 
-- `http://<host>/` — frontend (nginx, SPA fallback, gzip).
-  `/api/*` on the same origin is proxied to the backend container
-  (nginx also rewrites the built frontend's hardcoded `http://localhost:8080/api`
-  to same-origin `/api` at serve time, so no frontend rebuild is needed).
+- `http://<host>/` — frontend (nginx, SPA fallback, gzip). `/api/*` on the same
+  origin is proxied to the backend container, preserving the `/api` prefix.
 - `http://<host>:8080/api/players?count=1` — backend directly (health probe target).
 - postgres is **not** published; data lives in the `postgres-prod` named volume.
 

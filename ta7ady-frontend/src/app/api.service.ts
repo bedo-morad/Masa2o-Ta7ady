@@ -37,7 +37,7 @@ export interface Page<T> {
   size: number;
 }
 
-const BASE = 'http://localhost:8080/api';
+const BASE = '/api';
 export const API_BASE = BASE;
 
 @Injectable({ providedIn: 'root' })

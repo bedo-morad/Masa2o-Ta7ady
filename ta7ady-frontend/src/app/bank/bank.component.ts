@@ -1,10 +1,10 @@
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, BankQuestion } from '../api.service';
+import { API_BASE, BankQuestion } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
-import { SettingsService } from '../shared/settings/settings.service';
+import { SettingsService } from '../services/settings.service';
 import { AuditEntry } from '../shared/attribution/attribution.component';
 import { ScoreBooking } from '../shared/score-booking';
 import { BankQuestionCardComponent } from './bank-question-card/bank-question-card.component';

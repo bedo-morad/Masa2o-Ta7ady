@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { IhbidComponent } from './ihbid.component';
-import { IhbidQuestion } from '../api.service';
+import { IhbidQuestion } from '../services/api.service';
 
 describe('IhbidComponent asked marks (rendered screen)', () => {
   let fixture: ComponentFixture<IhbidComponent>;

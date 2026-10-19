@@ -6,7 +6,7 @@ import { signal } from '@angular/core';
 import { NgbConfig, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { vi } from 'vitest';
-import { ApiService } from '../../api.service';
+import { ApiService } from '../../services/api.service';
 import { ManageComponent } from '../manage.component';
 
 // Access owns this modal, but its public seam remains the rendered Manage page.

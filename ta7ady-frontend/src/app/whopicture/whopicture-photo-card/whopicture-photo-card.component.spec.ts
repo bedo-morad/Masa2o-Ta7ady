@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WhopicturePhotoCardComponent } from './whopicture-photo-card.component';
-import { WhoPicturePhoto } from '../../api.service';
+import { WhoPicturePhoto } from '../../services/api.service';
 
 describe('WhopicturePhotoCardComponent', () => {
   let fixture: ComponentFixture<WhopicturePhotoCardComponent>;

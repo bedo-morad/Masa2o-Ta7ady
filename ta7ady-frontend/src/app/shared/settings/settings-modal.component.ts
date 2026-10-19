@@ -1,8 +1,8 @@
 import { Component, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SettingsService, type AlarmSoundId, type TimerKey } from './settings.service';
-import { AlarmService } from '../alarm/alarm.service';
-import type { Theme } from '../../theme.service';
+import { SettingsService, type AlarmSoundId, type TimerKey } from '../../services/settings.service';
+import { AlarmService } from '../../services/alarm.service';
+import type { Theme } from '../../services/theme.service';
 
 // Quiet grouped referee settings modal. Everything auto-saves on change.
 @Component({

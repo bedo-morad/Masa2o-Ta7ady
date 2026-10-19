@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { GoogleSearchComponent } from '../../shared/google-search/google-search.component';
-import { BankQuestion } from '../../api.service';
+import { BankQuestion } from '../../services/api.service';
 
 @Component({
   selector: 'app-bank-question-card',

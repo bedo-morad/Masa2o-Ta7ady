@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { SettingsService, type AlarmSoundId } from '../settings/settings.service';
+import { SettingsService, type AlarmSoundId } from './settings.service';
 
 // Web Audio referee alarm, synthesized — no audio assets.
 // Every note uses exponential ramps so there are no clicks.

@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, output, signal } from '@ang
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { ApiService, BulkRowResult, Pool } from '../../api.service';
+import { ApiService, BulkRowResult, Pool } from '../../services/api.service';
 import { POOL_METADATA } from './import-metadata';
 
 @Component({

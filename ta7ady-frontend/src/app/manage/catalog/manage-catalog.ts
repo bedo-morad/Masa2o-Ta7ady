@@ -9,7 +9,7 @@ import {
   Pool,
   RiskQuestion,
   WhoPicturePhoto,
-} from '../../api.service';
+} from '../../services/api.service';
 
 const SIZE = 20;
 export type PlayerRow = { id: number; playerName: string };

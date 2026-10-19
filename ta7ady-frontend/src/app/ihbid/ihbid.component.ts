@@ -2,7 +2,7 @@ import { GoogleSearchComponent } from '../shared/google-search/google-search.com
 import { Component, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, ApiService, IhbidQuestion } from '../api.service';
+import { API_BASE, ApiService, IhbidQuestion } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { AskedMarkerComponent } from '../shared/asked-marker/asked-marker.component';

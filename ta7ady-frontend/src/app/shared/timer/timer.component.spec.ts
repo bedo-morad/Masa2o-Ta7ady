@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { SettingsService } from '../settings/settings.service';
+import { SettingsService } from '../../services/settings.service';
 import { TimerComponent } from './timer.component';
 import { vi } from 'vitest';
 

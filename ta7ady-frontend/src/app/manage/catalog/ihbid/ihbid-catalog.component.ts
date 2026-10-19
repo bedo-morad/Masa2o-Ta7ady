@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { IhbidQuestion } from '../../../api.service';
+import { IhbidQuestion } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { IhbidEditorComponent } from '../../editors/ihbid/ihbid-editor.component';
 import { IhbidEditor } from '../../editors/ihbid/ihbid-editor';

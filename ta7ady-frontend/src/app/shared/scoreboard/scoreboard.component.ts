@@ -1,6 +1,6 @@
 import { Component, computed, inject, model, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SettingsService } from '../settings/settings.service';
+import { SettingsService } from '../../services/settings.service';
 
 // Shared referee scoreboard: editable team names, always-on +/- scoring.
 // The referee (game master) awards points at any moment; the site never locks him out.

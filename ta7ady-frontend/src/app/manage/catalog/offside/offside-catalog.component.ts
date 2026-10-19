@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { OffsideRule } from '../../../api.service';
+import { OffsideRule } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { OffsideEditorComponent } from '../../editors/offside/offside-editor.component';
 import { OffsideEditor } from '../../editors/offside/offside-editor';

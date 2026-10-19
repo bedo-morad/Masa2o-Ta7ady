@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { Top10List } from '../../../api.service';
+import { Top10List } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { Top10EditorComponent } from '../../editors/top10/top10-editor.component';
 import { Top10Editor } from '../../editors/top10/top10-editor';

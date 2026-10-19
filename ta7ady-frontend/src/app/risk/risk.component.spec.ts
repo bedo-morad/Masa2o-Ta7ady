@@ -11,7 +11,7 @@ import {
   splitCell,
   tierPoints,
 } from './risk.component';
-import { ApiService, RiskPack } from '../api.service';
+import { ApiService, RiskPack } from '../services/api.service';
 
 describe('risk helpers', () => {
   it('tiers follow 5/10/20/40', () => {

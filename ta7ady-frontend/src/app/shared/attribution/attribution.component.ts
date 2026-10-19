@@ -1,5 +1,5 @@
 import { Component, computed, inject, input, output } from '@angular/core';
-import { SettingsService } from '../settings/settings.service';
+import { SettingsService } from '../../services/settings.service';
 import { rankValue } from './rank-points';
 
 // Shared attribution interaction (SPECV2 §2.3): the referee taps team A or B

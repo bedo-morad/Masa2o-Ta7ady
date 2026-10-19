@@ -1,5 +1,5 @@
 import { firstValueFrom } from 'rxjs';
-import { ApiService, Pool } from '../../../api.service';
+import { ApiService, Pool } from '../../../services/api.service';
 import { ManageEditorHost } from './editor-host';
 
 export async function applyEditMutation(

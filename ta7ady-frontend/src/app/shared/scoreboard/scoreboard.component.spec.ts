@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ScoreboardComponent } from './scoreboard.component';
-import { SettingsService } from '../settings/settings.service';
+import { SettingsService } from '../../services/settings.service';
 
 describe('ScoreboardComponent', () => {
   beforeEach(async () => {

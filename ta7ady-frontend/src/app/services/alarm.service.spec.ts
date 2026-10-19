@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { AlarmService } from './alarm.service';
-import { SettingsService } from '../settings/settings.service';
+import { SettingsService } from './settings.service';
 
 describe('AlarmService', () => {
   let alarm: AlarmService;

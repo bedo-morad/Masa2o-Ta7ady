@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { WhoPicturePhoto } from '../../../api.service';
+import { WhoPicturePhoto } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { WhoPictureEditorComponent } from '../../editors/whopicture/whopicture-editor.component';
 import { WhoPictureEditor } from '../../editors/whopicture/whopicture-editor';

@@ -7,7 +7,7 @@ import {
   teamContribution,
   trioHolder,
 } from './top10.component';
-import { Top10List } from '../api.service';
+import { Top10List } from '../services/api.service';
 
 describe('rankValue', () => {
   it('ranks 1-10 score their rank', () => {

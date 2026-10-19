@@ -8,7 +8,7 @@ import {
   BANK_TOTAL,
   BankComponent,
 } from './bank.component';
-import { BankQuestion } from '../api.service';
+import { BankQuestion } from '../services/api.service';
 
 describe('bank constants', () => {
   it('fixes the game shape: 6 rounds × 12 questions = one 72 draw', () => {

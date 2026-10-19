@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { PlayerName } from '../../api.service';
+import { PlayerName } from '../../services/api.service';
 import { PlayerDeckComponent } from './player-deck.component';
 
 describe('PlayerDeckComponent', () => {

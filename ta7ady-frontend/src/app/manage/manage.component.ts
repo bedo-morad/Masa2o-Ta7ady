@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { ApiService, Pool } from '../api.service';
+import { ApiService, Pool } from '../services/api.service';
 import { ManageAccessComponent } from './access/manage-access.component';
 import { ManageAdminAccess } from './access/manage-admin-access';
 import { ManagePoolNavigationComponent } from './navigation/manage-pool-navigation.component';

@@ -1,5 +1,5 @@
 import { signal, WritableSignal } from '@angular/core';
-import { RiskPack } from '../api.service';
+import { RiskPack } from '../services/api.service';
 import { AssignedTeam, AuditEntry } from '../shared/attribution/attribution.component';
 import { ScoreBooking } from '../shared/score-booking';
 

@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { ApiService, BulkRowResult, Pool } from '../../api.service';
+import { ApiService, BulkRowResult, Pool } from '../../services/api.service';
 import { ImportPanelComponent } from './import-panel.component';
 
 function setup(pool: Pool = 'players', bulkImpl?: (p: Pool, r: unknown[], d: boolean) => unknown) {

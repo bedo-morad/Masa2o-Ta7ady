@@ -7,7 +7,7 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { ApiService } from '../../../api.service';
+import { ApiService } from '../../../services/api.service';
 import { ManageComponent } from '../../manage.component';
 
 const toastStub = () => ({ success: vi.fn(), error: vi.fn() });

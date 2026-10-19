@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { OffsideComponent } from './offside.component';
-import { OffsideRule } from '../api.service';
+import { OffsideRule } from '../services/api.service';
 
 describe('OffsideComponent asked marks (rendered screen)', () => {
   let fixture: ComponentFixture<OffsideComponent>;

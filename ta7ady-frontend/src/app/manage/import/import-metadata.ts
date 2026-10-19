@@ -1,4 +1,4 @@
-import type { Pool } from '../../api.service';
+import type { Pool } from '../../services/api.service';
 
 type ImportRow = Record<string, unknown>;
 

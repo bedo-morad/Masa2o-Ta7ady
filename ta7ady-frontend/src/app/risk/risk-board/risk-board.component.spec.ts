@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { RiskPack } from '../../api.service';
+import { RiskPack } from '../../services/api.service';
 import { cellKey } from '../risk-lifecycle';
 import { RiskAssignmentRequest, RiskBoardComponent } from './risk-board.component';
 

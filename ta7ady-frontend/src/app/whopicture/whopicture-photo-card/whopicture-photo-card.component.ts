@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { WhoPicturePhoto } from '../../api.service';
+import { WhoPicturePhoto } from '../../services/api.service';
 
 export type PhotoImageState = 'loading' | 'ready' | 'failed';
 

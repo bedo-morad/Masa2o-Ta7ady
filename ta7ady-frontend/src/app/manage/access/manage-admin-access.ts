@@ -1,5 +1,5 @@
 import { computed, signal } from '@angular/core';
-import { ApiService } from '../../api.service';
+import { ApiService } from '../../services/api.service';
 
 export interface DismissableModal {
   dismiss: () => void;

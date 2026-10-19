@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { ScoresheetMatch } from '../../../api.service';
+import { ScoresheetMatch } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { ScoreSheetEditorComponent } from '../../editors/scoresheet/scoresheet-editor.component';
 import { ScoreSheetEditor } from '../../editors/scoresheet/scoresheet-editor';

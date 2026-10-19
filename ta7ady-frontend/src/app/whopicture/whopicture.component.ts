@@ -2,11 +2,11 @@ import { CountSelectorComponent } from '../shared/draw-controls/count-selector.c
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, WhoPicturePhoto } from '../api.service';
+import { API_BASE, WhoPicturePhoto } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
-import { SettingsService } from '../shared/settings/settings.service';
+import { SettingsService } from '../services/settings.service';
 import { ScoreBooking } from '../shared/score-booking';
 import { WhopicturePhotoCardComponent } from './whopicture-photo-card/whopicture-photo-card.component';
 import { WhopictureNameListComponent } from './whopicture-name-list/whopicture-name-list.component';

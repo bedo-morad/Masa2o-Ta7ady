@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { RiskPack } from '../../../api.service';
+import { RiskPack } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { RiskPackEditorComponent } from '../../editors/risk/risk-pack-editor.component';
 import { RISK_TIERS, RiskPackEditorModel } from '../../editors/risk/risk-pack-editor';

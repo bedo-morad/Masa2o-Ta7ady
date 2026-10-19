@@ -11,7 +11,7 @@ import {
   AnameenTeam,
 } from './anameen.game';
 import { AnameenComponent } from './anameen.component';
-import { AnameenSubject, ApiService } from '../api.service';
+import { AnameenSubject, ApiService } from '../services/api.service';
 import { AttributionChange } from '../shared/attribution/attribution.component';
 
 const subject = (id: number): AnameenSubject => ({

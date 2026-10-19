@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { BankQuestion } from '../../../api.service';
+import { BankQuestion } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { BankEditorComponent } from '../../editors/bank/bank-editor.component';
 import { BankEditor } from '../../editors/bank/bank-editor';

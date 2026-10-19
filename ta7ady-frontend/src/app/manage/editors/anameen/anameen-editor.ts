@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AnameenSubject, ApiService } from '../../../api.service';
+import { AnameenSubject, ApiService } from '../../../services/api.service';
 import { ManageEditorHost } from '../shared/editor-host';
 
 export const ANAMEEN_EDITOR_CLUES = 5;

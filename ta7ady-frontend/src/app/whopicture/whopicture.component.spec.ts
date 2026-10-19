@@ -9,8 +9,8 @@ import {
   sharePhotoImage,
   sharePhotoUrl,
 } from './whopicture.component';
-import { WhoPicturePhoto } from '../api.service';
-import { SettingsService } from '../shared/settings/settings.service';
+import { WhoPicturePhoto } from '../services/api.service';
+import { SettingsService } from '../services/settings.service';
 
 describe('nameKey', () => {
   it('keys the 11 slots by photo-internal index', () => {

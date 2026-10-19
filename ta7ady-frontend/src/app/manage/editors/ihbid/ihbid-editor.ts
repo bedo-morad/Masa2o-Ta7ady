@@ -1,5 +1,5 @@
 import { firstValueFrom } from 'rxjs';
-import { ApiService } from '../../../api.service';
+import { ApiService } from '../../../services/api.service';
 import { ManageEditorHost } from '../shared/editor-host';
 import { SharedBasicDrafts } from '../shared/basic-drafts';
 import { applyEditMutation } from '../shared/edit-commit';

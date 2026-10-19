@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { AnameenSubject } from '../../../api.service';
+import { AnameenSubject } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { AnameenEditorComponent } from '../../editors/anameen/anameen-editor.component';
 import { AnameenEditor } from '../../editors/anameen/anameen-editor';

@@ -17,7 +17,7 @@ import {
   ScoresheetMatch,
   Top10List,
   WhoPicturePhoto,
-} from '../../api.service';
+} from '../../services/api.service';
 import { ManageComponent } from '../manage.component';
 
 export const managePools = [

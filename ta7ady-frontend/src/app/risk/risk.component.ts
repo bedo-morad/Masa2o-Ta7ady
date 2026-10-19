@@ -2,7 +2,7 @@ import { GameHeaderComponent } from '../shared/game-header/game-header.component
 import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, ApiService, RiskPack } from '../api.service';
+import { API_BASE, ApiService, RiskPack } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import {

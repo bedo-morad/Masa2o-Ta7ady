@@ -6,7 +6,7 @@ import {
   signed,
 } from './attribution.component';
 import { rankValue, teamContribution, trioHolder } from './rank-points';
-import { SettingsService } from '../settings/settings.service';
+import { SettingsService } from '../../services/settings.service';
 
 describe('rankValue', () => {
   it('ranks 1-10 score their rank', () => {

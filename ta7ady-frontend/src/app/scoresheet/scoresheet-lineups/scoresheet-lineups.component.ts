@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { AssignedTeam } from '../../shared/attribution/attribution.component';
-import { ScoresheetMatch } from '../../api.service';
+import { ScoresheetMatch } from '../../services/api.service';
 
 export type Side = 'A' | 'B';
 export type PlayerMap = Record<string, AssignedTeam>;

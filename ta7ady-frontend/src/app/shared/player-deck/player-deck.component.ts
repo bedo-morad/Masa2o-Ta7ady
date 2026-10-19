@@ -1,7 +1,7 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { API_BASE, ApiService, PlayerName } from '../../api.service';
+import { API_BASE, ApiService, PlayerName } from '../../services/api.service';
 import { GoogleSearchComponent } from '../google-search/google-search.component';
 
 interface Card {

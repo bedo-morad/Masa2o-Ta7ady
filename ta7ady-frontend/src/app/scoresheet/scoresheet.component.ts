@@ -2,7 +2,7 @@ import { CountSelectorComponent } from '../shared/draw-controls/count-selector.c
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, ScoresheetMatch } from '../api.service';
+import { API_BASE, ScoresheetMatch } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import {
   PlayerMap,
@@ -15,7 +15,7 @@ export { playerKey } from './scoresheet-lineups/scoresheet-lineups.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
 import { ScoreBooking } from '../shared/score-booking';
-import { SettingsService } from '../shared/settings/settings.service';
+import { SettingsService } from '../services/settings.service';
 import {
   AssignedTeam,
   AuditEntry,

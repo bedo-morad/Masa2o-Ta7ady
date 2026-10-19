@@ -5,7 +5,7 @@ import {
   AttributionChange,
   AttributionComponent,
 } from '../../shared/attribution/attribution.component';
-import { RiskPack, RiskQuestion } from '../../api.service';
+import { RiskPack, RiskQuestion } from '../../services/api.service';
 import { RISK_TIERS, cellKey, pointValue, splitCell, tierPoints } from '../risk-lifecycle';
 
 export interface RiskAssignmentRequest {

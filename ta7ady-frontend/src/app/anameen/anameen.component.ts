@@ -3,12 +3,12 @@ import { GameHeaderComponent } from '../shared/game-header/game-header.component
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { API_BASE, AnameenSubject, ApiService } from '../api.service';
+import { API_BASE, AnameenSubject, ApiService } from '../services/api.service';
 import { AnameenTeam, ANAMEEN_COUNTS, ANAMEEN_COUNT_DEFAULT, ANAMEEN_POINTS } from './anameen.game';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
-import { SettingsService } from '../shared/settings/settings.service';
+import { SettingsService } from '../services/settings.service';
 import {
   AssignedTeam,
   AttributionChange,

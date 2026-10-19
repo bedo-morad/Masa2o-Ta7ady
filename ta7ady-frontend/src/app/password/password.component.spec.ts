@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { PlayerName } from '../api.service';
+import { PlayerName } from '../services/api.service';
 import { PasswordComponent } from './password.component';
 
 describe('PasswordComponent', () => {

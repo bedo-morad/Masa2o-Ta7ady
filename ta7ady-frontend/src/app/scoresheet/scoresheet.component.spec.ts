@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { ScoresheetComponent, playerKey } from './scoresheet.component';
-import { ScoresheetMatch } from '../api.service';
-import { SettingsService } from '../shared/settings/settings.service';
+import { ScoresheetMatch } from '../services/api.service';
+import { SettingsService } from '../services/settings.service';
 
 describe('playerKey', () => {
   it('separates sides and indexes', () => {

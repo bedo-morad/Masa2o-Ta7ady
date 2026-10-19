@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { PlayerName } from '../../../api.service';
+import { PlayerName } from '../../../services/api.service';
 import { ManageRowSelection } from '../manage-row-selection';
 import { PlayersEditorComponent } from '../../editors/players/players-editor.component';
 import { PlayersEditor } from '../../editors/players/players-editor';

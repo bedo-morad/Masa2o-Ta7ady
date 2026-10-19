@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { Pool } from '../../api.service';
+import { Pool } from '../../services/api.service';
 
 interface PoolTab {
   readonly pool: Pool;

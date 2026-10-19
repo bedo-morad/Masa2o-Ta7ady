@@ -2,7 +2,7 @@ import { CountSelectorComponent } from '../shared/draw-controls/count-selector.c
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, Top10List } from '../api.service';
+import { API_BASE, Top10List } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';

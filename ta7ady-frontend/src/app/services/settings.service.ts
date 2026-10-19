@@ -1,5 +1,5 @@
 import { Injectable, Signal, inject, signal } from '@angular/core';
-import { ThemeService, type Theme } from '../../theme.service';
+import { ThemeService, type Theme } from './theme.service';
 
 export type AlarmSoundId = 'classic' | 'triplet' | 'gong';
 

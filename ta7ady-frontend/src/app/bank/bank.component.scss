@@ -381,6 +381,13 @@ a:focus-visible {
   letter-spacing: -0.01em;
 }
 
+@media (max-width: 480px) {
+  .q {
+    // Reserve room for two lines; longer questions can still grow naturally.
+    min-height: 3em;
+  }
+}
+
 .answer {
   margin: 0;
   display: flex;

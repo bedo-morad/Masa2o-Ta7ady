@@ -3,6 +3,22 @@
 Production deploy is container-only. Local dev is unchanged
 (`docker compose up -d` for postgres, `.\mvnw spring-boot:run`, `npx ng serve`).
 
+### Running locally on another frontend port
+
+The official frontend calls `http://localhost:8080/api` directly. The backend
+allows `http://localhost:4200` by default; a different port is a different origin
+and is blocked by the browser unless explicitly allowed. For example, set this
+in the project-root `.env`, restart the backend, and run `npx ng serve --port 4300`:
+
+```dotenv
+CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:4300
+```
+
+Use `http://localhost:4300/manage` locally, not a forwarded preview URL. If using
+`127.0.0.1` instead of `localhost`, add that exact frontend origin too. Do not use
+wildcard origins. Edit and delete still require the existing admin password;
+changing the origin allowlist does not bypass authorization.
+
 ## How configuration reaches the app (read once, it's simple)
 
 Everything configurable lives in **one `.env` file at the project root** — no exceptions,

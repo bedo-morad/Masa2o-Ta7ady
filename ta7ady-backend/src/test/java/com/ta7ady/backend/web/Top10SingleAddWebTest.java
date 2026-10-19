@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class Top10SingleAddWebTest {
+class Top10SingleAddWebTest extends com.ta7ady.backend.PostgreSqlIntegrationTest {
     @Autowired
     MockMvc mvc;
 

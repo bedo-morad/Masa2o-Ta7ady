@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = "admin.password=controller-contract-admin")
 @AutoConfigureMockMvc
 @Transactional
-class ControllerResponseContractTest {
+class ControllerResponseContractTest extends com.ta7ady.backend.PostgreSqlIntegrationTest {
     private static final String ADMIN_PASSWORD = "controller-contract-admin";
     @Autowired
     MockMvc mvc;

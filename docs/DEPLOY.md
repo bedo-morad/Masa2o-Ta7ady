@@ -35,8 +35,9 @@ container values, the chain is:
 ```
 
 So `ADMIN_PASSWORD=whatever` in `.env` becomes the `admin.password` that
-`application.yaml` reads. The `:default` part means local `mvn` runs need **zero setup**
-(no `.env` at all): missing vars fall back to dev values.
+`application.yaml` reads. The `:default` part supplies local connection defaults without a `.env` file.
+It does not provision or approve a database schema: follow
+[`DATABASE_MIGRATIONS.md`](DATABASE_MIGRATIONS.md) before backend startup.
 
 ## Prereqs
 
@@ -61,10 +62,18 @@ Rules:
 - `.env` (project root) is git-ignored — never commit it.
 - Keep the two password pairs in sync (`POSTGRES_PASSWORD` ==
   `SPRING_DATASOURCE_PASSWORD`), otherwise the backend can't connect.
-- Local `mvn` runs need zero setup: `application.yaml` defaults to
-  `${ADMIN_PASSWORD:admin}` and `localhost:5432`, so a missing `.env` still works.
+- Local connection defaults are `${ADMIN_PASSWORD:admin}` and `localhost:5432`.
+  An approved/provisioned `ta7ady` schema is still required; Hibernate never
+  creates or updates it. See the migration guide before using an existing database.
 
 ## 2. Deploy / update
+
+**Existing-database gate:** before running deployment against any database that
+already contains application data, stop and follow
+[`DATABASE_MIGRATIONS.md`](DATABASE_MIGRATIONS.md). The current public-schema
+database is not an approved Flyway target; do not point the app at an empty
+`ta7ady` schema or baseline it without a separately reviewed plan. Fresh
+databases must have `ta7ady` created explicitly before startup.
 
 ```powershell
 docker compose -f docker-compose.prod.yml up -d --build
@@ -80,7 +89,8 @@ What you get:
 - postgres is **not** published; data lives in the `postgres-prod` named volume.
 
 Stop (keeps data): `docker compose -f docker-compose.prod.yml stop`
-Full teardown **including data**: `docker compose -f docker-compose.prod.yml down -v`
+Full teardown **including data** (destructive; only for an approved disposable
+environment after a verified backup): `docker compose -f docker-compose.prod.yml down -v`
 
 ## 3. Where data persists
 
@@ -95,8 +105,10 @@ On every push/PR:
 
 1. **backend** — `mvn -B verify` in `ta7ady-backend/` against a `postgres:18`
    service container (`POSTGRES_USER=username`, `POSTGRES_PASSWORD=password`,
-   `POSTGRES_DB=ta7ady`, matching the app's test defaults; passed as workflow env,
-   not copied from any credentials file).
+   `POSTGRES_DB=ta7ady`). The workflow supplies `MIGRATION_TEST_ADMIN_URL`,
+   `MIGRATION_TEST_USER`, and `MIGRATION_TEST_PASSWORD` for that disposable server.
+   Tests create uniquely named databases and explicitly provision `ta7ady` there;
+   they do not use the developer database or Hibernate schema generation.
 2. **frontend** — `npm ci`, `npx ng build`, `npx ng test --watch=false`.
 3. **docker** — `docker build` of both Dockerfiles (tagged `:ci`, never pushed).
 

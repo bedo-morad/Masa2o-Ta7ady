@@ -22,11 +22,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // SPECV3 §3.1 (admin-gated edit) + §3.2/§3.4 (bank/risk draws and tiers).
-// DB-backed: needs postgres up (docker compose up -d). Rolls back after each test.
+// DB-backed: uses the isolated PostgreSQL test fixture. Rolls back after each test.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class EditAdminGateTest {
+class EditAdminGateTest extends com.ta7ady.backend.PostgreSqlIntegrationTest {
 
     private static final String ADMIN = "X-Admin-Password";
 

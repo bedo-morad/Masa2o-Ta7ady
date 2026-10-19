@@ -24,11 +24,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // SPECV4 §4.3: 11-name + URL enforcement, draw default 1 clamp 1–5, bulk, admin gates.
-// DB-backed: needs postgres up (docker compose up -d). Rolls back after each test.
+// DB-backed: uses the isolated PostgreSQL test fixture. Rolls back after each test.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class WhoPictureWebTest {
+class WhoPictureWebTest extends com.ta7ady.backend.PostgreSqlIntegrationTest {
 
     private static final String ADMIN = "X-Admin-Password";
     private static final String URL = "https://example.com/team-photo.jpg";

@@ -7,6 +7,10 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    env:
+      MIGRATION_TEST_ADMIN_URL: jdbc:postgresql://localhost:5432/postgres
+      MIGRATION_TEST_USER: username
+      MIGRATION_TEST_PASSWORD: password
     services:
       postgres:
         image: postgres:18

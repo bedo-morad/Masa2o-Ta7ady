@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
-class ServiceMappingContractTest {
+class ServiceMappingContractTest extends com.ta7ady.backend.PostgreSqlIntegrationTest {
     @Autowired
     Top10Service top10;
     @Autowired

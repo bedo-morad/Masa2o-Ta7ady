@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class ScoresheetSingleAddWebTest {
+class ScoresheetSingleAddWebTest extends com.ta7ady.backend.PostgreSqlIntegrationTest {
     @Autowired
     MockMvc mvc;
 

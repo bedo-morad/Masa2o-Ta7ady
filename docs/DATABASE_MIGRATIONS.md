@@ -16,7 +16,7 @@ The available sandbox database is named `ta7ady`, but its 15 application tables 
 
 **Version `1` is the tested baseline for the isolated V1 fixture, not a verified shared baseline.** V1 remains provisional for shared adoption until the actual target is inspected and compared. Hibernate validation is not a complete constraint/index/data-drift audit.
 
-Do not move the existing `public` tables, baseline that database, or create an empty `ta7ady` schema to conceal them. Missing `ta7ady` fails startup instead of silently creating a replacement. Resolving the schema mismatch requires a separately reviewed plan and rollout authorization. Issue #41 must remain open until the real existing-database gate is satisfied.
+Do not move the existing `public` tables, baseline that database, or create an empty `ta7ady` schema to conceal them. Missing `ta7ady` fails startup instead of silently creating a replacement. Resolving the schema mismatch requires a separately reviewed plan and rollout authorization. Issue #41 is closed after the disposable rehearsal; that does not satisfy the real existing-database gate or authorize a shared-environment migration.
 
 ## Fresh database
 

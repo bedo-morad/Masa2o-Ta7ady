@@ -32,15 +32,7 @@ export {
   type NameMap,
   type SharePath,
 } from './whopicture-helpers';
-import {
-  countAssigned,
-  nameKey,
-  sharePhotoImage,
-  sharePhotoUrl,
-  WHO_MAX_PHOTOS,
-  type NameMap,
-  type ShareCapableNavigator,
-} from './whopicture-helpers';
+import { countAssigned, nameKey, WHO_MAX_PHOTOS, type NameMap } from './whopicture-helpers';
 import {
   AssignedTeam,
   AttributionChange,
@@ -83,8 +75,7 @@ export class WhopictureComponent {
   readonly booked = signal<Record<number, { A: number; B: number }>>({});
   readonly audit = signal<AuditEntry[]>([]);
   readonly strikes = signal<Record<number, StrikeSlot[]>>({});
-  // Per-photo load state of the hotlinked image: skeleton → ready / failed.
-  readonly imageState = signal<Record<number, 'loading' | 'ready' | 'failed'>>({});
+  readonly imageResetToken = signal(0);
   readonly msg = signal('');
   readonly maxPhotos = WHO_MAX_PHOTOS;
   private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
@@ -114,21 +105,6 @@ export class WhopictureComponent {
     return this.assignments()[photoId]?.[nameKey(i)] ?? null;
   }
 
-  /** Hotlinked image lifecycle per photo: starts on 'loading' at first sight. */
-  imageOf(photoId: number): 'loading' | 'ready' | 'failed' {
-    return this.imageState()[photoId] ?? 'loading';
-  }
-
-  markLoaded(photoId: number): void {
-    this.imageState.update((st) => (st[photoId] === 'ready' ? st : { ...st, [photoId]: 'ready' }));
-  }
-
-  /** The external host failed us (dead hotlink, offline image): an explicit
-   * 'failed' replaces the eternal skeleton; showing-once wins over the error. */
-  markFailed(photoId: number): void {
-    this.imageState.update((st) => (st[photoId] === 'ready' ? st : { ...st, [photoId]: 'failed' }));
-  }
-
   prev(): void {
     this.idx.update((i) => Math.max(0, i - 1));
   }
@@ -143,7 +119,7 @@ export class WhopictureComponent {
 
   reload(): void {
     this.strikes.set({});
-    this.imageState.set({});
+    this.imageResetToken.update((token) => token + 1);
     this.res.reload();
   }
 
@@ -276,25 +252,5 @@ export class WhopictureComponent {
 
   onSlotRename(photoId: number, r: StrikeRename): void {
     this.setSlotName(photoId, r.index, r.name);
-  }
-
-  /** Shares the open photo's link with the room: real native sheet first,
-   * the clipboard only when the browser has no share API. */
-  async shareUrl(): Promise<void> {
-    const p = this.current();
-    if (!p) return;
-    const path = await sharePhotoUrl(p.photoUrl, p.title, navigator as ShareCapableNavigator);
-    if (path === 'copied') this.msg.set('تم نسخ رابط الصورة — شاركه مع الصالة.');
-    else if (path === 'failed') this.msg.set('تعذّرت المشاركة — انسخ الرابط من شريط العنوان.');
-  }
-
-  /** Shares the image itself when the device can carry files; a refusal or a
-   * failed fetch falls back to copying the link (last resort, never silent). */
-  async shareImage(): Promise<void> {
-    const p = this.current();
-    if (!p) return;
-    const path = await sharePhotoImage(p.photoUrl, p.title, navigator as ShareCapableNavigator);
-    if (path === 'copied') this.msg.set('مشاركة الصورة غير مدعومة — تم نسخ الرابط بدلًا منها.');
-    else if (path === 'failed') this.msg.set('تعذّر إرسال الصورة — افتح الرابط وشاركه يدويًا.');
   }
 }

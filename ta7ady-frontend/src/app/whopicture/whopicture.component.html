@@ -32,11 +32,8 @@
 
     <app-whopicture-photo-card
       [photo]="photo"
-      [imageState]="imageOf(photo.id)"
-      (imageLoaded)="markLoaded($event)"
-      (imageFailed)="markFailed($event)"
-      (shareImage)="shareImage()"
-      (shareUrl)="shareUrl()"
+      [resetToken]="imageResetToken()"
+      (shareNotice)="msg.set($event)"
     />
 
     <app-whopicture-name-list

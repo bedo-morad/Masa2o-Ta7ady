@@ -18,25 +18,20 @@
       loading="lazy"
       [class.is-ready]="imageState() === 'ready'"
       [class.is-failed]="imageState() === 'failed'"
-      (load)="imageLoaded.emit(photo().id)"
-      (error)="imageFailed.emit(photo().id)"
+      (load)="markLoaded()"
+      (error)="markFailed()"
     />
   </div>
   <div class="share-row">
     <button
       type="button"
       class="share"
-      (click)="shareImage.emit()"
+      (click)="shareImage()"
       aria-label="مشاركة صورة الفريق نفسها"
     >
       <i class="fa-solid fa-images" aria-hidden="true"></i> مشاركة الصورة
     </button>
-    <button
-      type="button"
-      class="share link"
-      (click)="shareUrl.emit()"
-      aria-label="مشاركة رابط الصورة"
-    >
+    <button type="button" class="share link" (click)="shareUrl()" aria-label="مشاركة رابط الصورة">
       <i class="fa-solid fa-share-nodes" aria-hidden="true"></i> مشاركة الرابط
     </button>
   </div>

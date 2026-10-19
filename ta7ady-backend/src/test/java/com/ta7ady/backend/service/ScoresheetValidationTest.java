@@ -77,13 +77,6 @@ class ScoresheetValidationTest {
     }
 
     @Test
-    void matchKeyAliasesResolve() {
-        assertEquals("Big Final", ScoresheetService.matchOf(java.util.Map.of("match", "Big Final")));
-        assertEquals("Big Final", ScoresheetService.matchOf(java.util.Map.of("matchLabel", "Big Final")));
-        assertEquals("Big Final", ScoresheetService.matchOf(java.util.Map.of("match_label", "Big Final")));
-    }
-
-    @Test
     void countClampDefaults() {
         assertEquals(1, ScoresheetService.normalizeCount(0));
         assertEquals(1, ScoresheetService.normalizeCount(-3));

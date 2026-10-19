@@ -129,6 +129,37 @@ class ScoresheetSingleAddWebTest {
         postRaw("null").andExpect(status().isBadRequest());
     }
 
+    @Test
+    void structuredCanonicalValuesAreCoercedAndStillTakePrecedenceOverAliases() throws Exception {
+        ObjectNode body = scoresheetWith("match", mapper.createObjectNode().put("stage", "final"));
+        body.put("matchLabel", "Alias must not win");
+        body.set("teamA", mapper.createArrayNode().add("Alpha").add("Bravo"));
+        body.put("teamB", true);
+        ArrayNode names = lineup("Side A");
+        names.set(0, mapper.createObjectNode().put("player", 7));
+        names.set(1, mapper.createArrayNode().add("Charlie").add("Delta"));
+        body.set("lineupA", names);
+        postJson(body).andExpect(status().isOk())
+                .andExpect(jsonPath("$.matchLabel").value("{stage=final}"))
+                .andExpect(jsonPath("$.teamA").value("[Alpha, Bravo]"))
+                .andExpect(jsonPath("$.teamB").value("true"))
+                .andExpect(jsonPath("$.lineupA[0]").value("{player=7}"))
+                .andExpect(jsonPath("$.lineupA[1]").value("[Charlie, Delta]"));
+    }
+
+    @Test
+    void nullAndWrongFieldsRetainValidationReasonOrder() throws Exception {
+        ObjectNode body = scoresheetWith("match", (String) null);
+        body.putNull("teamA");
+        body.set("lineupB", mapper.createObjectNode().put("player", 7));
+        postJson(body).andExpect(status().isBadRequest())
+                .andExpect(result -> org.junit.jupiter.api.Assertions.assertEquals(
+                        "match must be at least 3 characters; teamA must be at least 3 characters; "
+                                + "lineupB must contain exactly 11 entries",
+                        ((org.springframework.web.server.ResponseStatusException)
+                                result.getResolvedException()).getReason()));
+    }
+
     private org.springframework.test.web.servlet.ResultActions postJson(JsonNode body) throws Exception {
         return postRaw(mapper.writeValueAsString(body));
     }

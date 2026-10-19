@@ -84,6 +84,30 @@ class Top10SingleAddWebTest {
         postRaw("null").andExpect(status().isBadRequest());
     }
 
+    @Test
+    void preservesStructuredValueCoercionRatherThanStrictStringDeserialization() throws Exception {
+        ArrayNode answers = answers13();
+        answers.set(0, mapper.createObjectNode().put("player", 7));
+        answers.set(1, mapper.createArrayNode().add("Alpha").add("Bravo"));
+        answers.set(2, mapper.getNodeFactory().booleanNode(true));
+        postJson(top10(mapper.createObjectNode().put("round", 7), answers))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.prompt").value("{round=7}"))
+                .andExpect(jsonPath("$.answers[0]").value("{player=7}"))
+                .andExpect(jsonPath("$.answers[1]").value("[Alpha, Bravo]"))
+                .andExpect(jsonPath("$.answers[2]").value("true"));
+    }
+
+    @Test
+    void wrongListShapeKeepsServiceValidationReason() throws Exception {
+        postJson(top10("Valid prompt", mapper.createObjectNode().put("answer", 7)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> org.junit.jupiter.api.Assertions.assertEquals(
+                        "answers must contain exactly 13 entries",
+                        ((org.springframework.web.server.ResponseStatusException)
+                                result.getResolvedException()).getReason()));
+    }
+
     private org.springframework.test.web.servlet.ResultActions postJson(JsonNode body) throws Exception {
         return postRaw(mapper.writeValueAsString(body));
     }

@@ -1,6 +1,5 @@
 package com.ta7ady.backend.web;
 import com.ta7ady.backend.dto.ScoresheetBulkRow;
-import com.ta7ady.backend.bulk.BulkHelper;
 import com.ta7ady.backend.bulk.BulkRowResult;
 
 import com.ta7ady.backend.entity.ScoresheetMatch;
@@ -42,9 +41,9 @@ public class ScoresheetController extends BulkAdminController<ScoresheetBulkRow,
     //              "lineupA": [... x11], "lineupB": [... x11] }
     @PostMapping
     public ResponseEntity<ScoresheetMatch> create(@RequestBody Map<String, Object> body) {
-        return ResponseEntity.ok(service.create(ScoresheetService.matchOf(body), BulkHelper.str(body.get("teamA")),
-                BulkHelper.str(body.get("teamB")), BulkHelper.list(body.get("lineupA")),
-                BulkHelper.list(body.get("lineupB"))));
+        var request = ScoresheetSingleAddRequestParser.parse(body);
+        return ResponseEntity.ok(service.create(request.match(), request.teamA(), request.teamB(),
+                request.lineupA(), request.lineupB()));
     }
 
     @Override

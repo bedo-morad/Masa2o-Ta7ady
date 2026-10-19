@@ -1,6 +1,5 @@
 package com.ta7ady.backend.web;
 import com.ta7ady.backend.dto.Top10BulkRow;
-import com.ta7ady.backend.bulk.BulkHelper;
 import com.ta7ady.backend.bulk.BulkRowResult;
 
 import com.ta7ady.backend.entity.Top10List;
@@ -41,9 +40,8 @@ public class Top10Controller extends BulkAdminController<Top10BulkRow, Top10List
     // POST JSON: { "prompt": "...", "answers": ["rank1", ..., "rank13"] }
     @PostMapping
     public ResponseEntity<Top10List> create(@RequestBody Map<String, Object> body) {
-        Object answers = body.get("answers");
-        return ResponseEntity.ok(service.create(BulkHelper.str(body.get("prompt")),
-                answers instanceof List ? (List<?>) answers : null));
+        var request = Top10SingleAddRequestParser.parse(body);
+        return ResponseEntity.ok(service.create(request.prompt(), request.answers()));
     }
 
     @Override

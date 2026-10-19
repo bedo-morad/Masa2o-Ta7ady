@@ -8,7 +8,6 @@ import com.ta7ady.backend.dto.ScoresheetBulkRow;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,15 +42,6 @@ public class ScoresheetService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
         return repo.save(toEntity(matchLabel, teamA, teamB, lineupA, lineupB));
-    }
-
-    // AUTHORING.md single-add/bulk row keys: "match" (+ "matchLabel"/"match_label" aliases).
-    public static String matchOf(Map<String, Object> body) {
-        if (body == null) return null;
-        Object m = body.get("match");
-        if (m == null) m = body.get("matchLabel");
-        if (m == null) m = body.get("match_label");
-        return m == null ? null : m.toString();
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.

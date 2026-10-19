@@ -2,9 +2,9 @@ package com.ta7ady.backend.service;
 
 import com.ta7ady.backend.entity.PlayerName;
 import com.ta7ady.backend.repository.PlayerNameRepository;
-import com.ta7ady.backend.web.BulkHelper;
-import com.ta7ady.backend.web.BulkRowResult;
-import com.ta7ady.backend.web.PlayerNameBulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
+import com.ta7ady.backend.dto.PlayerNameBulkRow;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -50,9 +50,7 @@ public class PlayerNameService {
         if (repo.existsByPlayerNameIgnoreCase(raw.trim())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "player name already exists");
         }
-        PlayerName e = new PlayerName();
-        e.setPlayerName(raw.trim());
-        return repo.save(e);
+        return repo.save(applyTo(new PlayerName(), raw));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, plus create's
@@ -68,8 +66,7 @@ public class PlayerNameService {
         if (!value.equalsIgnoreCase(e.getPlayerName()) && repo.existsByPlayerNameIgnoreCase(value)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "player name already exists");
         }
-        e.setPlayerName(value);
-        return repo.save(e);
+        return repo.save(applyTo(e, value));
     }
 
     // Pure shape validation shared by single POST and bulk (no DB touch).
@@ -94,12 +91,13 @@ public class PlayerNameService {
                     return errors;
                 },
                 r -> r == null ? null : r.playerName(),
-                r -> {
-                    PlayerName e = new PlayerName();
-                    e.setPlayerName(r.playerName().trim());
-                    return e;
-                },
+                r -> applyTo(new PlayerName(), r.playerName()),
                 e -> repo.save(e).getId());
+    }
+
+    private static PlayerName applyTo(PlayerName e, String raw) {
+        e.setPlayerName(raw.trim());
+        return e;
     }
 
     public void delete(Long id) {

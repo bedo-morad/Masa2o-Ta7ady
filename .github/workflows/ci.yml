@@ -7,6 +7,10 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    env:
+      MIGRATION_TEST_ADMIN_URL: jdbc:postgresql://localhost:5432/postgres
+      MIGRATION_TEST_USER: username
+      MIGRATION_TEST_PASSWORD: password
     services:
       postgres:
         image: postgres:18
@@ -51,6 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify fresh Compose schema initialization and restart safety
+        run: ./docker/postgres/verify-init.sh
       - run: docker build -f ta7ady-backend/Dockerfile -t masa2o-ta7ady-backend:ci ta7ady-backend
       - run: docker build -f ta7ady-frontend/Dockerfile -t masa2o-ta7ady-frontend:ci ta7ady-frontend
 

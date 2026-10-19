@@ -1,0 +1,35 @@
+@if (items().length > 1) {
+  <nav class="nav-row" [attr.aria-label]="itemsLabel()">
+    <button
+      type="button"
+      class="navbtn"
+      (click)="previous.emit()"
+      [disabled]="index() === 0"
+      [attr.aria-label]="itemLabel() + ' السابقة'"
+    >
+      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    </button>
+    <div class="dots" role="group" [attr.aria-label]="itemsLabel()">
+      @for (item of items(); track $index; let i = $index) {
+        <button
+          type="button"
+          class="dot tabular-nums"
+          [class.on]="i === index()"
+          (click)="select.emit(i)"
+          [attr.aria-label]="itemLabel() + ' ' + (i + 1)"
+        >
+          {{ i + 1 }}
+        </button>
+      }
+    </div>
+    <button
+      type="button"
+      class="navbtn"
+      (click)="next.emit()"
+      [disabled]="index() >= items().length - 1"
+      [attr.aria-label]="itemLabel() + ' التالية'"
+    >
+      <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+    </button>
+  </nav>
+}

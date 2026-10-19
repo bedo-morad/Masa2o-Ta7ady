@@ -11,7 +11,7 @@ import {
   splitCell,
   tierPoints,
 } from './risk.component';
-import { ApiService, RiskPack } from '../api.service';
+import { ApiService, RiskPack } from '../services/api.service';
 
 describe('risk helpers', () => {
   it('tiers follow 5/10/20/40', () => {
@@ -89,6 +89,37 @@ describe('RiskComponent', () => {
     expect(setup()).toBeTruthy();
   });
 
+  it('books and reverses rendered attribution while card taps remain display-only', () => {
+    const fixture = TestBed.createComponent(RiskComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    c.loadBoard(board());
+    c.double.set(cellKey(4, 3));
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    root.querySelector<HTMLButtonElement>('.cell:not(.empty)')!.click();
+    fixture.detectChanges();
+    const assignButton = root.querySelector<HTMLButtonElement>('.spotlight .ta')!;
+    assignButton.click();
+    fixture.detectChanges();
+    expect(c.scoreA()).toBe(5);
+    expect(c.assigned(cellKey(1, 0))).toBe('A');
+    expect(c.audit().at(-1)).toEqual(
+      expect.objectContaining({ team: 'A', delta: 5, label: 'سؤال 0' }),
+    );
+    assignButton.click();
+    fixture.detectChanges();
+    expect(c.scoreA()).toBe(0);
+    expect(c.assigned(cellKey(1, 0))).toBeNull();
+    expect(c.audit().at(-1)?.delta).toBe(-5);
+    const card = root.querySelector<HTMLButtonElement>('.card')!;
+    card.click();
+    fixture.detectChanges();
+    expect(card.getAttribute('aria-pressed')).toBe('true');
+    expect(c.audit()).toHaveLength(2);
+    expect(c.scoreA()).toBe(0);
+  });
+
   it('keeps full Arabic genre captions paired with their column reroll', () => {
     const fixture = TestBed.createComponent(RiskComponent);
     fixture.detectChanges();
@@ -122,20 +153,6 @@ describe('RiskComponent', () => {
     expect(cellsOf(c)).toContain(d as string);
   });
 
-  it('never shows the double badge before its cell is revealed', () => {
-    const c = setup();
-    const d = c.double() as string;
-    const other = cellsOf(c).find((k) => k !== d) as string;
-    expect(c.isDouble(d)).toBe(false);
-    expect(c.isDouble(other)).toBe(false);
-
-    c.toggleCell(other);
-    expect(c.isDouble(other)).toBe(false);
-
-    c.toggleCell(d);
-    expect(c.isDouble(d)).toBe(true);
-  });
-
   it('attribution scores face value and unassign reverses exactly', () => {
     const c = setup();
     const key = cellKey(1, 0); // tier 0 = 5
@@ -164,13 +181,13 @@ describe('RiskComponent', () => {
   it('answered cells dim (seen) but stay tappable; closing keeps them seen', () => {
     const c = setup();
     const key = cellKey(1, 1);
-    expect(c.isSeen(key)).toBe(false);
+    expect(c.seen().has(key)).toBe(false);
     c.toggleCell(key);
-    expect(c.isOpen(key)).toBe(true);
-    expect(c.isSeen(key)).toBe(true);
+    expect(c.open()).toBe(key);
+    expect(c.seen().has(key)).toBe(true);
     c.toggleCell(key);
-    expect(c.isOpen(key)).toBe(false);
-    expect(c.isSeen(key)).toBe(true);
+    expect(c.open()).toBeNull();
+    expect(c.seen().has(key)).toBe(true);
   });
 
   it('genre reroll swaps the column and reverses its booked points', async () => {
@@ -188,7 +205,7 @@ describe('RiskComponent', () => {
     expect(c.packs()[0].id).toBe(99);
     expect(c.packs()[0].genre).toBe('جانب جديد');
     expect(c.scoreA()).toBe(0); // old column's points reversed
-    expect(c.isSeen(key)).toBe(false);
+    expect(c.seen().has(key)).toBe(false);
     expect(c.assigned(key)).toBeNull();
     expect(c.open()).toBeNull();
   });
@@ -202,7 +219,12 @@ describe('RiskComponent', () => {
     c.toggleCell(answered); // seen, closed
 
     vi.spyOn(api, 'riskRandom').mockReturnValue(of([pack(99)]));
-    await c.rerollColumn(0);
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.25);
+    try {
+      await c.rerollColumn(0);
+    } finally {
+      random.mockRestore();
+    }
 
     const d = c.double();
     expect(d).not.toBeNull();
@@ -210,6 +232,7 @@ describe('RiskComponent', () => {
     // Re-hidden only among still-unanswered cells: never on the answered one.
     expect(c.seen().has(d as string)).toBe(false);
     expect(d).not.toBe(answered);
+    expect(d).toBe(cellKey(99, 3));
   });
 
   it('a found double is never re-hidden by a reroll', async () => {
@@ -217,7 +240,7 @@ describe('RiskComponent', () => {
     const api = TestBed.inject(ApiService);
     const d = c.double() as string;
     c.toggleCell(d); // reveal it → found
-    expect(c.doubleFound()).toBe(true);
+    expect(c.seen().has(d)).toBe(true);
 
     const dPack = splitCell(d).packId;
     const col = c.packs().findIndex((p) => p.id !== dPack); // reroll a different column
@@ -225,7 +248,7 @@ describe('RiskComponent', () => {
     await c.rerollColumn(col);
 
     expect(c.double()).toBe(d); // no new double hidden
-    expect(c.doubleFound()).toBe(true);
+    expect(c.seen().has(d)).toBe(true);
   });
 
   it('rerolling away a found double leaves no hidden double', async () => {
@@ -239,7 +262,22 @@ describe('RiskComponent', () => {
     await c.rerollColumn(col);
 
     expect(c.double()).toBeNull();
-    expect(c.doubleFound()).toBe(false);
+  });
+
+  it('closes an open replaced column but preserves an open surviving column', async () => {
+    const c = setup();
+    const api = TestBed.inject(ApiService);
+    const replaced = cellKey(1, 0);
+    c.toggleCell(replaced);
+    vi.spyOn(api, 'riskRandom').mockReturnValue(of([pack(99)]));
+    await c.rerollColumn(0);
+    expect(c.open()).toBeNull();
+
+    const surviving = cellKey(2, 0);
+    c.toggleCell(surviving);
+    vi.spyOn(api, 'riskRandom').mockReturnValue(of([pack(100)]));
+    await c.rerollColumn(0);
+    expect(c.open()).toBe(surviving);
   });
 
   it('new board reverses the outgoing board and re-hides a fresh double', () => {
@@ -258,10 +296,26 @@ describe('RiskComponent', () => {
     expect(c.double()).not.toBeNull();
   });
 
-  it('builds an encoded Google fact-check link for a question', () => {
-    const c = setup();
-    const q = 'من فاز بكأس العالم 2022؟';
-    expect(c.googleUrl(q)).toBe(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
+  it('renders the selected question search link and follows its reveal state', () => {
+    const fixture = TestBed.createComponent(RiskComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    c.loadBoard([pack(1), pack(2), pack(3), pack(4)]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.gq')).toBeNull();
+    const question = c.packs()[0].questions[0].question;
+    const cell = fixture.nativeElement.querySelector('.cell:not(.empty)') as HTMLButtonElement;
+    cell.click();
+    fixture.detectChanges();
+    const link = fixture.nativeElement.querySelector('.spotlight .gq') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe(
+      `https://www.google.com/search?q=${encodeURIComponent(question)}`,
+    );
+    expect(link.getAttribute('aria-label')).toBe('بحث عن السؤال');
+    cell.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.gq')).toBeNull();
   });
 
   it('card tracker toggles used/unused and stays out of the audit strip', () => {

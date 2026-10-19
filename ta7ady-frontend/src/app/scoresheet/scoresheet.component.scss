@@ -7,66 +7,9 @@
   gap: 0.9rem;
 }
 
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 
-  a {
-    color: var(--pitch-ink-dim);
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.95rem;
 
-    i {
-      margin-inline-end: 0.3rem;
-    }
-  }
-}
 
-h2 {
-  font-size: 1.9rem;
-  font-weight: 900;
-  margin: 0;
-}
-
-.draw-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-
-  label {
-    font-weight: 700;
-  }
-
-  select {
-    background: var(--pitch-surface);
-    color: var(--pitch-ink);
-    border: 1px solid var(--pitch-line);
-    border-radius: 10px;
-    padding: 0.5rem 0.7rem;
-    min-height: 44px;
-  }
-}
-
-.redraw {
-  margin-inline-start: auto;
-  background: var(--pitch-accent-deep);
-  border: 1px solid var(--pitch-accent-deep);
-  color: #fff;
-  border-radius: 999px;
-  padding: 0.55rem 1.1rem;
-  font-weight: 800;
-  min-height: 44px;
-
-  &:disabled {
-    opacity: 0.5;
-  }
-
-  i {
-    margin-inline-end: 0.3rem;
-  }
-}
 
 .notice {
   background: var(--pitch-surface);
@@ -76,71 +19,6 @@ h2 {
   color: var(--pitch-ink-dim);
 }
 
-.nav-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.navbtn {
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--pitch-line);
-  background: var(--pitch-surface);
-  color: var(--pitch-ink);
-
-  &:disabled {
-    opacity: 0.4;
-  }
-}
-
-.dots {
-  display: flex;
-  gap: 0.4rem;
-  flex: 1;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.dot {
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--pitch-line);
-  background: var(--pitch-surface);
-  color: var(--pitch-ink);
-  font-weight: 800;
-
-  &.on {
-    background: var(--pitch-accent-deep);
-    border-color: var(--pitch-accent-deep);
-    color: #fff;
-  }
-}
-
-.board {
-  background: var(--pitch-surface);
-  border: 1px solid var(--pitch-line);
-  border-radius: var(--radius-card);
-  padding: 0.9rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.prompt-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.prompt {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 900;
-  flex: 1;
-}
 
 .swap-row {
   display: flex;

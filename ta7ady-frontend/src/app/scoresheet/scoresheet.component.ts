@@ -1,15 +1,24 @@
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector/count-selector.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, ScoresheetMatch } from '../api.service';
+import { API_BASE, ScoresheetMatch } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
+import {
+  PlayerMap,
+  ScoresheetLineupsComponent,
+  Side,
+  playerKey,
+} from './scoresheet-lineups/scoresheet-lineups.component';
+export type { PlayerMap, Side } from './scoresheet-lineups/scoresheet-lineups.component';
+export { playerKey } from './scoresheet-lineups/scoresheet-lineups.component';
 import { TimerComponent } from '../shared/timer/timer.component';
-import { SettingsService } from '../shared/settings/settings.service';
+import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
+import { ScoreBooking } from '../shared/score-booking';
+import { SettingsService } from '../services/settings.service';
 import {
   AssignedTeam,
   AuditEntry,
-  AuditStripComponent,
 } from '../shared/attribution/attribution.component';
 import {
   StrikeBump,
@@ -29,13 +38,6 @@ import {
 // `booked` tracks the net attributed amount actually in the score, so reversals
 // always land exactly. Scores may go below zero.
 
-export type Side = 'A' | 'B';
-export type PlayerMap = Record<string, AssignedTeam>; // "A:3" / "B:7" -> team
-
-export function playerKey(side: Side, index: number): string {
-  return `${side}:${index}`;
-}
-
 function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
   let n = 0;
   for (const t of Object.values(m)) if (t === team) n += 1;
@@ -46,12 +48,13 @@ function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
   selector: 'app-scoresheet',
   standalone: true,
   imports: [
-    FormsModule,
-    RouterLink,
+    GameHeaderComponent,
+    CountSelectorComponent,
     ScoreboardComponent,
     TimerComponent,
-    AuditStripComponent,
+    ItemNavigationComponent,
     StrikeTrackerComponent,
+    ScoresheetLineupsComponent,
   ],
   templateUrl: './scoresheet.component.html',
   styleUrl: './scoresheet.component.scss',
@@ -70,7 +73,7 @@ export class ScoresheetComponent {
   readonly audit = signal<AuditEntry[]>([]);
   readonly strikes = signal<Record<number, StrikeSlot[]>>({});
   readonly msg = signal('');
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   private readonly res = httpResource<ScoresheetMatch[]>(
     () => `${API_BASE}/scoresheet?count=${this.count()}`,
@@ -133,16 +136,16 @@ export class ScoresheetComponent {
     const b = this.booked()[match.id] ?? { A: 0, B: 0 };
     const tA = countTeam(nextMap, 'A');
     const tB = countTeam(nextMap, 'B');
-    const eA = this.applyScore('A', tA - b.A, player);
-    const eB = this.applyScore('B', tB - b.B, player);
+    const eA = this.booking.book('A', tA - b.A, player);
+    const eB = this.booking.book('B', tB - b.B, player);
     this.booked.update((bb) => ({ ...bb, [match.id]: { A: b.A + eA, B: b.B + eB } }));
   }
 
   /** Reverse one match's booked points and drop its assignments. */
   private reverseMatch(match: ScoresheetMatch): void {
     const b = this.booked()[match.id] ?? { A: 0, B: 0 };
-    if (b.A !== 0) this.applyScore('A', -b.A, match.matchLabel);
-    if (b.B !== 0) this.applyScore('B', -b.B, match.matchLabel);
+    if (b.A !== 0) this.booking.book('A', -b.A, match.matchLabel);
+    if (b.B !== 0) this.booking.book('B', -b.B, match.matchLabel);
     const all = { ...this.assignments() };
     delete all[match.id];
     this.assignments.set(all);
@@ -168,16 +171,6 @@ export class ScoresheetComponent {
     this.matches.set(rows);
     for (const m of rows) this.slotsOf(m);
     this.idx.update((i) => Math.min(i, Math.max(0, rows.length - 1)));
-  }
-
-  /** Applies delta directly (scores may go negative); audits the actual
-   * amount, so the strip always sums to the score. Returns the delta. */
-  private applyScore(team: 'A' | 'B', delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
   }
 
   // Per-match mistake tracker (display only, referee enforces): 4 named slots

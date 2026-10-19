@@ -2,61 +2,8 @@ import { Component, computed, effect, inject, input, output, signal } from '@ang
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { ApiService, BulkRowResult, Pool } from '../../api.service';
-
-const POOL_LABEL: Record<Pool, string> = {
-  players: 'أسماء اللاعبين',
-  ihbid: 'اهبد صح',
-  offside: 'أوفسايد',
-  top10: 'توب 10',
-  scoresheet: 'سكور شيت',
-  bank: 'بنك',
-  risk: 'ريسك',
-  anameen: 'أنا مين؟',
-  whopicture: 'مين في الصورة',
-};
-
-const SCHEMA_EXAMPLE: Record<Pool, string> = {
-  players: '[\n  { "playerName": "أشرف حكيمي" },\n  { "playerName": "محمد الشناوي" }\n]',
-  ihbid:
-    '[\n  { "questionText": "كم عدد كؤوس العالم التي فازت بها البرازيل؟", "answerText": "5" }\n]',
-  offside: '[\n  { "ruleText": "لاعب إيطالي" },\n  { "ruleText": "حارس مرمى فاز بكأس العالم" }\n]',
-  top10:
-    '[\n  {\n    "prompt": "أعلى 13 هدافًا في تاريخ الدوري الإنجليزي",\n    "answers": ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس",\n      "السابع", "الثامن", "التاسع", "العاشر", "الحادي عشر", "الثاني عشر", "الثالث عشر"]\n  }\n]',
-  scoresheet:
-    '[\n  {\n    "match": "نهائي كأس العالم 2022",\n    "teamA": "الأرجنتين",\n    "teamB": "فرنسا",\n'
-    + '    "lineupA": ["أ1", "أ2", "أ3", "أ4", "أ5", "أ6", "أ7", "أ8", "أ9", "أ10", "أ11"],\n'
-    + '    "lineupB": ["ب1", "ب2", "ب3", "ب4", "ب5", "ب6", "ب7", "ب8", "ب9", "ب10", "ب11"]\n  }\n]',
-  bank: '[\n  { "question": "من فاز بكأس العالم 2022؟", "answer": "الأرجنتين" }\n]',
-  risk:
-    '[\n  {\n    "genre": "ريال مدريد",\n    "questions": [\n'
-    + '      { "points": 5, "question": "...", "answer": "..." },\n'
-    + '      { "points": 10, "question": "...", "answer": "..." },\n'
-    + '      { "points": 20, "question": "...", "answer": "..." },\n'
-    + '      { "points": 40, "question": "...", "answer": "..." }\n    ]\n  }\n]',
-  anameen:
-    '[\n  {\n    "player": "محمد صلاح",\n'
-    + '    "clues": ["تلميح صعب 1", "تلميح صعب 2", "تلميح متوسط", "تلميح واضح", "أسهل تلميح"]\n  }\n]',
-  whopicture:
-    '[\n  {\n    "title": "الأهلي 2021 نهائي دوري أبطال أفريقيا",\n'
-    + '    "photoUrl": "https://example.com/photo.jpg",\n'
-    + '    "players": ["أ1", "أ2", "أ3", "أ4", "أ5", "أ6", "أ7", "أ8", "أ9", "أ10", "أ11"]\n  }\n]',
-};
-
-const SCHEMA_NOTE: Record<Pool, string> = {
-  players: 'كل صف: {"playerName"} — 3 أحرف على الأقل.',
-  ihbid: 'كل صف: {"questionText", "answerText"} — 3 أحرف على الأقل لكل حقل.',
-  offside: 'كل صف: {"ruleText"} — 3 أحرف على الأقل.',
-  top10: 'كل صف: {"prompt", "answers"} — الإجابات 13 بالترتيب تمامًا (الأولى = المركز الأول).',
-  scoresheet:
-    'كل صف: {"match", "teamA", "teamB", "lineupA", "lineupB"} — كل تشكيلة 11 اسمًا تمامًا.',
-  bank: 'كل صف: {"question", "answer"} — سؤال سريع بإجابة قصيرة.',
-  risk: 'كل صف: {"genre", "questions"} — 4 أسئلة بترتيب الدرجات 5/10/20/40.',
-  anameen:
-    'كل صف: {"player", "clues"} — 5 تلميحات بالترتيب تمامًا (الأصعب أولًا)، كل واحد 3 أحرف على الأقل.',
-  whopicture:
-    'كل صف: {"title", "photoUrl", "players"} — عنوان واضح (3 أحرف على الأقل) + رابط http(s) صحيح + 11 اسمًا للصورة تمامًا.',
-};
+import { ApiService, BulkRowResult, Pool } from '../../services/api.service';
+import { POOL_METADATA } from './import-metadata';
 
 @Component({
   selector: 'app-import-panel',
@@ -84,9 +31,9 @@ export class ImportPanelComponent {
   readonly confirmError = signal('');
   readonly confirming = signal(false);
 
-  readonly poolLabel = computed(() => POOL_LABEL[this.pool()]);
-  readonly schemaExample = computed(() => SCHEMA_EXAMPLE[this.pool()]);
-  readonly schemaNote = computed(() => SCHEMA_NOTE[this.pool()]);
+  readonly poolLabel = computed(() => POOL_METADATA[this.pool()].label);
+  readonly schemaExample = computed(() => POOL_METADATA[this.pool()].schemaExample);
+  readonly schemaNote = computed(() => POOL_METADATA[this.pool()].schemaNote);
   readonly busy = computed(() => this.parsing() || this.dryRunning() || this.confirming());
   readonly rowCount = computed(() => this.rows().length);
   readonly validCount = computed(() => (this.preview() ?? []).filter((r) => r.ok).length);
@@ -235,17 +182,7 @@ export class ImportPanelComponent {
 
   labelFor(i: number): string {
     const r = this.rows()[i] as Record<string, unknown> | null;
-    if (!r || typeof r !== 'object') return `صف ${i + 1}`;
-    const s = (v: unknown): string => (typeof v === 'string' && v.trim() ? v.trim() : '');
-    const p = this.pool();
-    if (p === 'players') return s(r['playerName']) || `صف ${i + 1}`;
-    if (p === 'ihbid') return s(r['questionText']) || `صف ${i + 1}`;
-    if (p === 'offside') return s(r['ruleText']) || `صف ${i + 1}`;
-    if (p === 'top10') return s(r['prompt']) || `صف ${i + 1}`;
-    if (p === 'anameen') return s(r['player']) || `صف ${i + 1}`;
-    if (p === 'whopicture') return s(r['title']) || s(r['photoUrl']) || firstPlayer(r) || `صف ${i + 1}`;
-    const m = r['match'] ?? r['matchLabel'] ?? r['match_label'];
-    return s(m) || `صف ${i + 1}`;
+    return POOL_METADATA[this.pool()].previewLabel(r && typeof r === 'object' ? r : null, i);
   }
 
   private bulkMsg(e: unknown): string | null {
@@ -255,11 +192,4 @@ export class ImportPanelComponent {
     }
     return null;
   }
-}
-
-// Fallback label for a whopicture row whose URL is missing: the first pictured name.
-function firstPlayer(r: Record<string, unknown>): string {
-  const list = r['players'];
-  if (Array.isArray(list) && typeof list[0] === 'string') return list[0].trim();
-  return '';
 }

@@ -1,0 +1,24 @@
+<section class="chain" [class.maxed]="value() >= max()" aria-label="تسلسل النقاط">
+  <header class="chain-head">
+    <span class="chain-label">التسلسل</span>
+    @if (value() >= max()) {
+      <span class="chain-flag">الحد الأقصى</span>
+    }
+    <span class="chain-team">{{ team() }}</span>
+  </header>
+  <div class="chain-hero tabular-nums" [class.zero]="value() === 0" aria-live="polite">
+    {{ value() }}
+  </div>
+  <div class="chain-actions">
+    <button type="button" class="act correct" (click)="correct.emit()">
+      <i class="fa-solid fa-check" aria-hidden="true"></i></button
+    ><button type="button" class="act miss" (click)="miss.emit()">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i></button
+    ><button type="button" class="act bank" (click)="bank.emit()" [disabled]="value() <= 0">
+      <i class="fa-solid fa-vault" aria-hidden="true"></i> بنك
+    </button>
+  </div>
+  <p class="chain-saved">
+    نقاط الدور <span class="tabular-nums">{{ saved() }}</span>
+  </p>
+</section>

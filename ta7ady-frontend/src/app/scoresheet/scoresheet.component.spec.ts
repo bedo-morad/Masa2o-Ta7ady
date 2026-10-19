@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { ScoresheetComponent, playerKey } from './scoresheet.component';
-import { ScoresheetMatch } from '../api.service';
-import { SettingsService } from '../shared/settings/settings.service';
+import { ScoresheetMatch } from '../services/api.service';
+import { SettingsService } from '../services/settings.service';
 
 describe('playerKey', () => {
   it('separates sides and indexes', () => {
@@ -50,6 +50,21 @@ describe('ScoresheetComponent', () => {
     expect(c.count()).toBe(1);
   });
 
+  it('shows سكور شيت as the heading and keeps strikes below the match lineups', () => {
+    const fixture = TestBed.createComponent(ScoresheetComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.matches.set([match(1)]);
+    fixture.componentInstance.slotsOf(match(1));
+    fixture.detectChanges();
+
+    const page = fixture.nativeElement.querySelector('.challenge') as HTMLElement;
+    expect(page.querySelector('h2')?.textContent?.trim()).toBe('سكور شيت');
+    expect(page.lastElementChild?.tagName.toLowerCase()).toBe('app-strike-tracker');
+    const lineups = page.querySelector('app-scoresheet-lineups')!;
+    const strikes = page.querySelector('app-strike-tracker')!;
+    expect(lineups.compareDocumentPosition(strikes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('keeps full long player labels when selecting and unselecting either side', () => {
     const fixture = TestBed.createComponent(ScoresheetComponent);
     fixture.detectChanges();
@@ -70,13 +85,24 @@ describe('ScoresheetComponent', () => {
       fixture.detectChanges();
       expect(button.querySelector('.picked')).not.toBeNull();
       expect(button.querySelector('.pname')?.textContent).toBe(name);
-      button.click();
-      fixture.detectChanges();
-      expect(button.querySelector('.picked')).toBeNull();
-      expect(button.querySelector('.pname')?.textContent).toBe(name);
     });
+    expect(fixture.componentInstance.scoreA()).toBe(1);
+    expect(fixture.componentInstance.scoreB()).toBe(1);
+    expect(fixture.componentInstance.audit()).toEqual([
+      { seq: 1, team: 'A', label: 'ليوناردو بونوتشي', delta: 1 },
+      { seq: 2, team: 'B', label: 'فيديريكو بالزاريتي', delta: 1 },
+    ]);
+
+    sides.forEach((side) => (side.querySelector('.prow') as HTMLButtonElement).click());
+    fixture.detectChanges();
     expect(fixture.componentInstance.scoreA()).toBe(0);
     expect(fixture.componentInstance.scoreB()).toBe(0);
+    expect(fixture.componentInstance.audit()).toEqual([
+      { seq: 1, team: 'A', label: 'ليوناردو بونوتشي', delta: 1 },
+      { seq: 2, team: 'B', label: 'فيديريكو بالزاريتي', delta: 1 },
+      { seq: 3, team: 'A', label: 'ليوناردو بونوتشي', delta: -1 },
+      { seq: 4, team: 'B', label: 'فيديريكو بالزاريتي', delta: -1 },
+    ]);
   });
 
   it('tapping a player adds exactly 1 point to the column team', () => {
@@ -121,6 +147,26 @@ describe('ScoresheetComponent', () => {
     pick(c, 'B', 3);
     expect(c.audit().length).toBe(1);
     expect(c.audit()[0]).toEqual(expect.objectContaining({ team: 'B', delta: 1 }));
+  });
+
+  it('keeps exact audit labels and monotonic sequence through manual edits and redraw reversal', () => {
+    const c = setup();
+    pick(c, 'A', 0);
+    c.scoreA.set(-4); // referee manual edit leaves the page booking baseline intact
+    pick(c, 'A', 0);
+    pick(c, 'B', 1);
+
+    // Reconcile is the existing page lifecycle seam used by redraw responses.
+    (c as unknown as { reconcile(rows: ScoresheetMatch[]): void }).reconcile([]);
+
+    expect(c.scoreA()).toBe(-5);
+    expect(c.scoreB()).toBe(0);
+    expect(c.audit()).toEqual([
+      { seq: 1, team: 'A', label: 'لاعب أ1', delta: 1 },
+      { seq: 2, team: 'A', label: 'لاعب أ1', delta: -1 },
+      { seq: 3, team: 'B', label: 'لاعب ب2', delta: 1 },
+      { seq: 4, team: 'B', label: 'نهائي', delta: -1 },
+    ]);
   });
 
   it('strike tracker: 3 mistakes eliminates, reset clears', () => {

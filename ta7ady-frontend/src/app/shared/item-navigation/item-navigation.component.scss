@@ -1,0 +1,48 @@
+:host {
+  display: block;
+}
+
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.navbtn {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+.dots {
+  display: flex;
+  gap: 0.4rem;
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dot {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--item-navigation-dot-radius, 50%);
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+  font-family: var(--item-navigation-dot-font-family, inherit);
+  font-weight: var(--item-navigation-dot-font-weight, 800);
+  cursor: pointer;
+
+  &.on {
+    background: var(--pitch-accent-deep);
+    border-color: var(--pitch-accent-deep);
+    color: var(--pitch-on-accent-deep);
+  }
+}

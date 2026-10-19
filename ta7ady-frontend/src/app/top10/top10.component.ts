@@ -1,16 +1,17 @@
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector/count-selector.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, Top10List } from '../api.service';
+import { API_BASE, Top10List } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
+import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
+import { ScoreBooking } from '../shared/score-booking';
 import {
   AssignedTeam,
   AttributionChange,
   AttributionComponent,
   AuditEntry,
-  AuditStripComponent,
 } from '../shared/attribution/attribution.component';
 
 // Frontend scoring is booked-effective: per list and team, `booked` tracks the
@@ -27,13 +28,11 @@ import { RankMap, teamContribution, trioHolder } from '../shared/attribution/ran
 @Component({
   selector: 'app-top10',
   standalone: true,
-  imports: [
-    FormsModule,
-    RouterLink,
+  imports: [GameHeaderComponent, CountSelectorComponent,
     ScoreboardComponent,
     TimerComponent,
+    ItemNavigationComponent,
     AttributionComponent,
-    AuditStripComponent,
   ],
   templateUrl: './top10.component.html',
   styleUrl: './top10.component.scss',
@@ -51,7 +50,7 @@ export class Top10Component {
   readonly audit = signal<AuditEntry[]>([]);
   readonly deadTurns = signal<Record<number, number>>({});
   readonly msg = signal('');
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   private readonly res = httpResource<Top10List[]>(
     () => `${API_BASE}/top10?count=${this.count()}`,
@@ -82,6 +81,7 @@ export class Top10Component {
     return trioHolder(this.assignments()[listId] ?? {});
   }
 
+
   prev(): void {
     this.idx.update((i) => Math.max(0, i - 1));
   }
@@ -111,16 +111,16 @@ export class Top10Component {
     this.assignments.set(all);
     const b = this.booked()[list.id] ?? { A: 0, B: 0 };
     const label = list.answers[rank - 1] ?? '';
-    const eA = this.applyScore('A', teamContribution(nextMap, 'A') - b.A, label);
-    const eB = this.applyScore('B', teamContribution(nextMap, 'B') - b.B, label);
+    const eA = this.booking.book('A', teamContribution(nextMap, 'A') - b.A, label);
+    const eB = this.booking.book('B', teamContribution(nextMap, 'B') - b.B, label);
     this.booked.update((bb) => ({ ...bb, [list.id]: { A: b.A + eA, B: b.B + eB } }));
   }
 
   /** Reverse one list's booked points and drop its assignments. */
   private reverseList(list: Top10List): void {
     const b = this.booked()[list.id] ?? { A: 0, B: 0 };
-    if (b.A !== 0) this.applyScore('A', -b.A, list.prompt);
-    if (b.B !== 0) this.applyScore('B', -b.B, list.prompt);
+    if (b.A !== 0) this.booking.book('A', -b.A, list.prompt);
+    if (b.B !== 0) this.booking.book('B', -b.B, list.prompt);
     const all = { ...this.assignments() };
     delete all[list.id];
     this.assignments.set(all);
@@ -145,16 +145,6 @@ export class Top10Component {
     }
     this.lists.set(rows);
     this.idx.update((i) => Math.min(i, Math.max(0, rows.length - 1)));
-  }
-
-  /** Applies delta directly (scores may go negative); audits the actual
-   * amount, so the strip always sums to the score. Returns the delta. */
-  private applyScore(team: 'A' | 'B', delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
   }
 
   // Referee-owned dead-turn tracker (display only): after 12 dead turns the

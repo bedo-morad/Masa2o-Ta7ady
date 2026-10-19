@@ -2,9 +2,9 @@ package com.ta7ady.backend.service;
 
 import com.ta7ady.backend.entity.WhoPicturePhoto;
 import com.ta7ady.backend.repository.WhoPicturePhotoRepository;
-import com.ta7ady.backend.web.BulkHelper;
-import com.ta7ady.backend.web.BulkRowResult;
-import com.ta7ady.backend.web.WhoPictureBulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
+import com.ta7ady.backend.dto.WhoPictureBulkRow;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,7 +47,7 @@ public class WhoPictureService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        return repo.save(toEntity(title, photoUrl, players));
+        return repo.save(applyTo(new WhoPicturePhoto(), title, photoUrl, players));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
@@ -58,11 +58,7 @@ public class WhoPictureService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        e.setTitle(title.trim());
-        e.setPhotoUrl(photoUrl.trim());
-        e.getPlayers().clear();
-        e.getPlayers().addAll(cleaned(players));
-        return repo.save(e);
+        return repo.save(applyTo(e, title, photoUrl, players));
     }
 
     // Pure validation shared by single POST, edit (PUT) and bulk (AUTHORING.md §3.9:
@@ -127,7 +123,7 @@ public class WhoPictureService {
                 r -> validate(r == null ? null : r.title(), r == null ? null : r.photoUrl(),
                         r == null ? null : r.players()),
                 r -> signature(r == null ? null : r.photoUrl(), r == null ? null : r.players()),
-                r -> toEntity(r.title(), r.photoUrl(), r.players()),
+                r -> applyTo(new WhoPicturePhoto(), r.title(), r.photoUrl(), r.players()),
                 e -> repo.save(e).getId());
     }
 
@@ -150,11 +146,11 @@ public class WhoPictureService {
         return sb.toString();
     }
 
-    private static WhoPicturePhoto toEntity(String title, String photoUrl, List<?> players) {
-        WhoPicturePhoto e = new WhoPicturePhoto();
+    private static WhoPicturePhoto applyTo(WhoPicturePhoto e, String title, String photoUrl, List<?> players) {
         e.setTitle(title == null ? "" : title.trim());
         e.setPhotoUrl(photoUrl.trim());
-        e.setPlayers(cleaned(players));
+        e.getPlayers().clear();
+        e.getPlayers().addAll(cleaned(players));
         return e;
     }
 

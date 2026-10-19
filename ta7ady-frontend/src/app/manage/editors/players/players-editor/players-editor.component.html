@@ -1,0 +1,23 @@
+@if (mode() === 'add') {
+  <form class="add" (ngSubmit)="editor().add()">
+    <input
+      [(ngModel)]="editor().drafts.addPlayer"
+      name="np"
+      placeholder="اسم لاعب جديد (3 أحرف على الأقل)"
+    />
+    <button type="submit"><i class="fa-solid fa-plus"></i> إضافة</button>
+  </form>
+} @else {
+  <form class="edit" (ngSubmit)="editor().save(id()!)">
+    <input
+      [(ngModel)]="editor().drafts.editText"
+      name="editPlayer"
+      placeholder="اسم اللاعب"
+      aria-label="تعديل اسم اللاعب"
+    />
+    <div class="edit-actions">
+      <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+      <button type="button" class="cancel" (click)="editor().cancel()">إلغاء</button>
+    </div>
+  </form>
+}

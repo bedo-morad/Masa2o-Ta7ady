@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
@@ -11,7 +12,7 @@ import {
   AnameenTeam,
 } from './anameen.game';
 import { AnameenComponent } from './anameen.component';
-import { AnameenSubject, ApiService } from '../api.service';
+import { AnameenSubject, ApiService } from '../services/api.service';
 import { AttributionChange } from '../shared/attribution/attribution.component';
 
 const subject = (id: number): AnameenSubject => ({
@@ -34,7 +35,7 @@ describe('AnameenComponent', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [AnameenComponent],
-      providers: [provideHttpClient(), provideRouter([])],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
   });
 
@@ -133,6 +134,30 @@ describe('AnameenComponent', () => {
     expect(c.idx()).toBe(0);
   });
 
+  it('toggles an asked clue without revealing, scoring, or changing other clues', () => {
+    const c = setup();
+    expect(c.asked(1)).toBe(false);
+    expect(c.asked(2)).toBe(false);
+    c.toggleAsked(1);
+    expect(c.asked(1)).toBe(true);
+    expect(c.asked(2)).toBe(false);
+    expect(c.current()?.clues).toEqual(subject(1).clues);
+    expect(c.scoreA()).toBe(0);
+    expect(c.scoreB()).toBe(0);
+    c.toggleAsked(1);
+    expect(c.asked(1)).toBe(false);
+  });
+
+  it('resets asked clues when moving to a new card or redrawing', () => {
+    const c = setup();
+    c.toggleAsked(1);
+    c.go(1);
+    expect(c.asked(1)).toBe(false);
+    c.toggleAsked(3);
+    c.reload();
+    expect(c.asked(3)).toBe(false);
+  });
+
   it('per-subject dice swaps the player and reverses its +1 with an audited -1', async () => {
     const c = setup();
     const api = TestBed.inject(ApiService);
@@ -140,6 +165,7 @@ describe('AnameenComponent', () => {
     vi.spyOn(api, 'anameenRandom').mockReturnValue(of([subject(99)]));
     await c.reroll(0);
     expect(c.subjects()[0].id).toBe(99);
+    expect(c.asked(1)).toBe(false);
     expect(c.assigned(99)).toBeNull();
     expect(c.scoreA()).toBe(0);
     expect(c.audit().at(-1)).toEqual(
@@ -166,11 +192,24 @@ describe('AnameenComponent', () => {
     expect(c.scoreA()).toBe(1); // scores survive a redraw; assignments are id-keyed
   });
 
-  it('new game re-arms the draw and clears every tally', () => {
-    const c = setup();
+  it('new game re-arms the draw and clears every tally', async () => {
+    const fixture = TestBed.createComponent(AnameenComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    const newGameButton = fixture.nativeElement.querySelector('button.new-game') as HTMLButtonElement;
+    expect(newGameButton.disabled).toBe(true);
+    http.expectOne('/api/anameen?count=3').flush([subject(1), subject(2), subject(3)]);
+    await fixture.whenStable();
+    fixture.detectChanges();
     c.onAssign(award(c, 'A'));
     c.go(2);
-    c.newGame();
+    fixture.detectChanges();
+    expect(newGameButton).not.toBeNull();
+    expect(newGameButton.disabled).toBe(false);
+    newGameButton.click();
+    fixture.detectChanges();
+    http.expectOne('/api/anameen?count=3').flush([subject(4), subject(5), subject(6)]);
     expect(c.scoreA()).toBe(0);
     expect(c.scoreB()).toBe(0);
     expect(c.audit().length).toBe(0);

@@ -4,13 +4,11 @@ import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { ApiService, BulkRowResult, Pool } from '../../api.service';
+import { ApiService, BulkRowResult, Pool } from '../../services/api.service';
 import { ImportPanelComponent } from './import-panel.component';
 
 function setup(pool: Pool = 'players', bulkImpl?: (p: Pool, r: unknown[], d: boolean) => unknown) {
-  const bulk = vi.fn(
-    bulkImpl ?? (() => of([] as BulkRowResult[])),
-  );
+  const bulk = vi.fn(bulkImpl ?? (() => of([] as BulkRowResult[])));
   const toast = { success: vi.fn(), error: vi.fn() };
   const apiStub = {
     adminPassword: signal<string | null>(null),
@@ -145,3 +143,47 @@ describe('ImportPanelComponent', () => {
     expect(toast.success).not.toHaveBeenCalled();
   });
 });
+
+it('keeps the current preview naming for every pool metadata variant', () => {
+  const cases: Array<{ pool: Pool; row: Record<string, unknown>; expected: string }> = [
+    { pool: 'players', row: { playerName: 'لاعب' }, expected: 'لاعب' },
+    { pool: 'ihbid', row: { questionText: 'سؤال' }, expected: 'سؤال' },
+    { pool: 'offside', row: { ruleText: 'قاعدة' }, expected: 'قاعدة' },
+    { pool: 'top10', row: { prompt: 'قائمة' }, expected: 'قائمة' },
+    { pool: 'scoresheet', row: { match: 'مباراة' }, expected: 'مباراة' },
+    { pool: 'bank', row: { matchLabel: 'تسمية البنك' }, expected: 'تسمية البنك' },
+    { pool: 'risk', row: { match_label: 'تسمية ريسك' }, expected: 'تسمية ريسك' },
+    { pool: 'anameen', row: { player: 'لاعب أنا مين' }, expected: 'لاعب أنا مين' },
+    { pool: 'whopicture', row: { players: ['لاعب الصورة'] }, expected: 'لاعب الصورة' },
+  ];
+
+  const { fixture } = setup();
+  for (const { pool, row, expected } of cases) {
+    fixture.componentRef.setInput('pool', pool);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.labelFor(0)).toBe('صف 1');
+    fixture.componentInstance.rows.set([row]);
+    expect(fixture.componentInstance.labelFor(0)).toBe(expected);
+  }
+});
+
+it.each<Pool>(['scoresheet', 'bank', 'risk'])(
+  'preserves nullish legacy match selection in %s previews',
+  (pool) => {
+    const { fixture } = setup(pool);
+    const c = fixture.componentInstance;
+    c.rows.set([
+      { match: '', matchLabel: 'تسمية بديلة' },
+      { match: '   ', matchLabel: 'تسمية بديلة' },
+      { match: null, matchLabel: '  تسمية بديلة  ' },
+      { matchLabel: '', match_label: 'تسمية أخرى' },
+      { match: null, matchLabel: null, match_label: '  تسمية أخرى  ' },
+    ]);
+
+    expect(c.labelFor(0)).toBe('صف 1');
+    expect(c.labelFor(1)).toBe('صف 2');
+    expect(c.labelFor(2)).toBe('تسمية بديلة');
+    expect(c.labelFor(3)).toBe('صف 4');
+    expect(c.labelFor(4)).toBe('تسمية أخرى');
+  },
+);

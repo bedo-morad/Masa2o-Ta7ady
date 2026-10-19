@@ -49,7 +49,7 @@ details, no API shapes, no file names. (Those live in `SPEC.md` / `SPECV2-4.md`.
   when its question is revealed. Randomized on the device at draw time, never stored.
 - **Steal (Risk)** — answering a question the other team failed, only before they answer.
   Referee-managed; the site tracks nothing about it.
-- **Elimination (Who-in-Picture)** — a player erring 3 times sits out; the teammate continues.
+- **Elimination (Who-in-Picture)** — a player erring 2 times sits out; the teammate continues.
   Mistakes attach to players, not teams. Tracked on screen, enforced by the referee.
 
 ## People and process

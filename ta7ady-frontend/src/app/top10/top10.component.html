@@ -1,10 +1,5 @@
 <div class="challenge">
-  <div class="topbar">
-    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
-    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
-  </div>
-
-  <h2>توب 10</h2>
+  <app-game-header title="توب 10" />
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
@@ -48,52 +43,30 @@
     </div>
   }
 
-  <div class="draw-row">
-    <label for="t10-count">عدد القوائم</label>
-    <select id="t10-count" [(ngModel)]="count">
-      <option [ngValue]="1">1</option>
-      <option [ngValue]="3">3</option>
-      <option [ngValue]="5">5</option>
-    </select>
-    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
-      <i class="fa-solid fa-shuffle"></i> سحب جديد
-    </button>
-  </div>
+  <app-count-selector
+    controlId="t10-count"
+    label="عدد القوائم"
+    [count]="count()"
+    [options]="[1, 3, 5]"
+    [loading]="loading()"
+    (countChanged)="count.set($event)"
+    (redraw)="reload()"
+  />
 
   @if (msg()) {
     <div class="notice">{{ msg() }}</div>
   }
 
   @if (current(); as list) {
-    @if (lists().length > 1) {
-      <div class="nav-row">
-        <button type="button" class="navbtn" (click)="prev()" [disabled]="idx() === 0" aria-label="القائمة السابقة">
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
-        <div class="dots" role="group" aria-label="القوائم">
-          @for (l of lists(); track l.id; let i = $index) {
-            <button
-              type="button"
-              class="dot tabular-nums"
-              [class.on]="i === idx()"
-              (click)="go(i)"
-              [attr.aria-label]="'القائمة ' + (i + 1)"
-            >
-              {{ i + 1 }}
-            </button>
-          }
-        </div>
-        <button
-          type="button"
-          class="navbtn"
-          (click)="next()"
-          [disabled]="idx() >= lists().length - 1"
-          aria-label="القائمة التالية"
-        >
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-      </div>
-    }
+    <app-item-navigation
+      [items]="lists()"
+      [index]="idx()"
+      itemLabel="القائمة"
+      itemsLabel="القوائم"
+      (previous)="prev()"
+      (next)="next()"
+      (select)="go($event)"
+    />
 
     <section class="board">
       <div class="prompt-row">
@@ -125,7 +98,5 @@
         }
       </ol>
     </section>
-
-    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
   }
 </div>

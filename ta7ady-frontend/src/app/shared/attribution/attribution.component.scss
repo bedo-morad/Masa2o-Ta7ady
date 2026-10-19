@@ -21,6 +21,17 @@
   gap: 0.35rem;
 }
 
+// Lazord uses one high-contrast selected treatment for either team. The
+// previous team-specific colors made team A's dark fill too close to its
+// unselected surface, while team B was visibly gold. Keep the other themes'
+// existing team colors unchanged.
+:host-context([data-theme='lapis']) .tbtn.on {
+  background: var(--pitch-gold);
+  border-color: var(--pitch-gold);
+  color: var(--pitch-on-gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pitch-gold) 38%, transparent);
+}
+
 .tbtn {
   min-width: 44px;
   min-height: 44px;

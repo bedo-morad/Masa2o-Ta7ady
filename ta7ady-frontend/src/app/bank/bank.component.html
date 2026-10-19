@@ -1,11 +1,5 @@
 <div class="challenge">
-  <div class="topbar">
-    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
-    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
-  </div>
-
-  <h2>بنك</h2>
-
+  <app-game-header title="البنك" />
 
   @if (startTeam(); as starter) {
     <section class="order-row" aria-label="الفريق البادئ">
@@ -17,89 +11,27 @@
         <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> لعبة جديدة
       </button>
     </section>
-    <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB"/>
+    <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
-    <app-timer timerKey="bank" [defaultSeconds]="120" label="مؤقت الدور"/>
+    <app-timer timerKey="bank" [defaultSeconds]="120" label="مؤقت الدور" />
 
-    <section class="qcard" aria-label="سؤال الدور">
-      <header class="qcard-head">
-        <span class="qcard-pos tabular-nums">{{ qIdx() + 1 }}/{{ qCount() }}</span>
-        @if (currentQuestion(); as q) {
-          <a
-            class="gq"
-            [href]="googleUrl(q.question)"
-            target="_blank"
-            rel="noopener"
-            aria-label="بحث عن السؤال"
-            title="بحث"
-          >
-            <i class="fa-brands fa-google"></i>
-          </a>
-        }
-      </header>
+    <app-bank-question-card
+      [question]="currentQuestion()"
+      [position]="qIdx()"
+      [count]="qCount()"
+      (previous)="qPrev()"
+      (next)="qNext()"
+    />
 
-      @if (currentQuestion(); as q) {
-        <p class="q">{{ q.question }}</p>
-        <p class="answer">
-          <span class="answer-label">الجواب</span>
-          <span class="answer-value">{{ q.answer }}</span>
-        </p>
-      } @else {
-        <p class="qempty">لم تُسحب أسئلة هذا الدور بعد.</p>
-      }
-
-      <footer class="qcard-foot">
-        <button
-          type="button"
-          class="qnav"
-          (click)="qPrev()"
-          [disabled]="qIdx() === 0"
-          aria-label="السؤال السابق"
-        >
-          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-        </button>
-        <button
-          type="button"
-          class="qnav"
-          (click)="qNext()"
-          [disabled]="qIdx() >= qCount() - 1"
-          aria-label="السؤال التالي"
-        >
-          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-        </button>
-      </footer>
-    </section>
-
-    <section class="chain" [class.maxed]="chainOf(idx()) >= maxChain" aria-label="تسلسل النقاط">
-      <header class="chain-head">
-        <span class="chain-label">التسلسل</span>
-        @if (chainOf(idx()) >= maxChain) {
-          <span class="chain-flag">الحد الأقصى</span>
-        }
-        <span class="chain-team">{{ nameOf(teamOfRound(idx())) }}</span>
-      </header>
-
-      <div class="chain-hero tabular-nums" [class.zero]="chainOf(idx()) === 0" aria-live="polite">
-        {{ chainOf(idx()) }}
-      </div>
-
-      <div class="chain-actions">
-        <button type="button" class="act correct" (click)="correct()">
-          <i class="fa-solid fa-check" aria-hidden="true"></i>
-        </button>
-        <button type="button" class="act miss" (click)="miss()">
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        </button>
-        <button type="button" class="act bank" (click)="bank()" [disabled]="chainOf(idx()) <= 0">
-          <i class="fa-solid fa-vault" aria-hidden="true"></i> بنك
-        </button>
-      </div>
-
-      <p class="chain-saved">
-        نقاط الدور
-        <span class="tabular-nums">{{ bankedOf(idx()) }}</span>
-      </p>
-    </section>
+    <app-bank-chain-controls
+      [value]="chainOf(idx())"
+      [max]="maxChain"
+      [saved]="bankedOf(idx())"
+      [team]="nameOf(teamOfRound(idx()))"
+      (correct)="correct()"
+      (miss)="miss()"
+      (bank)="bank()"
+    />
 
     <div class="nav-row">
       <button
@@ -123,9 +55,6 @@
             [attr.aria-label]="'الدور ' + (r + 1)"
           >
             <span class="dot-no tabular-nums">{{ r + 1 }}</span>
-            @if (bankedOf(r) > 0) {
-              <span class="dot-bank tabular-nums">{{ bankedOf(r) }}</span>
-            }
           </button>
         }
       </div>
@@ -139,25 +68,6 @@
         <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
       </button>
     </div>
-
-    <section class="history" aria-label="محصّن الأدوار">
-      <h3 class="history-title">محصّن الأدوار</h3>
-      <ol class="history-list">
-        @for (r of rounds; track r) {
-          <li
-            class="hcell"
-            [class.team-a]="teamOfRound(r) === 'A'"
-            [class.team-b]="teamOfRound(r) === 'B'"
-          >
-            <span class="hround tabular-nums">د{{ r + 1 }}</span>
-            <span class="hteam">{{ nameOf(teamOfRound(r)) }}</span>
-            <span class="hamount tabular-nums">{{ bankedOf(r) }}</span>
-          </li>
-        }
-      </ol>
-    </section>
-
-    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()"/>
   } @else {
     <section class="gate" aria-label="اختيار الفريق البادئ">
       <h3 class="gate-title">مين يبدأ؟</h3>

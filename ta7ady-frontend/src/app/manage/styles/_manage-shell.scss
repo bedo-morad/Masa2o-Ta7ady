@@ -1,0 +1,107 @@
+// Manage page layout, pool navigation, and transparent editor hosts.
+
+@mixin layout {
+  div.manage {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1rem 1rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+}
+
+@mixin navigation {
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+
+    a {
+      color: var(--pitch-ink-dim);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+
+      i {
+        margin-inline-end: 0.3rem;
+      }
+    }
+  }
+
+  .lock-btn {
+    background: var(--pitch-surface);
+    border: 1px solid var(--pitch-line);
+    color: var(--pitch-ink-dim);
+    border-radius: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1rem;
+    cursor: pointer;
+
+    &.on {
+      color: var(--pitch-accent-deep);
+      border-color: var(--pitch-accent-deep);
+    }
+  }
+
+  h2 {
+    font-size: 1.9rem;
+    font-weight: 900;
+    margin: 0;
+  }
+
+  .hint {
+    color: var(--pitch-ink-dim);
+    margin: 0;
+  }
+
+  .pools {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.5rem;
+
+    button {
+      background: var(--pitch-surface);
+      border: 1px solid var(--pitch-line);
+      border-radius: var(--radius-card);
+      color: var(--pitch-ink);
+      padding: 0.7rem 0.4rem;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 0.15rem;
+      min-height: 64px;
+
+      &.active {
+        background: var(--pitch-accent-deep);
+        border-color: var(--pitch-accent-deep);
+        color: var(--pitch-on-accent-deep);
+      }
+    }
+  }
+}
+
+@mixin editor-hosts {
+  .manage
+    :is(
+      app-players-renderer,
+      app-ihbid-renderer,
+      app-offside-renderer,
+      app-bank-renderer,
+      app-top10-editor,
+      app-anameen-editor,
+      app-scoresheet-editor,
+      app-whopicture-editor,
+      app-risk-pack-editor
+    ) {
+    display: contents;
+  }
+}

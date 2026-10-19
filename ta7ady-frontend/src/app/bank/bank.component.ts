@@ -1,14 +1,14 @@
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, BankQuestion } from '../api.service';
+import { API_BASE, BankQuestion } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
-import { SettingsService } from '../shared/settings/settings.service';
-import {
-  AuditEntry,
-  AuditStripComponent,
-} from '../shared/attribution/attribution.component';
+import { SettingsService } from '../services/settings.service';
+import { AuditEntry } from '../shared/attribution/attribution.component';
+import { ScoreBooking } from '../shared/score-booking';
+import { BankQuestionCardComponent } from './bank-question-card/bank-question-card.component';
+import { BankChainControlsComponent } from './bank-chain-controls/bank-chain-controls.component';
 
 // Bank (RULES.md / SPECV3 §3.3): six rounds, three per team, alternating — the
 // referee picks who opens once and the site alternates from there. The whole
@@ -40,7 +40,13 @@ const freshBanked = (): number[] => Array.from({ length: BANK_ROUNDS }, () => 0)
 @Component({
   selector: 'app-bank',
   standalone: true,
-  imports: [RouterLink, ScoreboardComponent, TimerComponent, AuditStripComponent],
+  imports: [
+    GameHeaderComponent,
+    ScoreboardComponent,
+    TimerComponent,
+    BankQuestionCardComponent,
+    BankChainControlsComponent,
+  ],
   templateUrl: './bank.component.html',
   styleUrl: './bank.component.scss',
 })
@@ -61,20 +67,18 @@ export class BankComponent {
   readonly qIdx = signal(0);
   /** Per-round unbanked chain (display-only; 0 by default and after any bank). */
   readonly chains = signal<number[]>(freshChains());
-  /** Per-round banked amount, for the round-history strip. */
+  /** Per-round banked amount, retained independently of history visibility. */
   readonly banked = signal<number[]>(freshBanked());
   readonly audit = signal<AuditEntry[]>([]);
   readonly msg = signal('');
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   readonly rounds = Array.from({ length: BANK_ROUNDS }, (_, i) => i);
   readonly total = BANK_TOTAL;
   readonly perRound = BANK_PER_ROUND;
   readonly maxChain = BANK_CHAIN_MAX;
 
-  private readonly res = httpResource<BankQuestion[]>(
-    () => `${API_BASE}/bank?count=${BANK_TOTAL}`,
-  );
+  private readonly res = httpResource<BankQuestion[]>(() => `${API_BASE}/bank?count=${BANK_TOTAL}`);
   readonly loading = this.res.isLoading;
 
   /** Held so a round change can hand the referee a fresh 120s clock. */
@@ -122,10 +126,6 @@ export class BankComponent {
 
   qCount(): number {
     return this.currentRoundQuestions().length;
-  }
-
-  googleUrl(text: string): string {
-    return `https://www.google.com/search?q=${encodeURIComponent(text)}`;
   }
 
   chainOf(i: number): number {
@@ -185,7 +185,7 @@ export class BankComponent {
     const amount = this.chainOf(i);
     const team = this.teamOfRound(i);
     if (!team || amount <= 0) return;
-    this.applyScore(team, amount, `بنك الدور ${i + 1}`);
+    this.booking.book(team, amount, `بنك الدور ${i + 1}`);
     this.banked.update((bs) => {
       const next = [...bs];
       next[i] = (next[i] ?? 0) + amount;
@@ -208,7 +208,7 @@ export class BankComponent {
     this.audit.set([]);
     this.scoreA.set(0);
     this.scoreB.set(0);
-    this.seq = 0;
+    this.booking.resetSequence();
     this.msg.set('');
     this.res.reload();
   }
@@ -220,15 +220,5 @@ export class BankComponent {
       next[i] = step(next[i] ?? 0);
       return next;
     });
-  }
-
-  /** Applies delta directly (scores may go negative); audits the actual
-   * amount, so the strip always sums to the score. Returns the delta. */
-  private applyScore(team: BankTeam, delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
   }
 }

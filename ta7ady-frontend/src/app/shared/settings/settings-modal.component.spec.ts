@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SettingsModalComponent } from './settings-modal.component';
-import { SettingsService } from './settings.service';
+import { SettingsService } from '../../services/settings.service';
 
 describe('SettingsModalComponent', () => {
   beforeEach(async () => {

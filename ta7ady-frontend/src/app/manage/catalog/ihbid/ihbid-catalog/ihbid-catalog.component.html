@@ -1,0 +1,30 @@
+<ul class="rows">
+  @for (q of rows(); track q.id) {
+    <li class="wide ihbid-row">
+      @if (adminOn() && selection().editingId() === q.id) {
+        <app-ihbid-renderer [editor]="editor()" mode="edit" [id]="q.id" />
+      } @else {
+        <span class="qa">
+          <span class="q">{{ q.questionText }}</span>
+          <span class="answer-chip">{{ q.answerText }}</span>
+        </span>
+        @if (adminOn()) {
+          <div class="row-actions">
+            <button
+              type="button"
+              class="edit-btn"
+              (click)="editor().start(q)"
+              aria-label="تعديل"
+              title="تعديل"
+            >
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button type="button" class="del" (click)="remove.emit(q.id)" aria-label="حذف">
+              <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          </div>
+        }
+      }
+    </li>
+  }
+</ul>

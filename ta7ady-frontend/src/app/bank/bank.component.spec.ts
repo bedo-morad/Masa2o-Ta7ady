@@ -8,7 +8,7 @@ import {
   BANK_TOTAL,
   BankComponent,
 } from './bank.component';
-import { BankQuestion } from '../api.service';
+import { BankQuestion } from '../services/api.service';
 
 describe('bank constants', () => {
   it('fixes the game shape: 6 rounds × 12 questions = one 72 draw', () => {
@@ -48,6 +48,26 @@ describe('BankComponent', () => {
     expect(c.chainOf(0)).toBe(0);
     expect(c.bankedOf(0)).toBe(0);
     expect(c.audit().length).toBe(0);
+  });
+  it('keeps child banking controls active without rendering round history', () => {
+    const fixture = TestBed.createComponent(BankComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.pickStart('A');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.history')).toBeNull();
+
+    (fixture.nativeElement.querySelector('.act.correct') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.chainOf(0)).toBe(1);
+
+    (fixture.nativeElement.querySelector('.act.bank') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.scoreA()).toBe(1);
+    expect(fixture.componentInstance.bankedOf(0)).toBe(1);
+    expect(fixture.componentInstance.audit()).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('app-audit-strip, .dot-bank')).toBeNull();
   });
 
   it('chunks the single 72-draw 12 per round with no repeats', () => {
@@ -236,10 +256,28 @@ describe('BankComponent', () => {
     expect(c.qIdx()).toBe(0);
   });
 
-  it('builds an encoded google search url per question', () => {
-    const c = setup();
-    expect(c.googleUrl('من فاز 1990؟')).toBe(
+  it('renders the encoded search for the selected question and updates on navigation', () => {
+    const fixture = TestBed.createComponent(BankComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    c.questions.set([
+      { id: 1, question: 'من فاز 1990؟', answer: 'فريق' },
+      { id: 2, question: 'سؤال ثانٍ', answer: 'جواب' },
+    ]);
+    c.pickStart('A');
+    fixture.detectChanges();
+
+    const link = () => fixture.nativeElement.querySelector('.gq') as HTMLAnchorElement;
+    expect(link().getAttribute('href')).toBe(
       `https://www.google.com/search?q=${encodeURIComponent('من فاز 1990؟')}`,
+    );
+    expect(link().getAttribute('aria-label')).toBe('بحث عن السؤال');
+    (
+      fixture.nativeElement.querySelector('.qnav[aria-label="السؤال التالي"]') as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(link().getAttribute('href')).toBe(
+      `https://www.google.com/search?q=${encodeURIComponent('سؤال ثانٍ')}`,
     );
   });
 

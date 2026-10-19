@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import {
   NameMap,
@@ -9,8 +10,8 @@ import {
   sharePhotoImage,
   sharePhotoUrl,
 } from './whopicture.component';
-import { WhoPicturePhoto } from '../api.service';
-import { SettingsService } from '../shared/settings/settings.service';
+import { WhoPicturePhoto } from '../services/api.service';
+import { SettingsService } from '../services/settings.service';
 
 describe('nameKey', () => {
   it('keys the 11 slots by photo-internal index', () => {
@@ -78,15 +79,21 @@ describe('sharePhotoUrl', () => {
 describe('sharePhotoImage', () => {
   const TITLE = 'الأهلي 2021';
   const blob = new Blob([new Uint8Array(4)], { type: 'image/jpeg' });
-  const okFetch = () => Promise.resolve({ ok: true, blob: () => Promise.resolve(blob) } as Response);
+  const okFetch = () =>
+    Promise.resolve({ ok: true, blob: () => Promise.resolve(blob) } as Response);
 
   it('opens the native sheet with the image file when canShare accepts files', async () => {
     const shared: unknown[] = [];
-    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
-      share: (d) => (shared.push(d), Promise.resolve()),
-      canShare: (d) => Array.isArray(d.files) && d.files.length === 1,
-      clipboard: { writeText: () => Promise.resolve() },
-    }, okFetch);
+    const out = await sharePhotoImage(
+      'https://x/p.jpg',
+      TITLE,
+      {
+        share: (d) => (shared.push(d), Promise.resolve()),
+        canShare: (d) => Array.isArray(d.files) && d.files.length === 1,
+        clipboard: { writeText: () => Promise.resolve() },
+      },
+      okFetch,
+    );
     expect(out).toBe('sheet');
     expect((shared[0] as { files?: File[] }).files?.length).toBe(1);
     expect(shared[0]).toEqual(expect.objectContaining({ title: `مين في الصورة؟ — ${TITLE}` }));
@@ -94,11 +101,16 @@ describe('sharePhotoImage', () => {
 
   it('copies the link when canShare refuses files', async () => {
     const copied: string[] = [];
-    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
-      share: () => Promise.resolve(),
-      canShare: () => false,
-      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
-    }, okFetch);
+    const out = await sharePhotoImage(
+      'https://x/p.jpg',
+      TITLE,
+      {
+        share: () => Promise.resolve(),
+        canShare: () => false,
+        clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+      },
+      okFetch,
+    );
     expect(out).toBe('copied');
     expect(copied).toEqual(['https://x/p.jpg']);
   });
@@ -106,20 +118,30 @@ describe('sharePhotoImage', () => {
   it('copies the link when the fetch fails — image share is best-effort', async () => {
     const copied: string[] = [];
     const bad = () => Promise.reject(new Error('offline'));
-    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
-      share: () => Promise.resolve(),
-      canShare: () => true,
-      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
-    }, bad);
+    const out = await sharePhotoImage(
+      'https://x/p.jpg',
+      TITLE,
+      {
+        share: () => Promise.resolve(),
+        canShare: () => true,
+        clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+      },
+      bad,
+    );
     expect(out).toBe('copied');
     expect(copied).toEqual(['https://x/p.jpg']);
   });
 
   it('copies when there is no share API at all (feature-detected browser)', async () => {
     const copied: string[] = [];
-    const out = await sharePhotoImage('https://x/p.jpg', TITLE, {
-      clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
-    }, okFetch);
+    const out = await sharePhotoImage(
+      'https://x/p.jpg',
+      TITLE,
+      {
+        clipboard: { writeText: (t) => (copied.push(t), Promise.resolve()) },
+      },
+      okFetch,
+    );
     expect(out).toBe('copied');
     expect(copied).toEqual(['https://x/p.jpg']);
   });
@@ -145,26 +167,29 @@ describe('WhopictureComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WhopictureComponent],
-      providers: [provideHttpClient(), provideRouter([])],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
   });
 
   function setup(): WhopictureComponent {
     fixture = TestBed.createComponent(WhopictureComponent);
     fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne((request) => request.url.includes('/whopicture?count=1'))
+      .flush([photo(1)]);
     const c = fixture.componentInstance;
     c.photos.set([photo(1)]);
     fixture.detectChanges();
     return c;
   }
 
-  function pick(c: WhopictureComponent, i: number, team: 'A' | 'B'): void {
-    const p = photo(1);
+  function pick(c: WhopictureComponent, i: number, team: 'A' | 'B', photoId = 1): void {
+    const p = photo(photoId);
     c.onName(p, i, {
       label: p.players[i],
       points: 1,
       picked: team,
-      from: c.assigned(1, i),
+      from: c.assigned(photoId, i),
       to: team,
     });
   }
@@ -189,37 +214,71 @@ describe('WhopictureComponent', () => {
     expect((view.textContent ?? '').includes('؟؟')).toBe(false);
   });
 
-  it('the photo title renders above the image, ready or not', () => {
+  it('the rendered image lifecycle shows loading, ready, failed, and recovery states', () => {
     const c = setup();
-    const view = el();
-    expect(view.querySelector('.title')?.textContent).toContain('الأهلي 2021');
-    expect(c.imageOf(1)).toBe('loading');
-    c.markLoaded(1);
-    expect(c.imageOf(1)).toBe('ready');
-  });
+    const image = () => el().querySelector('img.shot') as HTMLImageElement;
+    const frame = () => el().querySelector('.shot-frame') as HTMLElement;
 
-  it('a dead hotlink shows an explicit fallback, never an eternal skeleton', () => {
-    const c = setup();
-    c.markFailed(1);
+    expect(el().querySelector('.shot-skeleton')).toBeTruthy();
+    image().dispatchEvent(new Event('load'));
     fixture.detectChanges();
-    const view = el();
-    expect(c.imageOf(1)).toBe('failed');
-    expect(view.querySelector('.shot-failed')?.textContent).toContain('تعذّر تحميل الصورة');
-    expect(view.querySelector('.shot-skeleton')).toBeNull();
+    expect(frame().classList.contains('is-ready')).toBe(true);
+    expect(el().querySelector('.shot-skeleton')).toBeNull();
+
+    image().dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(el().querySelector('.shot-failed')).toBeNull();
+    expect(el().querySelector('.shot-frame.is-ready')).toBeTruthy();
+
+    // A failed request can recover when the browser reports a later load.
+    c.reload();
+    fixture.detectChanges();
+    image().dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(el().querySelector('.shot-failed')).toBeTruthy();
+    image().dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(frame().classList.contains('is-ready')).toBe(true);
+    expect(el().querySelector('.shot-failed')).toBeNull();
   });
 
-  it('the img error event itself drives the failed fallback', () => {
-    setup();
-    el().querySelector('img.shot')?.dispatchEvent(new Event('error'));
+  it('retains each photo image state across A→B→A navigation', () => {
+    const c = setup();
+    c.photos.set([photo(1), photo(2)]);
+    fixture.detectChanges();
+    const image = () => el().querySelector('img.shot') as HTMLImageElement;
+
+    image().dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    c.next();
+    fixture.detectChanges();
+    image().dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    c.prev();
+    fixture.detectChanges();
+    expect(el().querySelector('.shot-failed')).toBeNull();
+    expect(el().querySelector('.shot-frame.is-ready')).toBeTruthy();
+    c.next();
     fixture.detectChanges();
     expect(el().querySelector('.shot-failed')).toBeTruthy();
   });
 
-  it('ready wins once shown — a later error does not regress a shown photo', () => {
+  it('resets the current photo image state on same-photo reload', async () => {
     const c = setup();
-    c.markLoaded(1);
-    c.markFailed(1);
-    expect(c.imageOf(1)).toBe('ready');
+    const image = () => el().querySelector('img.shot') as HTMLImageElement;
+    image().dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(el().querySelector('.shot-frame.is-ready')).toBeTruthy();
+
+    await fixture.whenStable();
+    c.reload();
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne((request) => request.url.includes('/whopicture?count=1'))
+      .flush([photo(1)]);
+    await fixture.whenStable();
+    expect(c.current()?.id).toBe(1);
+    expect(el().querySelector('.shot-skeleton')).toBeTruthy();
   });
 
   it('award buttons carry the FULL team names, never أ/ب', () => {
@@ -228,8 +287,8 @@ describe('WhopictureComponent', () => {
     c.teamB.set('النمور');
     fixture.detectChanges();
     const view = el();
-    const labels = Array.from(view.querySelectorAll('[aria-label]')).map((b) =>
-      (b.getAttribute('aria-label') ?? '') + ' ' + b.textContent,
+    const labels = Array.from(view.querySelectorAll('[aria-label]')).map(
+      (b) => (b.getAttribute('aria-label') ?? '') + ' ' + b.textContent,
     );
     const joined = labels.join(' ');
     expect(joined).toContain('الصقور');
@@ -241,6 +300,16 @@ describe('WhopictureComponent', () => {
     const view = el();
     expect(view.querySelector('[aria-label="مشاركة صورة الفريق نفسها"]')).toBeTruthy();
     expect(view.querySelector('[aria-label="مشاركة رابط الصورة"]')).toBeTruthy();
+  });
+
+  it('parent click-through routes rendered attribution to scoring state', () => {
+    const c = setup();
+    c.teamA.set('الصقور');
+    c.teamB.set('النمور');
+    fixture.detectChanges();
+    (el().querySelector('[aria-label="الصقور"]') as HTMLButtonElement).click();
+    expect(c.assigned(1, 0)).toBe('A');
+    expect(c.scoreA()).toBe(1);
   });
 
   it('each attributed name books exactly +1 to the picked team', () => {
@@ -282,9 +351,7 @@ describe('WhopictureComponent', () => {
     const c = setup();
     pick(c, 7, 'B');
     expect(c.audit().length).toBe(1);
-    expect(c.audit()[0]).toEqual(
-      expect.objectContaining({ team: 'B', delta: 1, label: 'لعب8' }),
-    );
+    expect(c.audit()[0]).toEqual(expect.objectContaining({ team: 'B', delta: 1, label: 'لعب8' }));
   });
 
   it('strikes eliminate at 2 (not 3) and reset clears', () => {
@@ -334,30 +401,9 @@ describe('WhopictureComponent', () => {
     }
   });
 
-  it('shareUrl copies the open photo link when no native sheet exists', async () => {
-    const c = setup();
-    const copied: string[] = [];
-    const stub = { value: undefined as unknown };
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      get: () => ({ writeText: (t: string) => (copied.push(t), Promise.resolve()) }),
-    });
-    Object.defineProperty(navigator, 'share', {
-      configurable: true,
-      get: () => stub.value,
-    });
-    try {
-      await c.shareUrl();
-    } finally {
-      delete (navigator as unknown as { share?: unknown; clipboard?: unknown }).share;
-      delete (navigator as unknown as { clipboard?: unknown }).clipboard;
-    }
-    expect(copied).toEqual(['https://example.com/1.jpg']);
-    expect(c.msg()).toContain('تم نسخ');
-  });
-
-  it('shareImage falls back to copy + a clear notice when the device refuses files', async () => {
-    const c = setup();
+  it('renders the link-share notice at page level when the child copies the link', async () => {
+    setup();
+    await fixture.whenStable();
     const copied: string[] = [];
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -365,13 +411,40 @@ describe('WhopictureComponent', () => {
     });
     Object.defineProperty(navigator, 'share', { configurable: true, get: () => undefined });
     try {
-      await c.shareImage();
+      (el().querySelector('[aria-label="مشاركة رابط الصورة"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      fixture.detectChanges();
     } finally {
       delete (navigator as unknown as { share?: unknown; clipboard?: unknown }).share;
       delete (navigator as unknown as { clipboard?: unknown }).clipboard;
     }
     expect(copied).toEqual(['https://example.com/1.jpg']);
-    expect(c.msg()).toContain('بدلًا منها');
+    expect(el().querySelector('.challenge > .notice')?.textContent).toBe(
+      'تم نسخ رابط الصورة — شاركه مع الصالة.',
+    );
+  });
+
+  it('renders the image-share fallback notice at page level', async () => {
+    setup();
+    await fixture.whenStable();
+    const copied: string[] = [];
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      get: () => ({ writeText: (t: string) => (copied.push(t), Promise.resolve()) }),
+    });
+    Object.defineProperty(navigator, 'share', { configurable: true, get: () => undefined });
+    try {
+      (el().querySelector('[aria-label="مشاركة صورة الفريق نفسها"]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    } finally {
+      delete (navigator as unknown as { share?: unknown; clipboard?: unknown }).share;
+      delete (navigator as unknown as { clipboard?: unknown }).clipboard;
+    }
+    expect(copied).toEqual(['https://example.com/1.jpg']);
+    expect(el().querySelector('.challenge > .notice')?.textContent).toBe(
+      'مشاركة الصورة غير مدعومة — تم نسخ الرابط بدلًا منها.',
+    );
   });
 
   it('navigation stays in bounds', () => {
@@ -387,13 +460,19 @@ describe('WhopictureComponent', () => {
     expect(c.current()?.id).toBe(1);
   });
 
-  it('redraw reverses photos that vanished and keeps the score honest', () => {
+  it('redraw reverses removed photos while retaining surviving photo scoring', () => {
     const c = setup();
     pick(c, 0, 'A'); // +1 booked on photo 1
     c.reconcile([photo(2)]); // photo 1 vanished with the redraw
     expect(c.scoreA()).toBe(0);
     expect(c.photos().length).toBe(1);
     expect(c.photos()[0].id).toBe(2);
+
+    pick(c, 0, 'B', 2); // surviving photo books independently
+    c.reconcile([photo(2), photo(3)]);
+    expect(c.scoreA()).toBe(0);
+    expect(c.scoreB()).toBe(1);
+    expect(c.assigned(2, 0)).toBe('B');
   });
 });
 

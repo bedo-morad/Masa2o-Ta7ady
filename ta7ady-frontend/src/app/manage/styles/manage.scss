@@ -1,0 +1,28 @@
+@use './manage-shell' as shell;
+@use '../editors/shared/form-controls' as forms;
+@use '../editors/scoresheet/scoresheet-form' as scoresheet;
+@use '../editors/risk/risk-form' as risk;
+@use '../catalog/manage-catalog' as catalog;
+@use './admin-modal' as admin;
+
+// Global styling seam for the Manage page and its child editor templates.
+// Keep this emission order: broad add/list rules precede their specialized forms
+// and row overrides. Mixins keep each owner's rules together without changing
+// selectors, Angular encapsulation, or the existing source-order cascade.
+@include shell.layout;
+
+.manage {
+  @include shell.navigation;
+  @include forms.add-controls;
+  @include scoresheet.team-fields;
+  @include forms.lineup-inputs;
+  @include catalog.status-and-rows;
+  @include catalog.results;
+  @include forms.inline-edit;
+  @include catalog.row-actions;
+  @include risk.tier-fields;
+  @include catalog.pool-previews;
+}
+
+@include admin.content;
+@include shell.editor-hosts;

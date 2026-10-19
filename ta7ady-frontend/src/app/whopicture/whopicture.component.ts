@@ -1,11 +1,15 @@
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector/count-selector.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, WhoPicturePhoto } from '../api.service';
+import { API_BASE, WhoPicturePhoto } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
-import { SettingsService } from '../shared/settings/settings.service';
+import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
+import { SettingsService } from '../services/settings.service';
+import { ScoreBooking } from '../shared/score-booking';
+import { WhopicturePhotoCardComponent } from './whopicture-photo-card/whopicture-photo-card.component';
+import { WhopictureNameListComponent } from './whopicture-name-list/whopicture-name-list.component';
 
 // Who-in-Picture (SPECV4 §4.4): referee screen over one hotlinked team photo.
 // All 11 names stay visible from the start in ONE column; the shared
@@ -28,21 +32,11 @@ export {
   type NameMap,
   type SharePath,
 } from './whopicture-helpers';
-import {
-  countAssigned,
-  nameKey,
-  sharePhotoImage,
-  sharePhotoUrl,
-  WHO_MAX_PHOTOS,
-  type NameMap,
-  type ShareCapableNavigator,
-} from './whopicture-helpers';
+import { countAssigned, nameKey, WHO_MAX_PHOTOS, type NameMap } from './whopicture-helpers';
 import {
   AssignedTeam,
   AttributionChange,
-  AttributionComponent,
   AuditEntry,
-  AuditStripComponent,
 } from '../shared/attribution/attribution.component';
 import {
   StrikeBump,
@@ -56,13 +50,14 @@ import {
   selector: 'app-whopicture',
   standalone: true,
   imports: [
-    FormsModule,
-    RouterLink,
+    GameHeaderComponent,
+    CountSelectorComponent,
     ScoreboardComponent,
     TimerComponent,
-    AttributionComponent,
-    AuditStripComponent,
+    ItemNavigationComponent,
     StrikeTrackerComponent,
+    WhopicturePhotoCardComponent,
+    WhopictureNameListComponent,
   ],
   templateUrl: './whopicture.component.html',
   styleUrl: './whopicture.component.scss',
@@ -80,11 +75,10 @@ export class WhopictureComponent {
   readonly booked = signal<Record<number, { A: number; B: number }>>({});
   readonly audit = signal<AuditEntry[]>([]);
   readonly strikes = signal<Record<number, StrikeSlot[]>>({});
-  // Per-photo load state of the hotlinked image: skeleton → ready / failed.
-  readonly imageState = signal<Record<number, 'loading' | 'ready' | 'failed'>>({});
+  readonly imageResetToken = signal(0);
   readonly msg = signal('');
   readonly maxPhotos = WHO_MAX_PHOTOS;
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   private readonly res = httpResource<WhoPicturePhoto[]>(
     () => `${API_BASE}/whopicture?count=${this.count()}`,
@@ -111,21 +105,6 @@ export class WhopictureComponent {
     return this.assignments()[photoId]?.[nameKey(i)] ?? null;
   }
 
-  /** Hotlinked image lifecycle per photo: starts on 'loading' at first sight. */
-  imageOf(photoId: number): 'loading' | 'ready' | 'failed' {
-    return this.imageState()[photoId] ?? 'loading';
-  }
-
-  markLoaded(photoId: number): void {
-    this.imageState.update((st) => (st[photoId] === 'ready' ? st : { ...st, [photoId]: 'ready' }));
-  }
-
-  /** The external host failed us (dead hotlink, offline image): an explicit
-   * 'failed' replaces the eternal skeleton; showing-once wins over the error. */
-  markFailed(photoId: number): void {
-    this.imageState.update((st) => (st[photoId] === 'ready' ? st : { ...st, [photoId]: 'failed' }));
-  }
-
   prev(): void {
     this.idx.update((i) => Math.max(0, i - 1));
   }
@@ -140,12 +119,19 @@ export class WhopictureComponent {
 
   reload(): void {
     this.strikes.set({});
-    this.imageState.set({});
+    this.imageResetToken.update((token) => token + 1);
     this.res.reload();
   }
 
   /** Attribution tap on one name: toggle the team, steer the booked amount
    * toward the target contribution (+1 per assigned name). */
+  onNameAttribution(
+    photo: WhoPicturePhoto,
+    event: { index: number; change: AttributionChange },
+  ): void {
+    this.onName(photo, event.index, event.change);
+  }
+
   onName(photo: WhoPicturePhoto, i: number, ch: AttributionChange): void {
     const all = { ...this.assignments() };
     const prevMap = all[photo.id] ?? {};
@@ -157,16 +143,16 @@ export class WhopictureComponent {
     all[photo.id] = nextMap;
     this.assignments.set(all);
     const b = this.booked()[photo.id] ?? { A: 0, B: 0 };
-    const eA = this.applyScore('A', countAssigned(nextMap, 'A') - b.A, photo.players[i]);
-    const eB = this.applyScore('B', countAssigned(nextMap, 'B') - b.B, photo.players[i]);
+    const eA = this.booking.book('A', countAssigned(nextMap, 'A') - b.A, photo.players[i]);
+    const eB = this.booking.book('B', countAssigned(nextMap, 'B') - b.B, photo.players[i]);
     this.booked.update((bb) => ({ ...bb, [photo.id]: { A: b.A + eA, B: b.B + eB } }));
   }
 
   /** Reverse one photo's booked points and drop its assignments + strikes. */
   private reversePhoto(photo: WhoPicturePhoto): void {
     const b = this.booked()[photo.id] ?? { A: 0, B: 0 };
-    if (b.A !== 0) this.applyScore('A', -b.A, photo.players[0]);
-    if (b.B !== 0) this.applyScore('B', -b.B, photo.players[0]);
+    if (b.A !== 0) this.booking.book('A', -b.A, photo.players[0]);
+    if (b.B !== 0) this.booking.book('B', -b.B, photo.players[0]);
     const all = { ...this.assignments() };
     delete all[photo.id];
     this.assignments.set(all);
@@ -193,16 +179,6 @@ export class WhopictureComponent {
     this.photos.set(rows);
     for (const p of rows) this.slotsOf(p);
     this.idx.update((i) => Math.min(i, Math.max(0, rows.length - 1)));
-  }
-
-  /** Applies delta directly (scores may go negative); audits the actual
-   * amount, so the strip always sums to the score. Returns the delta. */
-  private applyScore(team: 'A' | 'B', delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
   }
 
   // Per-photo mistake tracker (display only): 4 named slots, 2 per team.
@@ -276,25 +252,5 @@ export class WhopictureComponent {
 
   onSlotRename(photoId: number, r: StrikeRename): void {
     this.setSlotName(photoId, r.index, r.name);
-  }
-
-  /** Shares the open photo's link with the room: real native sheet first,
-   * the clipboard only when the browser has no share API. */
-  async shareUrl(): Promise<void> {
-    const p = this.current();
-    if (!p) return;
-    const path = await sharePhotoUrl(p.photoUrl, p.title, navigator as ShareCapableNavigator);
-    if (path === 'copied') this.msg.set('تم نسخ رابط الصورة — شاركه مع الصالة.');
-    else if (path === 'failed') this.msg.set('تعذّرت المشاركة — انسخ الرابط من شريط العنوان.');
-  }
-
-  /** Shares the image itself when the device can carry files; a refusal or a
-   * failed fetch falls back to copying the link (last resort, never silent). */
-  async shareImage(): Promise<void> {
-    const p = this.current();
-    if (!p) return;
-    const path = await sharePhotoImage(p.photoUrl, p.title, navigator as ShareCapableNavigator);
-    if (path === 'copied') this.msg.set('مشاركة الصورة غير مدعومة — تم نسخ الرابط بدلًا منها.');
-    else if (path === 'failed') this.msg.set('تعذّر إرسال الصورة — افتح الرابط وشاركه يدويًا.');
   }
 }

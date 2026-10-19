@@ -1,0 +1,38 @@
+@if (msg()) {
+  <div class="notice">{{ msg() }}</div>
+}
+
+<div class="cards">
+  @for (c of cards(); track c.row.id; let i = $index) {
+    <div class="cell">
+      <button
+        type="button"
+        class="flip"
+        [class.open]="c.flipped"
+        (click)="flip(i)"
+        [attr.aria-label]="c.flipped ? c.row.playerName : 'بطاقة رقم ' + (i + 1)"
+      >
+        <span class="face front">{{ i + 1 }}</span>
+        <span class="face back">{{ c.flipped ? c.row.playerName : '' }}</span>
+      </button>
+      @if (c.flipped) {
+        <a
+          class="gsearch"
+          [appGoogleSearch]="c.row.playerName"
+          searchLabel="بحث عن اللاعب"
+          [stopPropagation]="true"
+        ></a>
+      }
+      <button
+        type="button"
+        class="reroll"
+        (click)="rerollOne(i)"
+        [disabled]="rerolling() !== null"
+        aria-label="تبديل هذه البطاقة"
+        title="تبديل"
+      >
+        <i class="fa-solid fa-dice"></i>
+      </button>
+    </div>
+  }
+</div>

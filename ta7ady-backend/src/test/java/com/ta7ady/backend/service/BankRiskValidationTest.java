@@ -1,6 +1,6 @@
 package com.ta7ady.backend.service;
 
-import com.ta7ady.backend.web.RiskQuestionRequest;
+import com.ta7ady.backend.dto.RiskQuestionRequest;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;

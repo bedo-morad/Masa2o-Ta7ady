@@ -1,0 +1,123 @@
+// NgbModal projects this markup at body level, so it must stay outside .manage.
+
+@mixin content {
+  .admin-popup {
+    background: var(--pitch-surface);
+    color: var(--pitch-ink);
+    border-radius: var(--radius-card);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .admin-popup-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 900;
+
+      i {
+        margin-inline-end: 0.35rem;
+      }
+    }
+
+    .x {
+      background: none;
+      border: 1px solid var(--pitch-line);
+      color: var(--pitch-ink);
+      border-radius: 10px;
+      min-width: 44px;
+      min-height: 44px;
+      cursor: pointer;
+    }
+  }
+
+  .admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    input {
+      background: var(--pitch-surface-2);
+      border: 1px solid var(--pitch-line);
+      border-radius: 10px;
+      color: var(--pitch-ink);
+      padding: 0.65rem 0.8rem;
+      min-height: 44px;
+
+      &::placeholder {
+        color: var(--pitch-ink-dim);
+      }
+    }
+
+    .unlock {
+      background: var(--pitch-accent-deep);
+      border: 1px solid var(--pitch-accent-deep);
+      color: var(--pitch-on-accent-deep);
+      border-radius: 10px;
+      padding: 0.65rem 1.1rem;
+      font-weight: 800;
+      min-height: 44px;
+      cursor: pointer;
+
+      i {
+        margin-inline-end: 0.3rem;
+      }
+    }
+  }
+
+  .admin-label {
+    font-weight: 800;
+  }
+
+  .admin-state {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .admin-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    .lock {
+      background: none;
+      border: 1px solid var(--pitch-danger);
+      color: var(--pitch-danger);
+      border-radius: 10px;
+      padding: 0.6rem 1.1rem;
+      font-weight: 800;
+      min-height: 44px;
+      cursor: pointer;
+
+      i {
+        margin-inline-end: 0.3rem;
+      }
+    }
+
+    .close {
+      background: var(--pitch-surface-2);
+      border: 1px solid var(--pitch-line);
+      color: var(--pitch-ink);
+      border-radius: 10px;
+      padding: 0.6rem 1.1rem;
+      font-weight: 800;
+      min-height: 44px;
+      cursor: pointer;
+    }
+  }
+
+  .admin-error {
+    border: 1px solid var(--pitch-danger);
+    color: var(--pitch-danger);
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    font-weight: 700;
+  }
+}

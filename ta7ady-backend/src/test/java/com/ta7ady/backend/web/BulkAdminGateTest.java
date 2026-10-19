@@ -20,11 +20,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// DB-backed: needs postgres up (docker compose up -d). Rolls back after each test.
+// DB-backed: uses the isolated PostgreSQL test fixture. Rolls back after each test.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class BulkAdminGateTest {
+class BulkAdminGateTest extends com.ta7ady.backend.PostgreSqlIntegrationTest {
 
     @Autowired
     MockMvc mvc;

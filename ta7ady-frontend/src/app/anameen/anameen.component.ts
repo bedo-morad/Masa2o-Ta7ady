@@ -1,21 +1,23 @@
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector/count-selector.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { API_BASE, AnameenSubject, ApiService } from '../api.service';
+import { API_BASE, AnameenSubject, ApiService } from '../services/api.service';
 import { AnameenTeam, ANAMEEN_COUNTS, ANAMEEN_COUNT_DEFAULT, ANAMEEN_POINTS } from './anameen.game';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
-import { SettingsService } from '../shared/settings/settings.service';
+import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
+import { AskedMarkerComponent } from '../shared/asked-marker/asked-marker.component';
+import { SettingsService } from '../services/settings.service';
 import {
   AssignedTeam,
   AttributionChange,
   AttributionComponent,
   AuditEntry,
-  AuditStripComponent,
   attributionDeltas,
 } from '../shared/attribution/attribution.component';
+import { ScoreBooking } from '../shared/score-booking';
 
 // Ana Meen (RULES.md / SPECV4 §4.2): a hidden player, five clues hard → easy,
 // one subject on screen at a time — all five clues visible from the start, the
@@ -30,13 +32,12 @@ import {
 @Component({
   selector: 'app-anameen',
   standalone: true,
-  imports: [
-    FormsModule,
-    RouterLink,
+  imports: [GameHeaderComponent, CountSelectorComponent,
     ScoreboardComponent,
     TimerComponent,
+    ItemNavigationComponent,
+    AskedMarkerComponent,
     AttributionComponent,
-    AuditStripComponent,
   ],
   templateUrl: './anameen.component.html',
   styleUrl: './anameen.component.scss',
@@ -53,11 +54,13 @@ export class AnameenComponent {
   readonly count = signal<number>(ANAMEEN_COUNT_DEFAULT);
   readonly subjects = signal<AnameenSubject[]>([]);
   readonly idx = signal(0);
+  /** Asked markers belong only to the currently displayed card. */
+  readonly askedClues = signal<Set<number>>(new Set());
   readonly assignments = signal<Record<number, AssignedTeam>>({});
   readonly audit = signal<AuditEntry[]>([]);
   readonly msg = signal('');
   readonly rerolling = signal(false);
-  private seq = 0;
+  private readonly booking = new ScoreBooking(this.scoreA, this.scoreB, this.audit);
 
   readonly counts = ANAMEEN_COUNTS;
   readonly points = ANAMEEN_POINTS;
@@ -76,6 +79,7 @@ export class AnameenComponent {
       if (rows) {
         this.subjects.set(rows);
         this.idx.set(0);
+        this.resetAskedClues();
         this.msg.set(rows.length ? '' : 'لا يوجد لاعبون مخفيون بعد — أضف من صفحة إدارة الأسئلة.');
       }
       if (this.res.error()) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
@@ -96,14 +100,29 @@ export class AnameenComponent {
     return subject.clues[k - 1] ?? '';
   }
 
+  asked(k: number): boolean {
+    return this.askedClues().has(k);
+  }
+
+  toggleAsked(k: number): void {
+    this.askedClues.update((asked) => {
+      const next = new Set(asked);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  }
+
   setCount(n: number): void {
     if (!this.counts.includes(n) || n === this.count()) return;
     this.count.set(n);
     this.idx.set(0);
+    this.resetAskedClues();
   }
 
   reload(): void {
     this.idx.set(0);
+    this.resetAskedClues();
     this.res.reload();
   }
 
@@ -113,7 +132,7 @@ export class AnameenComponent {
     this.scoreB.set(0);
     this.audit.set([]);
     this.msg.set('');
-    this.seq = 0;
+    this.booking.resetSequence();
     this.reload();
   }
 
@@ -126,8 +145,8 @@ export class AnameenComponent {
     const subject = this.current();
     if (!subject) return;
     const { deltaA, deltaB } = attributionDeltas(ch.points, ch.from, ch.to);
-    this.applyScore('A', deltaA, subject.player);
-    this.applyScore('B', deltaB, subject.player);
+    this.booking.book('A', deltaA, subject.player);
+    this.booking.book('B', deltaB, subject.player);
     this.assignments.update((m) => {
       const next = { ...m };
       if (ch.to) next[subject.id] = ch.to;
@@ -147,7 +166,7 @@ export class AnameenComponent {
       const old = this.subjects()[i];
       if (old) {
         const team = this.assignments()[old.id] ?? null;
-        if (team) this.applyScore(team, -ANAMEEN_POINTS, old.player);
+        if (team) this.booking.book(team, -ANAMEEN_POINTS, old.player);
         this.assignments.update((m) => {
           const next = { ...m };
           delete next[old.id];
@@ -155,7 +174,10 @@ export class AnameenComponent {
         });
       }
       this.subjects.update((ss) => ss.map((s, k) => (k === i ? subject : s)));
-      if (i === this.idx()) this.timer()?.reset();
+      if (i === this.idx()) {
+        this.resetAskedClues();
+        this.timer()?.reset();
+      }
       this.msg.set('');
     } catch {
       this.msg.set('تعذر دسّة هذا الموضوع — حاول مجددًا.');
@@ -164,20 +186,16 @@ export class AnameenComponent {
     }
   }
 
-  /** Applies a delta directly (scores may go negative); audits the actual
-   * amount so the strip always sums to the score. */
-  private applyScore(team: AnameenTeam, delta: number, label: string): number {
-    if (delta === 0) return 0;
-    if (team === 'A') this.scoreA.update((v) => v + delta);
-    else this.scoreB.update((v) => v + delta);
-    this.audit.update((es) => [...es.slice(-49), { seq: ++this.seq, team, label, delta }]);
-    return delta;
-  }
 
   private moveTo(i: number): void {
     const last = Math.max(0, this.subjects().length - 1);
     this.idx.set(Math.min(last, Math.max(0, i)));
+    this.resetAskedClues();
     this.timer()?.reset();
+  }
+
+  private resetAskedClues(): void {
+    this.askedClues.set(new Set());
   }
 
   prev(): void {

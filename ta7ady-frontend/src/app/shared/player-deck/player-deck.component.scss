@@ -1,0 +1,124 @@
+@use '../reroll-button';
+
+.notice {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.8rem 1rem;
+  color: var(--pitch-ink-dim);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.flip {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 9rem;
+  perspective: 600px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  .face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-card);
+    font-weight: 900;
+    backface-visibility: hidden;
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.25, 1);
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .front {
+    background: var(--pitch-surface);
+    border: 1px solid var(--pitch-line);
+    font-size: 2.2rem;
+    color: var(--player-card-front-color);
+  }
+
+  .back {
+    background: var(--pitch-accent-deep);
+    border: 1px solid var(--pitch-accent-deep);
+    color: var(--pitch-on-accent-deep);
+    font-size: 1.15rem;
+    padding: 2.9rem 0.5rem;
+    overflow-wrap: anywhere;
+    transform: rotateY(180deg);
+  }
+
+  &.open {
+    .front {
+      transform: rotateY(180deg);
+    }
+
+    .back {
+      transform: rotateY(0deg);
+    }
+  }
+}
+
+@media (max-width: 420px) {
+  .flip .back {
+    font-size: clamp(0.8rem, 3.8vw, 0.95rem);
+    line-height: 1.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip .face {
+    transition: none;
+  }
+}
+
+.cell {
+  position: relative;
+}
+
+.gsearch {
+  position: absolute;
+  // Opposite the reroll control: physical top-right in the Arabic layout.
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  line-height: 1;
+  font-size: 1rem;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--pitch-accent-deep);
+    border-color: var(--pitch-accent-deep);
+  }
+}
+
+.reroll {
+  @include reroll-button.center-icon;
+  position: absolute;
+  top: 0.35rem;
+  inset-inline-end: 0.35rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--pitch-line);
+  background: var(--pitch-surface-2);
+  color: var(--pitch-ink-dim);
+  font-size: 0.95rem;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}

@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+.draw-row {
+  display: flex;
+  align-items: center;
+  gap: var(--draw-row-gap, 0.6rem);
+
+  label {
+    color: var(--draw-label-color, inherit);
+    font-weight: var(--draw-label-weight, 700);
+    font-size: var(--draw-label-size, inherit);
+  }
+
+  select {
+    background: var(--pitch-surface);
+    color: var(--pitch-ink);
+    border: 1px solid var(--pitch-line);
+    border-radius: var(--draw-select-radius, 10px);
+    padding: var(--draw-select-padding, 0.5rem 0.7rem);
+    min-height: 44px;
+    font-family: var(--draw-select-family);
+    font-weight: var(--draw-select-weight);
+  }
+}
+
+.redraw {
+  margin-inline-start: var(--draw-redraw-margin-start, auto);
+  display: var(--draw-redraw-display, inline-block);
+  align-items: center;
+  gap: var(--draw-redraw-gap, normal);
+  background: var(--draw-redraw-background, var(--pitch-accent-deep));
+  border: 1px solid var(--draw-redraw-border, var(--pitch-accent-deep));
+  color: var(--draw-redraw-color, var(--pitch-on-accent-deep));
+  border-radius: var(--draw-redraw-radius, 999px);
+  padding: var(--draw-redraw-padding, 0.55rem 1.1rem);
+  font-weight: var(--draw-redraw-weight, 800);
+  font-family: var(--draw-redraw-family);
+  font-size: var(--draw-redraw-size);
+  min-height: 44px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  i {
+    margin-inline-end: var(--draw-redraw-icon-margin, 0.3rem);
+  }
+}

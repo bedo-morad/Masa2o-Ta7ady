@@ -1,0 +1,65 @@
+@if (addMode) {
+  <form class="add column" (ngSubmit)="model.add()">
+    <input [(ngModel)]="model.newGenre" name="ngr" placeholder="النوع — مثال: ريال مدريد" />
+    <ol class="tiers">
+      @for (tier of model.riskTiers; track tier; let i = $index) {
+        <li>
+          <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
+          <div class="tier-fields">
+            <input
+              [ngModel]="model.newRisk()[i].question"
+              (ngModelChange)="model.setNewRisk(i, 'question', $event)"
+              [name]="'nrq' + tier"
+              placeholder="السؤال"
+              [attr.aria-label]="'سؤال فئة ' + tier"
+            />
+            <input
+              [ngModel]="model.newRisk()[i].answer"
+              (ngModelChange)="model.setNewRisk(i, 'answer', $event)"
+              [name]="'nra' + tier"
+              placeholder="الجواب"
+              [attr.aria-label]="'جواب فئة ' + tier"
+            />
+          </div>
+        </li>
+      }
+    </ol>
+    <button type="submit"><i class="fa-solid fa-plus"></i> إضافة حزمة</button>
+  </form>
+} @else if (editing) {
+  <form class="edit column" (ngSubmit)="model.save(pack!.id)">
+    <input
+      [(ngModel)]="model.editGenre"
+      name="editGenre"
+      placeholder="النوع"
+      aria-label="تعديل نوع الحزمة"
+    />
+    <ol class="tiers">
+      @for (tier of model.riskTiers; track tier; let i = $index) {
+        <li>
+          <span class="tier tabular-nums" aria-hidden="true">{{ tier }}</span>
+          <div class="tier-fields">
+            <input
+              [ngModel]="model.editRisk()[i].question"
+              (ngModelChange)="model.setEditRisk(i, 'question', $event)"
+              [name]="'erq' + tier"
+              placeholder="السؤال"
+              [attr.aria-label]="'تعديل سؤال فئة ' + tier"
+            />
+            <input
+              [ngModel]="model.editRisk()[i].answer"
+              (ngModelChange)="model.setEditRisk(i, 'answer', $event)"
+              [name]="'era' + tier"
+              placeholder="الجواب"
+              [attr.aria-label]="'تعديل جواب فئة ' + tier"
+            />
+          </div>
+        </li>
+      }
+    </ol>
+    <div class="edit-actions">
+      <button type="submit" class="save"><i class="fa-solid fa-check"></i> حفظ</button>
+      <button type="button" class="cancel" (click)="model.cancelEdit()">إلغاء</button>
+    </div>
+  </form>
+}

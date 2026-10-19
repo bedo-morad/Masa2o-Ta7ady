@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { OffsideComponent } from './offside.component';
-import { OffsideRule } from '../api.service';
+import { OffsideRule } from '../services/api.service';
 
 describe('OffsideComponent asked marks (rendered screen)', () => {
   let fixture: ComponentFixture<OffsideComponent>;
@@ -59,6 +59,7 @@ describe('OffsideComponent asked marks (rendered screen)', () => {
   it('supports mark, undo, repeated toggle, and independent visible controls without extra text', async () => {
     await setup();
     click(marks()[0]);
+    expect(marks()[0].getAttribute('aria-label')).toBe('إلغاء تحديد القاعدة 1 على أنها طُرحت');
     click(marks()[0]);
     click(marks()[0]);
     click(marks()[1]);

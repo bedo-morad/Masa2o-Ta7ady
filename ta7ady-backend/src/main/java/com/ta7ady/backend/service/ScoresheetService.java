@@ -2,13 +2,12 @@ package com.ta7ady.backend.service;
 
 import com.ta7ady.backend.entity.ScoresheetMatch;
 import com.ta7ady.backend.repository.ScoresheetMatchRepository;
-import com.ta7ady.backend.web.BulkHelper;
-import com.ta7ady.backend.web.BulkRowResult;
-import com.ta7ady.backend.web.ScoresheetBulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
+import com.ta7ady.backend.dto.ScoresheetBulkRow;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,16 +41,7 @@ public class ScoresheetService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        return repo.save(toEntity(matchLabel, teamA, teamB, lineupA, lineupB));
-    }
-
-    // AUTHORING.md single-add/bulk row keys: "match" (+ "matchLabel"/"match_label" aliases).
-    public static String matchOf(Map<String, Object> body) {
-        if (body == null) return null;
-        Object m = body.get("match");
-        if (m == null) m = body.get("matchLabel");
-        if (m == null) m = body.get("match_label");
-        return m == null ? null : m.toString();
+        return repo.save(applyTo(new ScoresheetMatch(), matchLabel, teamA, teamB, lineupA, lineupB));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
@@ -63,14 +53,7 @@ public class ScoresheetService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        e.setMatchLabel(matchLabel.trim());
-        e.setTeamA(teamA.trim());
-        e.setTeamB(teamB.trim());
-        e.getLineupA().clear();
-        e.getLineupA().addAll(cleaned(lineupA));
-        e.getLineupB().clear();
-        e.getLineupB().addAll(cleaned(lineupB));
-        return repo.save(e);
+        return repo.save(applyTo(e, matchLabel, teamA, teamB, lineupA, lineupB));
     }
 
     // Pure validation shared by single POST and bulk (AUTHORING.md §3.5:
@@ -122,7 +105,7 @@ public class ScoresheetService {
                         r == null ? null : r.teamB(), r == null ? null : r.lineupA(),
                         r == null ? null : r.lineupB()),
                 r -> r == null ? null : r.match(),
-                r -> toEntity(r.match(), r.teamA(), r.teamB(), r.lineupA(), r.lineupB()),
+                r -> applyTo(new ScoresheetMatch(), r.match(), r.teamA(), r.teamB(), r.lineupA(), r.lineupB()),
                 e -> repo.save(e).getId());
     }
 
@@ -133,14 +116,15 @@ public class ScoresheetService {
         repo.deleteById(id);
     }
 
-    private static ScoresheetMatch toEntity(String matchLabel, String teamA, String teamB,
+    private static ScoresheetMatch applyTo(ScoresheetMatch e, String matchLabel, String teamA, String teamB,
             List<?> lineupA, List<?> lineupB) {
-        ScoresheetMatch e = new ScoresheetMatch();
         e.setMatchLabel(matchLabel.trim());
         e.setTeamA(teamA.trim());
         e.setTeamB(teamB.trim());
-        e.setLineupA(cleaned(lineupA));
-        e.setLineupB(cleaned(lineupB));
+        e.getLineupA().clear();
+        e.getLineupA().addAll(cleaned(lineupA));
+        e.getLineupB().clear();
+        e.getLineupB().addAll(cleaned(lineupB));
         return e;
     }
 

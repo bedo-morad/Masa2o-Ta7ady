@@ -3,10 +3,10 @@ package com.ta7ady.backend.service;
 import com.ta7ady.backend.entity.RiskPack;
 import com.ta7ady.backend.entity.RiskTierQuestion;
 import com.ta7ady.backend.repository.RiskPackRepository;
-import com.ta7ady.backend.web.BulkHelper;
-import com.ta7ady.backend.web.BulkRowResult;
-import com.ta7ady.backend.web.RiskBulkRow;
-import com.ta7ady.backend.web.RiskQuestionRequest;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
+import com.ta7ady.backend.dto.RiskBulkRow;
+import com.ta7ady.backend.dto.RiskQuestionRequest;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -48,10 +48,7 @@ public class RiskService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        RiskPack e = new RiskPack();
-        e.setGenre(genre.trim());
-        e.setQuestions(toTiers(questions));
-        return repo.save(e);
+        return repo.save(applyTo(new RiskPack(), genre, questions));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
@@ -62,10 +59,7 @@ public class RiskService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        e.setGenre(genre.trim());
-        e.getQuestions().clear();
-        e.getQuestions().addAll(toTiers(questions));
-        return repo.save(e);
+        return repo.save(applyTo(e, genre, questions));
     }
 
     // Pure validation shared by single POST, edit (PUT) and bulk (AUTHORING.md §3.6:
@@ -110,12 +104,7 @@ public class RiskService {
         return BulkHelper.run(rows, dryRun,
                 r -> validate(r == null ? null : r.genre(), r == null ? null : r.questions()),
                 r -> signature(r == null ? null : r.genre(), r == null ? null : r.questions()),
-                r -> {
-                    RiskPack e = new RiskPack();
-                    e.setGenre(r.genre().trim());
-                    e.setQuestions(toTiers(r.questions()));
-                    return e;
-                },
+                r -> applyTo(new RiskPack(), r.genre(), r.questions()),
                 e -> repo.save(e).getId());
     }
 
@@ -138,11 +127,12 @@ public class RiskService {
         return sb.toString();
     }
 
-    private static List<RiskTierQuestion> toTiers(List<RiskQuestionRequest> questions) {
-        List<RiskTierQuestion> tiers = new ArrayList<>();
+    private static RiskPack applyTo(RiskPack e, String genre, List<RiskQuestionRequest> questions) {
+        e.setGenre(genre.trim());
+        e.getQuestions().clear();
         for (RiskQuestionRequest q : questions) {
-            tiers.add(new RiskTierQuestion(q.points(), q.question().trim(), q.answer().trim()));
+            e.getQuestions().add(new RiskTierQuestion(q.points(), q.question().trim(), q.answer().trim()));
         }
-        return tiers;
+        return e;
     }
 }

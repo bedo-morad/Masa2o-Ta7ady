@@ -1,0 +1,66 @@
+<ul class="rows">
+  @for (m of rows(); track m.id) {
+    <li class="wide managed-row" [class.open]="selection().isOpen(m.id)">
+      @if (adminOn() && selection().editingId() === m.id) {
+        <app-scoresheet-editor [editor]="editor()" mode="edit" [id]="m.id" />
+      } @else {
+        <div class="row-head">
+          <button
+            type="button"
+            class="row-main"
+            (click)="selection().toggle(m.id)"
+            [attr.aria-expanded]="selection().isOpen(m.id)"
+            [attr.aria-label]="
+              (selection().isOpen(m.id) ? 'إخفاء التشكيلتين: ' : 'عرض التشكيلتين: ') + m.matchLabel
+            "
+          >
+            <span class="prompt"
+              ><strong>{{ m.matchLabel }}</strong></span
+            >
+            <i
+              class="fa-solid fa-chevron-down"
+              [class.flipped]="selection().isOpen(m.id)"
+              aria-hidden="true"
+            ></i>
+          </button>
+          @if (adminOn()) {
+            <div class="row-actions">
+              <button
+                type="button"
+                class="edit-btn"
+                (click)="editor().startEdit(m)"
+                aria-label="تعديل"
+                title="تعديل"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="del" (click)="remove.emit(m.id)" aria-label="حذف">
+                <i class="fa-solid fa-trash"></i> حذف
+              </button>
+            </div>
+          }
+        </div>
+        @if (selection().isOpen(m.id)) {
+          <div class="reveal lineups">
+            <div class="lineup-side">
+              <h4>{{ m.teamA }}</h4>
+              <ul>
+                @for (p of m.lineupA; track $index) {
+                  <li>{{ p }}</li>
+                }
+              </ul>
+            </div>
+            <div class="lineup-side">
+              <h4>{{ m.teamB }}</h4>
+              <ul>
+                @for (p of m.lineupB; track $index) {
+                  <li>{{ p }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+        }
+      }
+    </li>
+  }
+</ul>

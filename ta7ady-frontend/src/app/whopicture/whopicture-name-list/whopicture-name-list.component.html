@@ -1,0 +1,24 @@
+<section class="names" aria-label="الأسماء المصورة">
+  <header class="names-head">
+    <h3 class="names-title">الأسماء</h3>
+    <span class="hint">كل اسم = نقطة</span>
+  </header>
+  <ol class="name-list">
+    @for (name of players(); track $index; let i = $index) {
+      <li class="name-row">
+        <span class="no tabular-nums">{{ i + 1 }}</span>
+        <span class="nm">{{ name }}</span>
+        <app-attribution
+          [label]="name"
+          mode="fixed"
+          [points]="1"
+          [showPoints]="false"
+          [teamA]="teamA()"
+          [teamB]="teamB()"
+          [assigned]="assigned(i)"
+          (change)="change(i, $event)"
+        />
+      </li>
+    }
+  </ol>
+</section>

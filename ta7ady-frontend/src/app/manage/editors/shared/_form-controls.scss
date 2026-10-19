@@ -1,0 +1,185 @@
+// Global controls shared by the add/edit renderers. Included under .manage.
+// Lineup inputs are shared by Score Sheet and Who-in-Picture.
+
+@mixin add-controls {
+  .add {
+    display: flex;
+    gap: 0.5rem;
+
+    &.column {
+      flex-direction: column;
+    }
+
+    input {
+      flex: 1;
+      background: var(--pitch-surface);
+      border: 1px solid var(--pitch-line);
+      border-radius: 10px;
+      color: var(--pitch-ink);
+      padding: 0.65rem 0.8rem;
+      min-height: 48px;
+
+      &::placeholder {
+        color: var(--pitch-ink-dim);
+      }
+    }
+
+    .duo {
+      display: flex;
+      gap: 0.5rem;
+
+      input {
+        min-width: 0;
+      }
+    }
+
+    button {
+      background: var(--pitch-accent-deep);
+      border: 1px solid var(--pitch-accent-deep);
+      color: var(--pitch-on-accent-deep);
+      border-radius: 10px;
+      padding: 0.65rem 1.1rem;
+      font-weight: 800;
+      min-height: 48px;
+      white-space: nowrap;
+
+      i {
+        margin-inline-end: 0.3rem;
+      }
+    }
+  }
+
+  .ranks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .rank {
+      flex: 0 0 2rem;
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      background: var(--pitch-surface-2);
+      border: 1px solid var(--pitch-line);
+      border-radius: 10px;
+      color: var(--pitch-ink);
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      background: var(--pitch-surface);
+      border: 1px solid var(--pitch-line);
+      border-radius: 10px;
+      color: var(--pitch-ink);
+      padding: 0.65rem 0.8rem;
+      min-height: 48px;
+
+      &::placeholder {
+        color: var(--pitch-ink-dim);
+      }
+    }
+  }
+}
+
+@mixin lineup-inputs {
+  .lineup {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .player-box {
+      flex: 1;
+      min-width: 0;
+      background: var(--pitch-surface-2);
+      border: 1px solid var(--pitch-line);
+      border-radius: 10px;
+      color: var(--pitch-ink);
+      padding: 0.6rem 0.7rem;
+      min-height: 48px;
+
+      &::placeholder {
+        color: var(--pitch-ink-dim);
+      }
+    }
+  }
+}
+
+@mixin inline-edit {
+  /* Inline edit (SPECV3 §3.1): same shapes as the add forms, prefilled per row. */
+  .edit {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .edit.column {
+    width: 100%;
+  }
+  .edit > input {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--pitch-surface-2);
+    border: 1px solid var(--pitch-line);
+    border-radius: 10px;
+    color: var(--pitch-ink);
+    padding: 0.65rem 0.8rem;
+    min-height: 48px;
+  }
+  .edit > input::placeholder {
+    color: var(--pitch-ink-dim);
+  }
+  .managed-row .edit {
+    padding: 0.65rem 0.9rem;
+  }
+  .edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .edit-actions .save {
+    background: var(--pitch-accent-deep);
+    border: 1px solid var(--pitch-accent-deep);
+    color: var(--pitch-on-accent-deep);
+    border-radius: 10px;
+    padding: 0.6rem 1.1rem;
+    font-weight: 800;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  .edit-actions .save i {
+    margin-inline-end: 0.3rem;
+  }
+  .edit-actions .cancel {
+    background: var(--pitch-surface-2);
+    border: 1px solid var(--pitch-line);
+    color: var(--pitch-ink);
+    border-radius: 10px;
+    padding: 0.6rem 1.1rem;
+    font-weight: 800;
+    min-height: 44px;
+    cursor: pointer;
+  }
+}

@@ -2,9 +2,9 @@ package com.ta7ady.backend.service;
 
 import com.ta7ady.backend.entity.BankQuestion;
 import com.ta7ady.backend.repository.BankQuestionRepository;
-import com.ta7ady.backend.web.BankBulkRow;
-import com.ta7ady.backend.web.BulkHelper;
-import com.ta7ady.backend.web.BulkRowResult;
+import com.ta7ady.backend.dto.BankBulkRow;
+import com.ta7ady.backend.bulk.BulkHelper;
+import com.ta7ady.backend.bulk.BulkRowResult;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class BankService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        return repo.save(toEntity(question, answer));
+        return repo.save(applyTo(new BankQuestion(), question, answer));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
@@ -52,9 +52,7 @@ public class BankService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        e.setQuestion(question.trim());
-        e.setAnswer(answer.trim());
-        return repo.save(e);
+        return repo.save(applyTo(e, question, answer));
     }
 
     // Pure shape validation shared by single POST, edit (PUT) and bulk (no DB touch).
@@ -78,7 +76,7 @@ public class BankService {
         return BulkHelper.run(rows, dryRun,
                 r -> validate(r == null ? null : r.question(), r == null ? null : r.answer()),
                 r -> r == null ? null : r.question(),
-                r -> toEntity(r.question(), r.answer()),
+                r -> applyTo(new BankQuestion(), r.question(), r.answer()),
                 e -> repo.save(e).getId());
     }
 
@@ -89,8 +87,7 @@ public class BankService {
         repo.deleteById(id);
     }
 
-    private static BankQuestion toEntity(String question, String answer) {
-        BankQuestion e = new BankQuestion();
+    private static BankQuestion applyTo(BankQuestion e, String question, String answer) {
         e.setQuestion(question.trim());
         e.setAnswer(answer.trim());
         return e;

@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
-import { SettingsService, type TimerKey } from '../settings/settings.service';
-import { AlarmService } from '../alarm/alarm.service';
+import { SettingsService, type TimerKey } from '../../services/settings.service';
+import { AlarmService } from '../../services/alarm.service';
 
 // Reusable referee timer: dev-configured default, referee controls it.
 // Single icon-only toggle (start/pause) + icon-only reset. Timeout alarm

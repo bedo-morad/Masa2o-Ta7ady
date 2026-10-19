@@ -42,10 +42,7 @@ public class IhbidService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        IhbidQuestion e = new IhbidQuestion();
-        e.setQuestionText(question.trim());
-        e.setAnswerText(answer.trim());
-        return repo.save(e);
+        return repo.save(applyTo(new IhbidQuestion(), question, answer));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
@@ -56,9 +53,7 @@ public class IhbidService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        e.setQuestionText(question.trim());
-        e.setAnswerText(answer.trim());
-        return repo.save(e);
+        return repo.save(applyTo(e, question, answer));
     }
 
     // Pure shape validation shared by single POST and bulk (no DB touch;
@@ -78,13 +73,14 @@ public class IhbidService {
         return BulkHelper.run(rows, dryRun,
                 r -> validate(r == null ? null : r.questionText(), r == null ? null : r.answerText()),
                 r -> r == null ? null : r.questionText(),
-                r -> {
-                    IhbidQuestion e = new IhbidQuestion();
-                    e.setQuestionText(r.questionText().trim());
-                    e.setAnswerText(r.answerText().trim());
-                    return e;
-                },
+                r -> applyTo(new IhbidQuestion(), r.questionText(), r.answerText()),
                 e -> repo.save(e).getId());
+    }
+
+    private static IhbidQuestion applyTo(IhbidQuestion e, String question, String answer) {
+        e.setQuestionText(question.trim());
+        e.setAnswerText(answer.trim());
+        return e;
     }
 
     public void delete(Long id) {

@@ -41,7 +41,7 @@ public class Top10Service {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        return repo.save(toEntity(prompt, answers));
+        return repo.save(applyTo(new Top10List(), prompt, answers));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
@@ -52,10 +52,7 @@ public class Top10Service {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        e.setPrompt(prompt.trim());
-        e.getAnswers().clear();
-        e.getAnswers().addAll(cleaned(answers));
-        return repo.save(e);
+        return repo.save(applyTo(e, prompt, answers));
     }
 
     // Pure validation shared by single POST and bulk (AUTHORING.md §3.4:
@@ -89,7 +86,7 @@ public class Top10Service {
         return BulkHelper.run(rows, dryRun,
                 r -> validate(r == null ? null : r.prompt(), r == null ? null : r.answers()),
                 r -> r == null ? null : r.prompt(),
-                r -> toEntity(r.prompt(), r.answers()),
+                r -> applyTo(new Top10List(), r.prompt(), r.answers()),
                 e -> repo.save(e).getId());
     }
 
@@ -100,10 +97,10 @@ public class Top10Service {
         repo.deleteById(id);
     }
 
-    private static Top10List toEntity(String prompt, List<?> answers) {
-        Top10List e = new Top10List();
+    private static Top10List applyTo(Top10List e, String prompt, List<?> answers) {
         e.setPrompt(prompt.trim());
-        e.setAnswers(cleaned(answers));
+        e.getAnswers().clear();
+        e.getAnswers().addAll(cleaned(answers));
         return e;
     }
 

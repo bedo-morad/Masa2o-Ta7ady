@@ -48,7 +48,7 @@ public class AnameenService {
         if (repo.existsByPlayerIgnoreCase(player)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "player already exists");
         }
-        return saveGuarded(toEntity(player, clues));
+        return saveGuarded(applyTo(new AnameenSubject(), player, clues));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, plus create's
@@ -64,10 +64,7 @@ public class AnameenService {
         if (!player.equalsIgnoreCase(e.getPlayer()) && repo.existsByPlayerIgnoreCase(player)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "player already exists");
         }
-        e.setPlayer(player);
-        e.getClues().clear();
-        e.getClues().addAll(cleaned(clues));
-        return saveGuarded(e);
+        return saveGuarded(applyTo(e, player, clues));
     }
 
     // Pure validation shared by single POST, edit (PUT) and bulk (no DB touch).
@@ -109,7 +106,7 @@ public class AnameenService {
                     return errors;
                 },
                 r -> r == null ? null : r.player(),
-                r -> toEntity(r.player(), r.clues()),
+                r -> applyTo(new AnameenSubject(), r.player(), r.clues()),
                 e -> saveGuarded(e).getId());
     }
 
@@ -120,10 +117,10 @@ public class AnameenService {
         repo.deleteById(id);
     }
 
-    private static AnameenSubject toEntity(String player, List<?> clues) {
-        AnameenSubject e = new AnameenSubject();
+    private static AnameenSubject applyTo(AnameenSubject e, String player, List<?> clues) {
         e.setPlayer(player.trim());
-        e.setClues(cleaned(clues));
+        e.getClues().clear();
+        e.getClues().addAll(cleaned(clues));
         return e;
     }
 

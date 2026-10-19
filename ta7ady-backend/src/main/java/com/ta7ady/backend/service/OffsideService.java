@@ -42,9 +42,7 @@ public class OffsideService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        OffsideRule e = new OffsideRule();
-        e.setRuleText(raw.trim());
-        return repo.save(e);
+        return repo.save(applyTo(new OffsideRule(), raw));
     }
 
     // Admin-gated edit (SPECV3 §3.1): same validation as create, applied instantly.
@@ -55,8 +53,7 @@ public class OffsideService {
         if (!errors.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("; ", errors));
         }
-        e.setRuleText(raw.trim());
-        return repo.save(e);
+        return repo.save(applyTo(e, raw));
     }
 
     // Pure shape validation shared by single POST and bulk (no DB touch;
@@ -75,12 +72,13 @@ public class OffsideService {
         return BulkHelper.run(rows, dryRun,
                 r -> validate(r == null ? null : r.ruleText()),
                 r -> r == null ? null : r.ruleText(),
-                r -> {
-                    OffsideRule e = new OffsideRule();
-                    e.setRuleText(r.ruleText().trim());
-                    return e;
-                },
+                r -> applyTo(new OffsideRule(), r.ruleText()),
                 e -> repo.save(e).getId());
+    }
+
+    private static OffsideRule applyTo(OffsideRule e, String raw) {
+        e.setRuleText(raw.trim());
+        return e;
     }
 
     public void delete(Long id) {

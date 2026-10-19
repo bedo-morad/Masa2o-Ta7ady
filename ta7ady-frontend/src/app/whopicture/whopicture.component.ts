@@ -45,7 +45,6 @@ import {
   AssignedTeam,
   AttributionChange,
   AuditEntry,
-  AuditStripComponent,
 } from '../shared/attribution/attribution.component';
 import {
   StrikeBump,
@@ -64,7 +63,6 @@ import {
     ScoreboardComponent,
     TimerComponent,
     ItemNavigationComponent,
-    AuditStripComponent,
     StrikeTrackerComponent,
     WhopicturePhotoCardComponent,
     WhopictureNameListComponent,

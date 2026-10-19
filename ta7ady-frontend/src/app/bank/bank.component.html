@@ -55,9 +55,6 @@
             [attr.aria-label]="'الدور ' + (r + 1)"
           >
             <span class="dot-no tabular-nums">{{ r + 1 }}</span>
-            @if (bankedOf(r) > 0) {
-              <span class="dot-bank tabular-nums">{{ bankedOf(r) }}</span>
-            }
           </button>
         }
       </div>
@@ -71,24 +68,6 @@
         <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
       </button>
     </div>
-
-    <section class="history" aria-label="محصّن الأدوار">
-      <h3 class="history-title">محصّن الأدوار</h3>
-      <ol class="history-list">
-        @for (r of rounds; track r) {
-          <li
-            class="hcell"
-            [class.team-a]="teamOfRound(r) === 'A'"
-            [class.team-b]="teamOfRound(r) === 'B'"
-          >
-            <span class="hround tabular-nums">د{{ r + 1 }}</span>
-            <span class="hteam">{{ nameOf(teamOfRound(r)) }}</span>
-            <span class="hamount tabular-nums">{{ bankedOf(r) }}</span>
-          </li>
-        }
-      </ol>
-    </section>
-    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
   } @else {
     <section class="gate" aria-label="اختيار الفريق البادئ">
       <h3 class="gate-title">مين يبدأ؟</h3>

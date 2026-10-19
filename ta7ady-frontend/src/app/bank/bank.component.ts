@@ -5,7 +5,7 @@ import { API_BASE, BankQuestion } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { SettingsService } from '../shared/settings/settings.service';
-import { AuditEntry, AuditStripComponent } from '../shared/attribution/attribution.component';
+import { AuditEntry } from '../shared/attribution/attribution.component';
 import { ScoreBooking } from '../shared/score-booking';
 import { BankQuestionCardComponent } from './bank-question-card/bank-question-card.component';
 import { BankChainControlsComponent } from './bank-chain-controls/bank-chain-controls.component';
@@ -44,7 +44,6 @@ const freshBanked = (): number[] => Array.from({ length: BANK_ROUNDS }, () => 0)
     GameHeaderComponent,
     ScoreboardComponent,
     TimerComponent,
-    AuditStripComponent,
     BankQuestionCardComponent,
     BankChainControlsComponent,
   ],
@@ -68,7 +67,7 @@ export class BankComponent {
   readonly qIdx = signal(0);
   /** Per-round unbanked chain (display-only; 0 by default and after any bank). */
   readonly chains = signal<number[]>(freshChains());
-  /** Per-round banked amount, for the round-history strip. */
+  /** Per-round banked amount, retained independently of history visibility. */
   readonly banked = signal<number[]>(freshBanked());
   readonly audit = signal<AuditEntry[]>([]);
   readonly msg = signal('');

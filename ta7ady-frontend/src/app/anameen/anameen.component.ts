@@ -14,7 +14,6 @@ import {
   AttributionChange,
   AttributionComponent,
   AuditEntry,
-  AuditStripComponent,
   attributionDeltas,
 } from '../shared/attribution/attribution.component';
 import { ScoreBooking } from '../shared/score-booking';
@@ -37,7 +36,6 @@ import { ScoreBooking } from '../shared/score-booking';
     TimerComponent,
     ItemNavigationComponent,
     AttributionComponent,
-    AuditStripComponent,
   ],
   templateUrl: './anameen.component.html',
   styleUrl: './anameen.component.scss',

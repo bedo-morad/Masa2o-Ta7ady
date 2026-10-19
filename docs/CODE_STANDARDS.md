@@ -79,8 +79,11 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
 
 - Referee = game master. Site assists, never enforces turns, locks, tiebreakers,
   winners, or auto-scoring beyond attribution deltas + BANK deltas.
-- Scores may go negative everywhere. Manual ± always active. Audit strip for every
-  auto-write (attribution/BANK); display-only trackers (strikes, cards, chains) stay out.
+- Scores may go negative everywhere. Manual ± always active. Keep audit entries for
+  every auto-write (attribution/BANK); display-only trackers (strikes, cards, chains)
+  stay out of the audit. Game pages do not display round-history summaries, past-round
+  bank badges, or score audit strips. Keep the underlying history data, scoring,
+  reversals, round state, and persistence intact; hiding history is a UI-only choice.
 - Timers beep (Web Audio, no assets) and stop; they never auto-score, auto-eliminate,
   or auto-advance. Referee acts after timeout.
 

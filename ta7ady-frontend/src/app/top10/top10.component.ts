@@ -12,7 +12,6 @@ import {
   AttributionChange,
   AttributionComponent,
   AuditEntry,
-  AuditStripComponent,
 } from '../shared/attribution/attribution.component';
 
 // Frontend scoring is booked-effective: per list and team, `booked` tracks the
@@ -34,7 +33,6 @@ import { RankMap, teamContribution, trioHolder } from '../shared/attribution/ran
     TimerComponent,
     ItemNavigationComponent,
     AttributionComponent,
-    AuditStripComponent,
   ],
   templateUrl: './top10.component.html',
   styleUrl: './top10.component.scss',

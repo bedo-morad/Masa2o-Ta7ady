@@ -19,7 +19,6 @@ import { SettingsService } from '../shared/settings/settings.service';
 import {
   AssignedTeam,
   AuditEntry,
-  AuditStripComponent,
 } from '../shared/attribution/attribution.component';
 import {
   StrikeBump,
@@ -54,7 +53,6 @@ function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
     ScoreboardComponent,
     TimerComponent,
     ItemNavigationComponent,
-    AuditStripComponent,
     StrikeTrackerComponent,
     ScoresheetLineupsComponent,
   ],

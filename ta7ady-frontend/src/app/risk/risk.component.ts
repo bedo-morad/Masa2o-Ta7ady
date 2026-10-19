@@ -9,7 +9,6 @@ import {
   AssignedTeam,
   AttributionChange,
   AuditEntry,
-  AuditStripComponent,
   attributionDeltas,
 } from '../shared/attribution/attribution.component';
 import { ScoreBooking } from '../shared/score-booking';
@@ -45,7 +44,6 @@ type CardState = { A: boolean[]; B: boolean[] };
     RiskBoardComponent,
     ScoreboardComponent,
     TimerComponent,
-    AuditStripComponent,
   ],
   templateUrl: './risk.component.html',
   styleUrl: './risk.component.scss',

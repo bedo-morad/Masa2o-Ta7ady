@@ -50,7 +50,5 @@
       [assignments]="assignments()[match.id] ?? {}"
       (playerToggle)="onToggle(match, $event.side, $event.index, $event.player)"
     />
-
-    <app-audit-strip [entries]="audit()" [teamA]="teamA()" [teamB]="teamB()" />
   }
 </div>

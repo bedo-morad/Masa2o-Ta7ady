@@ -42,9 +42,16 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-// ── Draw row: count gate + redraw + new-game reset ────────────
-
-
+// ── Signature: the clue dossier (five slats, hard → easy) ─────
+.dossier {
+  background: var(--pitch-surface);
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
 
 .dossier-head {
   display: flex;

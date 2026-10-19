@@ -28,9 +28,7 @@
           [attr.name]="'asked-rule-' + (i + 1)"
           [number]="i + 1"
           [pressed]="asked().has(i)"
-          [ariaLabel]="asked().has(i)
-            ? 'إلغاء تحديد القاعدة ' + (i + 1) + ' على أنها طُرحت'
-            : 'تحديد القاعدة ' + (i + 1) + ' على أنها طُرحت'"
+          [ariaLabel]="askedLabel(i)"
           (marked)="toggleAsked($event)"
         ></button>
         <span class="rtext">{{ r.ruleText }}</span>

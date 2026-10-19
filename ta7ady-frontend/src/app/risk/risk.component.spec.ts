@@ -153,20 +153,6 @@ describe('RiskComponent', () => {
     expect(cellsOf(c)).toContain(d as string);
   });
 
-  it('never shows the double badge before its cell is revealed', () => {
-    const c = setup();
-    const d = c.double() as string;
-    const other = cellsOf(c).find((k) => k !== d) as string;
-    expect(c.isDouble(d)).toBe(false);
-    expect(c.isDouble(other)).toBe(false);
-
-    c.toggleCell(other);
-    expect(c.isDouble(other)).toBe(false);
-
-    c.toggleCell(d);
-    expect(c.isDouble(d)).toBe(true);
-  });
-
   it('attribution scores face value and unassign reverses exactly', () => {
     const c = setup();
     const key = cellKey(1, 0); // tier 0 = 5
@@ -195,13 +181,13 @@ describe('RiskComponent', () => {
   it('answered cells dim (seen) but stay tappable; closing keeps them seen', () => {
     const c = setup();
     const key = cellKey(1, 1);
-    expect(c.isSeen(key)).toBe(false);
+    expect(c.seen().has(key)).toBe(false);
     c.toggleCell(key);
-    expect(c.isOpen(key)).toBe(true);
-    expect(c.isSeen(key)).toBe(true);
+    expect(c.open()).toBe(key);
+    expect(c.seen().has(key)).toBe(true);
     c.toggleCell(key);
-    expect(c.isOpen(key)).toBe(false);
-    expect(c.isSeen(key)).toBe(true);
+    expect(c.open()).toBeNull();
+    expect(c.seen().has(key)).toBe(true);
   });
 
   it('genre reroll swaps the column and reverses its booked points', async () => {
@@ -219,7 +205,7 @@ describe('RiskComponent', () => {
     expect(c.packs()[0].id).toBe(99);
     expect(c.packs()[0].genre).toBe('جانب جديد');
     expect(c.scoreA()).toBe(0); // old column's points reversed
-    expect(c.isSeen(key)).toBe(false);
+    expect(c.seen().has(key)).toBe(false);
     expect(c.assigned(key)).toBeNull();
     expect(c.open()).toBeNull();
   });
@@ -254,7 +240,7 @@ describe('RiskComponent', () => {
     const api = TestBed.inject(ApiService);
     const d = c.double() as string;
     c.toggleCell(d); // reveal it → found
-    expect(c.doubleFound()).toBe(true);
+    expect(c.seen().has(d)).toBe(true);
 
     const dPack = splitCell(d).packId;
     const col = c.packs().findIndex((p) => p.id !== dPack); // reroll a different column
@@ -262,7 +248,7 @@ describe('RiskComponent', () => {
     await c.rerollColumn(col);
 
     expect(c.double()).toBe(d); // no new double hidden
-    expect(c.doubleFound()).toBe(true);
+    expect(c.seen().has(d)).toBe(true);
   });
 
   it('rerolling away a found double leaves no hidden double', async () => {
@@ -276,7 +262,6 @@ describe('RiskComponent', () => {
     await c.rerollColumn(col);
 
     expect(c.double()).toBeNull();
-    expect(c.doubleFound()).toBe(false);
   });
 
   it('closes an open replaced column but preserves an open surviving column', async () => {

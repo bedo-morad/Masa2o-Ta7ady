@@ -15,11 +15,9 @@ import { ScoreBooking } from '../shared/score-booking';
 import {
   RiskLifecycle,
   RISK_TIERS,
-  cellKey,
   chooseUniform,
   pointValue,
   splitCell,
-  tierPoints,
 } from './risk-lifecycle';
 import { RiskBoardComponent } from './risk-board/risk-board.component';
 
@@ -102,29 +100,11 @@ export class RiskComponent {
     this.res.reload();
   }
 
-  keyOf(packId: number, tier: number): string {
-    return cellKey(packId, tier);
-  }
-  pts(tier: number): number {
-    return tierPoints(tier);
-  }
   toggleCell(key: string): void {
     this.lifecycle.toggleCell(key);
   }
-  isSeen(key: string): boolean {
-    return this.seen().has(key);
-  }
-  isOpen(key: string): boolean {
-    return this.open() === key;
-  }
-  isDouble(key: string): boolean {
-    return this.double() === key && this.seen().has(key);
-  }
   pointsOf(key: string): number {
     return pointValue(splitCell(key).tier, this.double() === key);
-  }
-  doubleFound(): boolean {
-    return this.double() !== null && this.seen().has(this.double() as string);
   }
   assigned(key: string): AssignedTeam {
     return this.assignments()[key] ?? null;

@@ -5,7 +5,7 @@ import { API_BASE, ApiService, OffsideRule } from '../services/api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import { AskedMarkerComponent } from '../shared/asked-marker/asked-marker.component';
-import { CountSelectorComponent } from '../shared/draw-controls/count-selector.component';
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector/count-selector.component';
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 
 @Component({
@@ -55,6 +55,12 @@ export class OffsideComponent {
     if (!Number.isFinite(next)) return;
     this.count.set(next);
     this.asked.set(new Set());
+  }
+
+  askedLabel(index: number): string {
+    return this.asked().has(index)
+      ? 'إلغاء تحديد القاعدة ' + (index + 1) + ' على أنها طُرحت'
+      : 'تحديد القاعدة ' + (index + 1) + ' على أنها طُرحت';
   }
 
   toggleAsked(number: number): void {

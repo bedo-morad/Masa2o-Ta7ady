@@ -1,4 +1,4 @@
-import { CountSelectorComponent } from '../shared/draw-controls/count-selector.component';
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector/count-selector.component';
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';

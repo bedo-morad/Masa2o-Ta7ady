@@ -23,6 +23,13 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
 - No logic in templates beyond `*if`/`*for` + bindings + event forwarding. No nested
   ternaries, no multi-line expressions in HTML.
 - No `any` (frontend) / raw `Object` maps (backend). Name every shape (interface/DTO/record).
+  The only exception to the backend raw-map prohibitions above is an isolated,
+  tested legacy request-compatibility boundary required by an approved ticket
+  (such as #28), when typed mapping cannot preserve accepted scalar/list coercions,
+  alias precedence, wrong/missing-field handling, and response statuses. Keep that
+  parsing contained at the boundary; this does not permit raw maps in domain logic
+  or new endpoints. The general prohibition on map-and-`toString()` parsing remains
+  in force everywhere outside that approved compatibility boundary.
 - Early returns over nesting. Max 3 levels of indentation; extract the rest.
 
 ## 3. Frontend architecture (Angular 22, zoneless + signals)
@@ -33,6 +40,14 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
   `ApiService` + `firstValueFrom`. No manual subscriptions without `takeUntilDestroyed`.
 - Standalone 4-file components (`.ts` + `.html` + `.scss` + `.spec.ts`). Every component
   ships a spec covering its math/state transitions (attribution, strikes, audit).
+  Narrow exception: stateless Manage editor renderers that only bind inputs and
+  forward form actions may reuse the existing rendered Manage integration specs
+  instead of adding duplicate local specs. Those specs must exercise the actual
+  renderer bindings and relevant add/edit, validation, cancellation, and failure
+  behavior. They may omit local SCSS when all their styling is deliberately owned
+  by the shared Manage style layer (`manage/styles/manage.scss` and its partials).
+  Do not add empty files to satisfy the four-file shape. If a renderer gains its
+  own state, rules, or styles, add meaningful local coverage or SCSS as applicable.
 - **One folder per child component.** Keep the main game component's four files at
   the game folder root. Put each game-owned child component's four files together
   inside a nested folder with the same component name (without `.component`). For
@@ -45,6 +60,8 @@ Goal: no spaghetti, no duplicates, files a phone-referee project can maintain.
   layout to new and extracted components; do not move unrelated existing features
   merely to normalize folders. Truly repeated responsibilities belong in `shared/`
   with the same one-component-per-folder convention, not in another game's folder.
+  The stateless Manage exception above changes only which files are required, not
+  the exact component-named folder or co-location of the files it does own.
 - `SettingsService` + `ThemeService` remain the only writers of settings/theme.
   New timers add a settings key (`anameen` 60s, `whopicture` 10s) + `timerKey` wiring.
 - Arabic-only RTL UI. No English strings in templates. No rule-explainer text on play pages.

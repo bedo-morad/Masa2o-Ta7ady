@@ -29,9 +29,7 @@
             [attr.name]="'asked-question-' + (i + 1)"
             [number]="i + 1"
             [pressed]="asked().has(i)"
-            [ariaLabel]="asked().has(i)
-              ? 'إلغاء تحديد السؤال ' + (i + 1) + ' على أنه طُرح'
-              : 'تحديد السؤال ' + (i + 1) + ' على أنه طُرح'"
+            [ariaLabel]="askedLabel(i)"
             (marked)="toggleAsked($event)"
           ></button>
           <span class="qbody">{{ q.questionText }}</span>

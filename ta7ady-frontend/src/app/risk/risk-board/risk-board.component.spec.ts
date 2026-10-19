@@ -77,12 +77,14 @@ describe('RiskBoardComponent', () => {
       '.cell:not(.empty)',
     ) as NodeListOf<HTMLButtonElement>;
     expect(cells[0].querySelector('.dbl')).toBeNull();
+    expect(cells[1].querySelector('.dbl')).toBeNull();
     cells[0].click();
     expect(host.selected).toBe(cellKey(1, 0));
 
     host.seen = new Set([cellKey(1, 0)]);
     fixture.detectChanges();
     expect(cells[0].querySelector('.dbl')).not.toBeNull();
+    expect(cells[1].querySelector('.dbl')).toBeNull();
   });
 
   it('emits a typed assignment request from the spotlight', () => {

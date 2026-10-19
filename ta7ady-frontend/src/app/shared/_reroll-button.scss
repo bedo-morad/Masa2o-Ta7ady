@@ -1,0 +1,11 @@
+// Center icon-only reroll controls without relying on the text baseline.
+@mixin center-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+
+  > i {
+    margin: 0;
+  }
+}

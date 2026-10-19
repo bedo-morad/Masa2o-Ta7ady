@@ -12,7 +12,7 @@ export class ManageAdminAccess {
 
   constructor(
     private readonly api: ApiService,
-    private readonly reportFeedback: (message: string) => void,
+    private readonly reportFeedback: (message: string, intent?: 'error') => void,
   ) {}
 
   unlock(dismiss?: DismissableModal): void {
@@ -24,7 +24,7 @@ export class ManageAdminAccess {
     this.api.unlock(password);
     this.password.set('');
     this.error.set('');
-    this.reportFeedback('تم تفعيل وضع الإدارة لهذه الجلسة — ظهرت أزرار التعديل والحذف.');
+    this.reportFeedback('ظهرت أزرار التعديل والحذف — يتحقّق الخادم من كلمة المرور عند تنفيذ العملية.');
     dismiss?.dismiss();
   }
 
@@ -38,5 +38,9 @@ export class ManageAdminAccess {
   rejectUnauthorized(): void {
     this.api.lock();
     this.error.set('كلمة المرور غير صحيحة.');
+    this.reportFeedback(
+      'كلمة المرور غير صحيحة أو تغيّرت — لم تُنفّذ العملية. افتح وضع الإدارة وأدخل كلمة المرور الصحيحة ثم أعد المحاولة.',
+      'error',
+    );
   }
 }

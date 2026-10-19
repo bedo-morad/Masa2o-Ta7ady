@@ -85,5 +85,28 @@ describe('ManageComponent admin unlock', () => {
     expect(c.admin.adminOn()).toBe(false);
     expect(el.querySelector('.del')).toBeNull();
     expect(c.admin.error()).toContain('كلمة المرور غير صحيحة');
+    expect(el.querySelector('[role="status"]')?.textContent).toContain('لم تُنفّذ العملية');
+    expect(c.msg()).not.toContain('تم تفعيل');
+    expect(TestBed.inject(HotToastService).error).toHaveBeenCalledWith(c.msg());
+    expect(c.catalog.playerRows()).toEqual([{ id: 1, playerName: 'لاعب للاختبار' }]);
+    expect(c.pool()).toBe('players');
+    expect(c.page()).toBe(0);
+  });
+
+  it.each([0, 403, 500])('keeps access and the current rows on delete failure %s', async (status) => {
+    const { fixture, apiStub } = await setupAdmin();
+    const c = fixture.componentInstance;
+    c.admin.password.set('secret');
+    c.admin.unlock();
+    apiStub.del.mockReturnValueOnce(throwError(() => ({ status })));
+
+    await c.removeFromCatalog('players', 1);
+    fixture.detectChanges();
+
+    expect(apiStub.lock).not.toHaveBeenCalled();
+    expect(c.admin.adminOn()).toBe(true);
+    expect(c.catalog.playerRows()).toEqual([{ id: 1, playerName: 'لاعب للاختبار' }]);
+    expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent).toContain('تعذّر الحذف');
+    expect(TestBed.inject(HotToastService).error).toHaveBeenCalledWith(c.msg());
   });
 });

@@ -165,7 +165,9 @@ describe('ManageComponent catalog lifecycle', () => {
   it('refreshes after delete and preserves the existing failure and authorization outcomes', async () => {
     const { fixture, apiStub, httpMock } = await setupCatalog();
     const c = fixture.componentInstance;
+    c.msg.set('رسالة قديمة');
     await c.removeFromCatalog('players', 1);
+    expect(c.msg()).toBe('');
     expect(apiStub.del).toHaveBeenCalledWith('players', 1);
     await new Promise((resolve) => setTimeout(resolve, 0));
     const refresh = httpMock.expectOne((r) => r.url.includes('/players/all'));

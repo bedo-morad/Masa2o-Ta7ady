@@ -48,6 +48,19 @@ describe('ApiService same-origin routing', () => {
     request.flush({ id: 7, playerName: 'Updated player' });
   });
 
+  it('sends the admin header on deletes and retains access after an empty 200 response', () => {
+    api.unlock('test-password');
+    let completed = false;
+    api.del('ihbid', 7).subscribe({ complete: () => (completed = true) });
+    const request = http.expectOne('/api/ihbid/7');
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.headers.get('X-Admin-Password')).toBe('test-password');
+    request.flush(null, { status: 200, statusText: 'OK' });
+    expect(completed).toBe(true);
+    expect(api.unlocked).toBe(true);
+    expect(sessionStorage.getItem('ta7ady-admin')).toBe('test-password');
+  });
+
   it('does not invent an admin credential for locked deletes', () => {
     api.del('players', 7).subscribe();
     const request = http.expectOne('/api/players/7');

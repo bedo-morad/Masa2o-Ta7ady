@@ -72,7 +72,10 @@ export class ManageComponent {
   readonly catalog = new ManageCatalog(this.api);
   readonly selection = new ManageRowSelection();
   readonly msg = signal('');
-  readonly admin = new ManageAdminAccess(this.api, (message) => this.msg.set(message));
+  readonly admin = new ManageAdminAccess(this.api, (message, intent) => {
+    this.msg.set(message);
+    if (intent === 'error') this.toast.error(message);
+  });
   readonly pool = this.catalog.pool;
   readonly page = this.catalog.page;
   readonly basicDrafts = makeSharedBasicDrafts();
@@ -137,11 +140,12 @@ export class ManageComponent {
   }
 
   removeFromCatalog(pool: Pool, id: number): Promise<void> {
+    this.editorHost.clearFeedback();
     return this.catalog.delete(
       pool,
       id,
       () => this.admin.rejectUnauthorized(),
-      () => this.msg.set('تعذّر الحذف — أعد المحاولة.'),
+      () => this.editorHost.reportFeedback('تعذّر الحذف — أعد المحاولة.', 'error'),
     );
   }
 

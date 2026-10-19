@@ -44,8 +44,8 @@
       </form>
     } @else {
       <p class="admin-state">
-        <i class="fa-solid fa-lock-open"></i> وضع الإدارة مفعّل لهذه الجلسة — أزرار التعديل والحذف
-        ظاهرة.
+        <i class="fa-solid fa-lock-open"></i> أزرار التعديل والحذف ظاهرة لهذه الجلسة — يتحقّق الخادم
+        من كلمة المرور عند تنفيذ العملية.
       </p>
       @if (access().error()) {
         <div class="admin-error" role="alert">{{ access().error() }}</div>

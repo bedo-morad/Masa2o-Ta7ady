@@ -73,7 +73,7 @@ describe('Manage access modal', () => {
     expect(api.unlock).toHaveBeenCalledWith('secret');
     expect(document.querySelector('.admin-popup')).toBeNull();
     expect(fixture.nativeElement.querySelector('.notice')?.textContent).toBe(
-      'تم تفعيل وضع الإدارة لهذه الجلسة — ظهرت أزرار التعديل والحذف.',
+      'ظهرت أزرار التعديل والحذف — يتحقّق الخادم من كلمة المرور عند تنفيذ العملية.',
     );
     await open();
     document.querySelector<HTMLButtonElement>('.admin-actions .lock')!.click();

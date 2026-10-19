@@ -34,7 +34,7 @@
 
   <app-import-panel [pool]="pool()" (imported)="onImported()" />
   @if (msg()) {
-    <div class="notice">{{ msg() }}</div>
+    <div class="notice" role="status" aria-live="polite">{{ msg() }}</div>
   }
   <div class="count tabular-nums">المجموع: {{ catalog.totalElements() }}</div>
 

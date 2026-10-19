@@ -97,7 +97,7 @@ describe('Manage editor preservation seam', () => {
     expect(fixture.componentInstance.msg()).toContain('تمت إضافة المباراة');
   });
 
-  it('routes edit 401 through the rendered Manage host: locks admin and emits no toast', async () => {
+  it('routes edit 401 through the rendered Manage host: locks admin and explains the rejection', async () => {
     const row = { id: 4, prompt: 'قائمة', answers: answers() };
     const { fixture, http } = await setup('top10', [row]);
     const component = fixture.componentInstance;
@@ -112,8 +112,8 @@ describe('Manage editor preservation seam', () => {
     await fixture.whenStable();
     expect(component.admin.adminOn()).toBe(false);
     expect(component.admin.error()).toContain('كلمة المرور غير صحيحة');
-    expect(component.msg()).toBe('');
-    expect(toast.error).not.toHaveBeenCalled();
+    expect(component.msg()).toContain('لم تُنفّذ العملية');
+    expect(toast.error).toHaveBeenCalledWith(component.msg());
   });
 
   it('clears stale feedback before a rendered editor validation result', async () => {

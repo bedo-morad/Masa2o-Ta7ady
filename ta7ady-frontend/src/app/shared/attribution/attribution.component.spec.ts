@@ -91,6 +91,36 @@ describe('AttributionComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
+  it('marks either selected team button with the same pressed-state hook', () => {
+    const fixture = TestBed.createComponent(AttributionComponent);
+    const component = fixture.componentInstance;
+    const buttons = () =>
+      Array.from(fixture.nativeElement.querySelectorAll('.tbtn')) as HTMLButtonElement[];
+
+    fixture.componentRef.setInput('assigned', 'A');
+    fixture.detectChanges();
+    expect(buttons().map((button) => button.classList.contains('on'))).toEqual([
+      true,
+      false,
+    ]);
+    expect(buttons().map((button) => button.getAttribute('aria-pressed'))).toEqual([
+      'true',
+      'false',
+    ]);
+
+    fixture.componentRef.setInput('assigned', 'B');
+    fixture.detectChanges();
+    expect(buttons().map((button) => button.classList.contains('on'))).toEqual([
+      false,
+      true,
+    ]);
+    expect(buttons().map((button) => button.getAttribute('aria-pressed'))).toEqual([
+      'false',
+      'true',
+    ]);
+    expect(component).toBeTruthy();
+  });
+
   it('tapping a team emits an assign change', () => {
     const fixture = TestBed.createComponent(AttributionComponent);
     fixture.componentRef.setInput('label', 'جواب');

@@ -32,8 +32,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "8080:8080"
     networks:
       - ta7ady-network
     healthcheck:
@@ -49,8 +47,6 @@ services:
     image: masa2o-ta7ady-frontend:latest
     depends_on:
       - backend
-    ports:
-      - "80:8080"
     networks:
       - ta7ady-network
     healthcheck:

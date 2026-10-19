@@ -1,15 +1,13 @@
-import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
-import { API_BASE, ApiService, RiskPack, RiskQuestion } from '../api.service';
+import { API_BASE, ApiService, RiskPack } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
 import {
   AssignedTeam,
   AttributionChange,
-  AttributionComponent,
   AuditEntry,
   AuditStripComponent,
   attributionDeltas,
@@ -24,8 +22,16 @@ import {
   splitCell,
   tierPoints,
 } from './risk-lifecycle';
+import { RiskBoardComponent } from './risk-board/risk-board.component';
 
-export { RISK_TIERS, cellKey, chooseUniform, pointValue, splitCell, tierPoints } from './risk-lifecycle';
+export {
+  RISK_TIERS,
+  cellKey,
+  chooseUniform,
+  pointValue,
+  splitCell,
+  tierPoints,
+} from './risk-lifecycle';
 export const RISK_COUNT = 4;
 export const RISK_CARDS = ['سرقة سؤال', 'وقت إضافي', 'اختيارات', 'الاتصال بصديق'] as const;
 
@@ -34,7 +40,13 @@ type CardState = { A: boolean[]; B: boolean[] };
 @Component({
   selector: 'app-risk',
   standalone: true,
-  imports: [GameHeaderComponent, GoogleSearchComponent, ScoreboardComponent, TimerComponent, AttributionComponent, AuditStripComponent],
+  imports: [
+    GameHeaderComponent,
+    RiskBoardComponent,
+    ScoreboardComponent,
+    TimerComponent,
+    AuditStripComponent,
+  ],
   templateUrl: './risk.component.html',
   styleUrl: './risk.component.scss',
 })
@@ -56,9 +68,8 @@ export class RiskComponent {
   readonly cards: RiskLifecycle['cards'];
   readonly rerolling = signal<number | null>(null);
 
-  readonly tiers = RISK_TIERS;
   readonly cardLabels = RISK_CARDS;
-  readonly gridCols = computed(() => `repeat(${Math.max(1, this.packs().length)}, minmax(0, 1fr))`);
+  readonly tiers = RISK_TIERS;
   private readonly res = httpResource<RiskPack[]>(() => `${API_BASE}/risk?count=${RISK_COUNT}`);
   readonly loading = this.res.isLoading;
 
@@ -70,42 +81,56 @@ export class RiskComponent {
     this.double = this.lifecycle.double;
     this.assignments = this.lifecycle.assignments;
     this.cards = this.lifecycle.cards;
-    effect(() => {
-      const rows = this.res.value();
-      const err = this.res.error();
-      untracked(() => {
-        if (rows) {
-          this.loadBoard(rows);
-          this.msg.set(rows.length ? '' : 'لا توجد مجموعات بعد — أضف من صفحة إدارة الأسئلة.');
-        }
-        if (err) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
-      });
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        const rows = this.res.value();
+        const err = this.res.error();
+        untracked(() => {
+          if (rows) {
+            this.loadBoard(rows);
+            this.msg.set(rows.length ? '' : 'لا توجد مجموعات بعد — أضف من صفحة إدارة الأسئلة.');
+          }
+          if (err) this.msg.set('تعذر التحميل — تأكد أن السيرفر يعمل.');
+        });
+      },
+      { allowSignalWrites: true },
+    );
   }
 
-  keyOf(packId: number, tier: number): string { return cellKey(packId, tier); }
-  pts(tier: number): number { return tierPoints(tier); }
-
-  loadBoard(rows: RiskPack[]): void { this.lifecycle.loadBoard(rows); }
-  reload(): void { this.res.reload(); }
-
-  cellAt(key: string | null): RiskQuestion | null {
-    if (!key) return null;
-    const { packId, tier } = splitCell(key);
-    return this.packs().find((pack) => pack.id === packId)?.questions[tier] ?? null;
+  loadBoard(rows: RiskPack[]): void {
+    this.lifecycle.loadBoard(rows);
   }
-  genreOf(key: string): string {
-    const { packId } = splitCell(key);
-    return this.packs().find((pack) => pack.id === packId)?.genre ?? '';
+  reload(): void {
+    this.res.reload();
   }
-  tierOf(key: string): number { return splitCell(key).tier; }
-  isSeen(key: string): boolean { return this.seen().has(key); }
-  isOpen(key: string): boolean { return this.open() === key; }
-  isDouble(key: string): boolean { return this.double() === key && this.seen().has(key); }
-  doubleFound(): boolean { return this.double() !== null && this.seen().has(this.double() as string); }
-  toggleCell(key: string): void { this.lifecycle.toggleCell(key); }
-  assigned(key: string): AssignedTeam { return this.assignments()[key] ?? null; }
-  pointsOf(key: string): number { return pointValue(this.tierOf(key), this.double() === key); }
+
+  keyOf(packId: number, tier: number): string {
+    return cellKey(packId, tier);
+  }
+  pts(tier: number): number {
+    return tierPoints(tier);
+  }
+  toggleCell(key: string): void {
+    this.lifecycle.toggleCell(key);
+  }
+  isSeen(key: string): boolean {
+    return this.seen().has(key);
+  }
+  isOpen(key: string): boolean {
+    return this.open() === key;
+  }
+  isDouble(key: string): boolean {
+    return this.double() === key && this.seen().has(key);
+  }
+  pointsOf(key: string): number {
+    return pointValue(splitCell(key).tier, this.double() === key);
+  }
+  doubleFound(): boolean {
+    return this.double() !== null && this.seen().has(this.double() as string);
+  }
+  assigned(key: string): AssignedTeam {
+    return this.assignments()[key] ?? null;
+  }
 
   onAssign(key: string, label: string, change: AttributionChange): void {
     const from = this.assigned(key);
@@ -132,6 +157,10 @@ export class RiskComponent {
     }
   }
 
-  cardUsed(team: 'A' | 'B', index: number): boolean { return this.cards()[team][index]; }
-  toggleCard(team: 'A' | 'B', index: number): void { this.lifecycle.toggleCard(team, index); }
+  cardUsed(team: 'A' | 'B', index: number): boolean {
+    return this.cards()[team][index];
+  }
+  toggleCard(team: 'A' | 'B', index: number): void {
+    this.lifecycle.toggleCard(team, index);
+  }
 }

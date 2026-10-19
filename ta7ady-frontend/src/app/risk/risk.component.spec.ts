@@ -89,6 +89,37 @@ describe('RiskComponent', () => {
     expect(setup()).toBeTruthy();
   });
 
+  it('books and reverses rendered attribution while card taps remain display-only', () => {
+    const fixture = TestBed.createComponent(RiskComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    c.loadBoard(board());
+    c.double.set(cellKey(4, 3));
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    root.querySelector<HTMLButtonElement>('.cell:not(.empty)')!.click();
+    fixture.detectChanges();
+    const assignButton = root.querySelector<HTMLButtonElement>('.spotlight .ta')!;
+    assignButton.click();
+    fixture.detectChanges();
+    expect(c.scoreA()).toBe(5);
+    expect(c.assigned(cellKey(1, 0))).toBe('A');
+    expect(c.audit().at(-1)).toEqual(
+      expect.objectContaining({ team: 'A', delta: 5, label: 'سؤال 0' }),
+    );
+    assignButton.click();
+    fixture.detectChanges();
+    expect(c.scoreA()).toBe(0);
+    expect(c.assigned(cellKey(1, 0))).toBeNull();
+    expect(c.audit().at(-1)?.delta).toBe(-5);
+    const card = root.querySelector<HTMLButtonElement>('.card')!;
+    card.click();
+    fixture.detectChanges();
+    expect(card.getAttribute('aria-pressed')).toBe('true');
+    expect(c.audit()).toHaveLength(2);
+    expect(c.scoreA()).toBe(0);
+  });
+
   it('keeps full Arabic genre captions paired with their column reroll', () => {
     const fixture = TestBed.createComponent(RiskComponent);
     fixture.detectChanges();

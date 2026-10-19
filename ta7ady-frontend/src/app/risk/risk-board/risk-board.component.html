@@ -1,0 +1,83 @@
+@if (packs().length) {
+  <section class="board" aria-label="لوحة الريسك">
+    <div class="genre-row" [style.grid-template-columns]="gridCols()">
+      @for (p of packs(); track p.id; let c = $index) {
+        <div class="genre">
+          <span class="gname">{{ p.genre }}</span>
+          <button
+            type="button"
+            class="reroll"
+            (click)="columnReroll.emit(c)"
+            [disabled]="rerolling() !== null"
+            [attr.aria-label]="'تغيير المجموعة ' + p.genre"
+          >
+            <i
+              class="fa-solid"
+              [class.fa-dice]="rerolling() !== c"
+              [class.fa-spinner]="rerolling() === c"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="grid" [style.grid-template-columns]="gridCols()">
+      @for (tier of tiers; track $index; let t = $index) {
+        @for (p of packs(); track p.id) {
+          @let key = keyOf(p.id, t);
+          @if (p.questions[t]) {
+            <button
+              type="button"
+              class="cell"
+              [class.is-seen]="isSeen(key)"
+              [class.is-open]="isOpen(key)"
+              [class.is-a]="assigned(key) === 'A'"
+              [class.is-b]="assigned(key) === 'B'"
+              (click)="cellToggle.emit(key)"
+              [attr.aria-pressed]="isOpen(key)"
+              [attr.aria-label]="p.genre + ' ' + pts(t)"
+            >
+              <span class="pts tabular-nums">{{ pts(t) }}</span>
+              @if (isDouble(key)) {
+                <span class="dbl" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
+              }
+              @if (assigned(key); as team) {
+                <span class="tag">{{ team === 'A' ? teamA() || 'أ' : teamB() || 'ب' }}</span>
+              }
+            </button>
+          } @else {
+            <span class="cell empty"></span>
+          }
+        }
+      }
+    </div>
+  </section>
+
+  @if (open(); as key) {
+    @if (cellAt(key); as q) {
+      <section class="spotlight" aria-label="السؤال المفتوح">
+        <header class="spot-head">
+          <span class="spot-genre">{{ genreOf(key) }}</span>
+          <span class="spot-pts tabular-nums">{{ pointsOf(key) }}</span>
+          @if (isDouble(key)) {
+            <span class="dbl-chip"><i class="fa-solid fa-bolt"></i> مضاعف ×٢</span>
+          }
+          <a class="gq" [appGoogleSearch]="q.question"></a>
+        </header>
+        <p class="spot-q">{{ q.question }}</p>
+        <p class="spot-a">{{ q.answer }}</p>
+        <app-attribution
+          [label]="q.question"
+          [points]="pointsOf(key)"
+          [assigned]="assigned(key)"
+          [teamA]="teamA() || 'الفريق الأول'"
+          [teamB]="teamB() || 'الفريق الثاني'"
+          [showPoints]="false"
+          [stretch]="true"
+          (change)="requestAssignment(key, q.question, $event)"
+        />
+      </section>
+    }
+  }
+}

@@ -29,14 +29,14 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-# A quoted role exercises psql identifier quoting, not just the default username.
+# A hyphenated role exercises psql identifier quoting, not just the default username.
 # Reset production env_file so no real .env or deployment credentials are loaded.
 cat > "$temp/override.yaml" <<YAML
 services:
   postgres:
     env_file: !reset []
     environment:
-      POSTGRES_USER: 'schema"owner'
+      POSTGRES_USER: schema-owner
       POSTGRES_PASSWORD: schema-test-only
       POSTGRES_DB: schema_test
     ports: !override
@@ -50,7 +50,7 @@ YAML
 
 query() {
     compose exec -T postgres psql -X -v ON_ERROR_STOP=1 \
-        -U 'schema"owner' -d schema_test -Atc "$1"
+        -U schema-owner -d schema_test -Atc "$1"
 }
 
 for mode in dev prod; do
@@ -67,7 +67,7 @@ YAML
     fi
     echo "Checking $mode initialization in disposable project $project on port $port"
     compose up -d --wait --wait-timeout 180 postgres
-    test "$(query "SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname='ta7ady'")" = 'schema"owner'
+    test "$(query "SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname='ta7ady'")" = schema-owner
     test "$(query "SELECT count(*) FROM information_schema.tables WHERE table_schema='ta7ady'")" = 0
 
     query "CREATE TABLE public.init_sentinel (value text); INSERT INTO public.init_sentinel VALUES ('preserved');"

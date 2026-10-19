@@ -165,7 +165,7 @@ Run `./docker/postgres/verify-init.sh` from the repository root with Docker and
 Compose 2.24.4 or later. It tests both Compose configurations in uniquely named
 disposable projects, using new volumes and loopback port `55447` (override with
 `SCHEMA_TEST_PORT`). No real `.env` is loaded. It checks schema ownership using a
-role containing a quote, then recreates the container and proves persisted data
+hyphenated role that requires SQL identifier quoting, then recreates the container and proves persisted data
 survives and initialization is not rerun even when the schema is absent. Only
 the test's own resources are removed, including on failure; CI runs this check.
 

@@ -1,12 +1,13 @@
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { API_BASE, AnameenSubject, ApiService } from '../api.service';
 import { AnameenTeam, ANAMEEN_COUNTS, ANAMEEN_COUNT_DEFAULT, ANAMEEN_POINTS } from './anameen.game';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
+import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
 import { SettingsService } from '../shared/settings/settings.service';
 import {
   AssignedTeam,
@@ -31,11 +32,10 @@ import { ScoreBooking } from '../shared/score-booking';
 @Component({
   selector: 'app-anameen',
   standalone: true,
-  imports: [
-    FormsModule,
-    RouterLink,
+  imports: [GameHeaderComponent, CountSelectorComponent,
     ScoreboardComponent,
     TimerComponent,
+    ItemNavigationComponent,
     AttributionComponent,
     AuditStripComponent,
   ],

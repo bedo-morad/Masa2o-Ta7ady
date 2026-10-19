@@ -1,16 +1,17 @@
 import { Component, effect, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
 import { API_BASE, ApiService, OffsideRule } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
+import { AskedMarkerComponent } from '../shared/asked-marker/asked-marker.component';
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 
 @Component({
   selector: 'app-offside',
   standalone: true,
-  imports: [FormsModule, RouterLink, ScoreboardComponent, TimerComponent],
+  imports: [ScoreboardComponent, TimerComponent, AskedMarkerComponent, CountSelectorComponent, GameHeaderComponent],
   templateUrl: './offside.component.html',
   styleUrl: './offside.component.scss',
 })
@@ -56,7 +57,8 @@ export class OffsideComponent {
     this.asked.set(new Set());
   }
 
-  toggleAsked(index: number): void {
+  toggleAsked(number: number): void {
+    const index = number - 1;
     this.asked.update((marks) => {
       const next = new Set(marks);
       if (next.has(index)) next.delete(index);

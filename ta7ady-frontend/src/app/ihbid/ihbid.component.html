@@ -1,31 +1,19 @@
 <div class="challenge">
-  <div class="topbar">
-    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
-    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
-  </div>
-
-  <h2>اهبد صح</h2>
+  <app-game-header title="اهبد صح" />
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
   <app-timer timerKey="ihbid" [defaultSeconds]="30" label="مؤقت الكتابة" />
 
-  <div class="draw-row">
-    <label for="ih-count">عدد الأسئلة</label>
-    <select
-      id="ih-count"
-      [ngModel]="count()"
-      (ngModelChange)="countChanged($event)"
-    >
-      <option [ngValue]="5">5</option>
-      <option [ngValue]="10">10</option>
-      <option [ngValue]="15">15</option>
-      <option [ngValue]="20">20</option>
-    </select>
-    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
-      <i class="fa-solid fa-shuffle"></i> سحب جديد
-    </button>
-  </div>
+  <app-count-selector
+    controlId="ih-count"
+    label="عدد الأسئلة"
+    [count]="count()"
+    [options]="[5, 10, 15, 20]"
+    [loading]="loading()"
+    (countChanged)="countChanged($event)"
+    (redraw)="reload()"
+  />
 
   @if (msg()) {
     <div class="notice">{{ msg() }}</div>
@@ -36,22 +24,16 @@
       <li class="qitem">
         <div class="qtext">
           <button
-            type="button"
-            class="qnum asked-mark tabular-nums"
+            appAskedMarker
+            class="qnum"
             [attr.name]="'asked-question-' + (i + 1)"
-            (click)="toggleAsked(i)"
-            [attr.aria-pressed]="asked().has(i)"
-            [attr.aria-label]="'تحديد السؤال ' + (i + 1) + ' على أنه طُرح'"
-          >
-            <span class="asked-face" aria-hidden="true">
-              <span class="asked-number">{{ i + 1 }}</span>
-              <span class="asked-check">
-                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor">
-                  <path d="m2 6 2.5 2.5L10 3" />
-                </svg>
-              </span>
-            </span>
-          </button>
+            [number]="i + 1"
+            [pressed]="asked().has(i)"
+            [ariaLabel]="asked().has(i)
+              ? 'إلغاء تحديد السؤال ' + (i + 1) + ' على أنه طُرح'
+              : 'تحديد السؤال ' + (i + 1) + ' على أنه طُرح'"
+            (marked)="toggleAsked($event)"
+          ></button>
           <span class="qbody">{{ q.questionText }}</span>
           <a class="gq" [appGoogleSearch]="q.questionText"></a>
         </div>

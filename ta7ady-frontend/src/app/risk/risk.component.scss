@@ -8,28 +8,7 @@
   gap: 0.9rem;
 }
 
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 
-  a {
-    color: var(--pitch-ink-dim);
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.95rem;
-
-    i {
-      margin-inline-end: 0.3rem;
-    }
-  }
-}
-
-h2 {
-  font-size: 1.9rem;
-  font-weight: 900;
-  margin: 0;
-}
 
 .draw-row {
   display: flex;

@@ -1,10 +1,11 @@
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { API_BASE, ScoresheetMatch } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
+import { ItemNavigationComponent } from '../shared/item-navigation/item-navigation.component';
 import { ScoreBooking } from '../shared/score-booking';
 import { SettingsService } from '../shared/settings/settings.service';
 import {
@@ -46,11 +47,10 @@ function countTeam(m: PlayerMap, team: 'A' | 'B'): number {
 @Component({
   selector: 'app-scoresheet',
   standalone: true,
-  imports: [
-    FormsModule,
-    RouterLink,
+  imports: [GameHeaderComponent, CountSelectorComponent,
     ScoreboardComponent,
     TimerComponent,
+    ItemNavigationComponent,
     AuditStripComponent,
     StrikeTrackerComponent,
   ],
@@ -101,6 +101,7 @@ export class ScoresheetComponent {
   keyOf(side: Side, i: number): string {
     return playerKey(side, i);
   }
+
 
   prev(): void {
     this.idx.update((i) => Math.max(0, i - 1));

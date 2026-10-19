@@ -1,6 +1,6 @@
 import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { API_BASE, BankQuestion } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
@@ -42,7 +42,7 @@ const freshBanked = (): number[] => Array.from({ length: BANK_ROUNDS }, () => 0)
 @Component({
   selector: 'app-bank',
   standalone: true,
-  imports: [GoogleSearchComponent, RouterLink, ScoreboardComponent, TimerComponent, AuditStripComponent],
+  imports: [GameHeaderComponent, GoogleSearchComponent, ScoreboardComponent, TimerComponent, AuditStripComponent],
   templateUrl: './bank.component.html',
   styleUrl: './bank.component.scss',
 })

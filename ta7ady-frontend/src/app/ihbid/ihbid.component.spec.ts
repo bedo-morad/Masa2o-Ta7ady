@@ -67,6 +67,7 @@ describe('IhbidComponent asked marks (rendered screen)', () => {
   it('marks, undoes, repeatedly toggles, and keeps marks independent through visible badges', async () => {
     await setup();
     click(marks()[0]);
+    expect(marks()[0].getAttribute('aria-label')).toBe('إلغاء تحديد السؤال 1 على أنه طُرح');
     click(marks()[0]);
     click(marks()[1]);
     click(marks()[1]);

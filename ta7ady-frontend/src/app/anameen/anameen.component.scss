@@ -1,5 +1,23 @@
 @use '../shared/reroll-button';
 .challenge {
+  --draw-row-gap: 0.5rem;
+  --draw-label-color: var(--pitch-ink-dim);
+  --draw-label-weight: 800;
+  --draw-label-size: 0.9rem;
+  --draw-select-padding: 0 0.6rem;
+  --draw-select-weight: 800;
+  --draw-select-family: inherit;
+  --draw-redraw-display: inline-flex;
+  --draw-redraw-gap: 0.35rem;
+  --draw-redraw-background: var(--pitch-surface);
+  --draw-redraw-border: var(--pitch-line);
+  --draw-redraw-color: var(--pitch-ink);
+  --draw-redraw-padding: 0.4rem 0.8rem;
+  --draw-redraw-family: inherit;
+  --draw-redraw-size: 0.85rem;
+  --item-navigation-dot-radius: 12px;
+  --item-navigation-dot-font-family: inherit;
+  --item-navigation-dot-font-weight: 900;
   max-width: 640px;
   margin: 0 auto;
   padding: 1rem 1rem 3rem;
@@ -8,28 +26,7 @@
   gap: 0.9rem;
 }
 
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 
-  a {
-    color: var(--pitch-ink-dim);
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.95rem;
-
-    i {
-      margin-inline-end: 0.3rem;
-    }
-  }
-}
-
-h2 {
-  font-size: 1.9rem;
-  font-weight: 900;
-  margin: 0;
-}
 
 .notice {
   background: var(--pitch-surface);
@@ -46,109 +43,8 @@ a:focus-visible {
 }
 
 // ── Draw row: count gate + redraw + new-game reset ────────────
-.draw-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 
-  label {
-    font-weight: 800;
-    font-size: 0.9rem;
-    color: var(--pitch-ink-dim);
-  }
 
-  select {
-    min-height: 44px;
-    border-radius: 10px;
-    border: 1px solid var(--pitch-line);
-    background: var(--pitch-surface);
-    color: var(--pitch-ink);
-    font-family: inherit;
-    font-weight: 800;
-    padding: 0 0.6rem;
-  }
-}
-
-.redraw {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 44px;
-  border: 1px solid var(--pitch-line);
-  background: var(--pitch-surface);
-  color: var(--pitch-ink);
-  border-radius: 999px;
-  padding: 0.4rem 0.8rem;
-  font-family: inherit;
-  font-weight: 800;
-  font-size: 0.85rem;
-  cursor: pointer;
-
-  &:first-of-type {
-    margin-inline-start: auto;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-  }
-}
-
-// ── Subject rail ──────────────────────────────────────────────
-.nav-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.navbtn {
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--pitch-line);
-  background: var(--pitch-surface);
-  color: var(--pitch-ink);
-
-  &:disabled {
-    opacity: 0.4;
-  }
-}
-
-.dots {
-  display: flex;
-  gap: 0.4rem;
-  flex: 1;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.dot {
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 12px;
-  border: 1px solid var(--pitch-line);
-  background: var(--pitch-surface);
-  color: var(--pitch-ink);
-  font-family: inherit;
-  font-weight: 900;
-  cursor: pointer;
-
-  &.on {
-    background: var(--pitch-accent-deep);
-    border-color: var(--pitch-accent-deep);
-    color: #fff;
-  }
-}
-
-// ── Signature: the clue dossier (five slats, hard → easy) ─────
-.dossier {
-  background: var(--pitch-surface);
-  border: 1px solid var(--pitch-line);
-  border-radius: var(--radius-card);
-  padding: 0.9rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
 
 .dossier-head {
   display: flex;

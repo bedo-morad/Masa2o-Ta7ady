@@ -1,17 +1,18 @@
 import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
 import { Component, effect, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
 import { API_BASE, ApiService, IhbidQuestion } from '../api.service';
 import { ScoreboardComponent } from '../shared/scoreboard/scoreboard.component';
 import { TimerComponent } from '../shared/timer/timer.component';
+import { AskedMarkerComponent } from '../shared/asked-marker/asked-marker.component';
+import { CountSelectorComponent } from '../shared/draw-controls/count-selector.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 
 @Component({
   selector: 'app-ihbid',
   standalone: true,
-  imports: [GoogleSearchComponent, FormsModule, RouterLink, ScoreboardComponent, TimerComponent],
+  imports: [GoogleSearchComponent, ScoreboardComponent, TimerComponent, AskedMarkerComponent, CountSelectorComponent, GameHeaderComponent],
   templateUrl: './ihbid.component.html',
   styleUrl: './ihbid.component.scss',
 })
@@ -59,7 +60,8 @@ export class IhbidComponent {
     this.asked.set(new Set());
   }
 
-  toggleAsked(index: number): void {
+  toggleAsked(number: number): void {
+    const index = number - 1;
     this.asked.update((marks) => {
       const next = new Set(marks);
       if (next.has(index)) next.delete(index);

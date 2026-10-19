@@ -1,6 +1,6 @@
 import { GoogleSearchComponent } from '../shared/google-search/google-search.component';
+import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { httpResource } from '@angular/common/http';
 import { API_BASE, ApiService, RiskPack, RiskQuestion } from '../api.service';
@@ -34,7 +34,7 @@ type CardState = { A: boolean[]; B: boolean[] };
 @Component({
   selector: 'app-risk',
   standalone: true,
-  imports: [GoogleSearchComponent, RouterLink, ScoreboardComponent, TimerComponent, AttributionComponent, AuditStripComponent],
+  imports: [GameHeaderComponent, GoogleSearchComponent, ScoreboardComponent, TimerComponent, AttributionComponent, AuditStripComponent],
   templateUrl: './risk.component.html',
   styleUrl: './risk.component.scss',
 })

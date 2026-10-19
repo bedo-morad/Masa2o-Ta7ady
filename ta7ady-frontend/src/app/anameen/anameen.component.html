@@ -1,64 +1,34 @@
 <div class="challenge">
-  <div class="topbar">
-    <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
-    <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
-  </div>
-
-  <h2>أنا مين؟</h2>
+  <app-game-header title="أنا مين" />
 
   <app-scoreboard [(teamA)]="teamA" [(teamB)]="teamB" [(scoreA)]="scoreA" [(scoreB)]="scoreB" />
 
   <app-timer timerKey="anameen" [defaultSeconds]="60" label="مؤقت التلميح" />
 
-  <div class="draw-row">
-    <label for="am-count">عدد المجهولين</label>
-    <select id="am-count" [(ngModel)]="count">
-      @for (n of counts; track n) {
-        <option [ngValue]="n">{{ n }}</option>
-      }
-    </select>
-    <button type="button" class="redraw" (click)="reload()" [disabled]="loading()">
-      <i class="fa-solid fa-shuffle"></i> سحب جديد
-    </button>
-    <button type="button" class="redraw" (click)="newGame()" [disabled]="loading()">
-      <i class="fa-solid fa-rotate-left"></i> لعبة جديدة
-    </button>
-  </div>
+  <app-count-selector
+    controlId="am-count"
+    label="عدد المجهولين"
+    [count]="count()"
+    [options]="counts"
+    [loading]="loading()"
+    (countChanged)="setCount($event)"
+    (redraw)="reload()"
+  />
 
   @if (msg()) {
     <div class="notice">{{ msg() }}</div>
   }
 
   @if (current(); as subject) {
-    @if (subjects().length > 1) {
-      <div class="nav-row">
-        <button type="button" class="navbtn" (click)="prev()" [disabled]="idx() === 0" aria-label="المجهول السابق">
-          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-        </button>
-        <div class="dots" role="group" aria-label="المجهولون">
-          @for (s of subjects(); track s.id; let i = $index) {
-            <button
-              type="button"
-              class="dot tabular-nums"
-              [class.on]="i === idx()"
-              (click)="go(i)"
-              [attr.aria-label]="'المجهول ' + (i + 1)"
-            >
-              {{ i + 1 }}
-            </button>
-          }
-        </div>
-        <button
-          type="button"
-          class="navbtn"
-          (click)="next()"
-          [disabled]="idx() >= subjects().length - 1"
-          aria-label="المجهول التالي"
-        >
-          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-        </button>
-      </div>
-    }
+    <app-item-navigation
+      [items]="subjects()"
+      [index]="idx()"
+      itemLabel="المجهول"
+      itemsLabel="المجهولون"
+      (previous)="prev()"
+      (next)="next()"
+      (select)="go($event)"
+    />
 
     <section class="dossier" aria-label="ملف اللاعب المجهول">
       <header class="dossier-head">

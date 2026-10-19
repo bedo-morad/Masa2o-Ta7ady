@@ -148,6 +148,36 @@ describe('AnameenComponent', () => {
     expect(c.asked(1)).toBe(false);
   });
 
+  it('starts each clue with its only numbered asked marker and toggles it without changing the clue', async () => {
+    const fixture = TestBed.createComponent(AnameenComponent);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/anameen?count=3')
+      .flush([subject(1)]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const screen = fixture.nativeElement as HTMLElement;
+    const rows = Array.from(screen.querySelectorAll('ol li'));
+    expect(rows.length).toBe(5);
+    rows.forEach((row, index) => {
+      const marker = row.querySelector('button')!;
+      expect(row.firstElementChild).toBe(marker);
+      expect(row.children.length).toBe(2);
+      expect(marker.querySelector('.asked-number')?.textContent?.trim()).toBe(String(index + 1));
+      expect(marker.getAttribute('aria-label')).toBe(`تحديد التلميح ${index + 1} على أنه طُرح`);
+      expect(marker.getAttribute('aria-pressed')).toBe('false');
+    });
+    const first = rows[0].querySelector('button')!;
+    first.click();
+    fixture.detectChanges();
+    expect(first.getAttribute('aria-pressed')).toBe('true');
+    expect(rows[0].querySelector('p')?.textContent).toBe('دليل 1');
+    expect(rows[1].querySelector('button')?.getAttribute('aria-pressed')).toBe('false');
+    first.click();
+    fixture.detectChanges();
+    expect(first.getAttribute('aria-pressed')).toBe('false');
+  });
+
   it('resets asked clues when moving to a new card or redrawing', () => {
     const c = setup();
     c.toggleAsked(1);
@@ -190,6 +220,32 @@ describe('AnameenComponent', () => {
     c.reload();
     expect(c.idx()).toBe(0);
     expect(c.scoreA()).toBe(1); // scores survive a redraw; assignments are id-keyed
+  });
+
+  it('keeps redraw and new game together without wrapping, alongside the labelled count', async () => {
+    const fixture = TestBed.createComponent(AnameenComponent);
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/anameen?count=3')
+      .flush([subject(1)]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const screen = fixture.nativeElement as HTMLElement;
+    const redraw = Array.from(screen.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('سحب جديد'),
+    )!;
+    const newGame = Array.from(screen.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('لعبة جديدة'),
+    )!;
+    const controls = newGame.parentElement!;
+    expect(controls.contains(redraw)).toBe(true);
+    expect(getComputedStyle(controls).flexWrap).toBe('nowrap');
+    expect(screen.querySelector('label[for="am-count"]')?.textContent).toContain('عدد المجهولين');
+    expect((screen.querySelector('#am-count') as HTMLSelectElement).selectedOptions[0].text).toBe(
+      '3',
+    );
+    expect(redraw.disabled).toBe(false);
+    expect(newGame.disabled).toBe(false);
   });
 
   it('new game re-arms the draw and clears every tally', async () => {

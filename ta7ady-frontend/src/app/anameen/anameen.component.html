@@ -58,8 +58,6 @@
       <ol class="slats">
         @for (clue of subject.clues; track $index; let k = $index) {
           <li class="slat" [class.asked]="asked(k + 1)">
-            <span class="no tabular-nums">{{ k + 1 }}</span>
-            <p class="text">{{ clue }}</p>
             <button
               appAskedMarker
               [number]="k + 1"
@@ -67,6 +65,7 @@
               [ariaLabel]="'تحديد التلميح ' + (k + 1) + ' على أنه طُرح'"
               (marked)="toggleAsked($event)"
             ></button>
+            <p class="text">{{ clue }}</p>
           </li>
         }
       </ol>

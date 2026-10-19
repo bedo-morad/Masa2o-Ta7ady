@@ -2,34 +2,24 @@
   <app-manage-access [access]="admin" />
   <app-manage-pool-navigation [pool]="pool()" (selected)="select($event)" />
 
-  @switch (pool()) {
-    @case ('players') {
-      <app-players-renderer [editor]="playersEditor" />
-    }
-    @case ('ihbid') {
-      <app-ihbid-renderer [editor]="ihbidEditor" />
-    }
-    @case ('offside') {
-      <app-offside-renderer [editor]="offsideEditor" />
-    }
-    @case ('top10') {
-      <app-top10-editor [editor]="top10Editor" />
-    }
-    @case ('scoresheet') {
-      <app-scoresheet-editor [editor]="scoresheetEditor" />
-    }
-    @case ('bank') {
-      <app-bank-renderer [editor]="bankEditor" />
-    }
-    @case ('risk') {
-      <app-risk-pack-editor [model]="riskEditor" />
-    }
-    @case ('anameen') {
-      <app-anameen-editor [editor]="anameenEditor" />
-    }
-    @case ('whopicture') {
-      <app-whopicture-editor [editor]="whopictureEditor" />
-    }
+  @if (pool() === 'players') {
+    <app-players-renderer [editor]="playersEditor" />
+  } @else if (pool() === 'ihbid') {
+    <app-ihbid-renderer [editor]="ihbidEditor" />
+  } @else if (pool() === 'offside') {
+    <app-offside-renderer [editor]="offsideEditor" />
+  } @else if (pool() === 'top10') {
+    <app-top10-editor [editor]="top10Editor" />
+  } @else if (pool() === 'scoresheet') {
+    <app-scoresheet-editor [editor]="scoresheetEditor" />
+  } @else if (pool() === 'bank') {
+    <app-bank-renderer [editor]="bankEditor" />
+  } @else if (pool() === 'risk') {
+    <app-risk-pack-editor [model]="riskEditor" />
+  } @else if (pool() === 'anameen') {
+    <app-anameen-editor [editor]="anameenEditor" />
+  } @else if (pool() === 'whopicture') {
+    <app-whopicture-editor [editor]="whopictureEditor" />
   }
 
   <app-import-panel [pool]="pool()" (imported)="onImported()" />
@@ -38,88 +28,78 @@
   }
   <div class="count tabular-nums">المجموع: {{ catalog.totalElements() }}</div>
 
-  @switch (pool()) {
-    @case ('players') {
-      <app-players-catalog
-        [rows]="catalog.playerRows()"
-        [editor]="playersEditor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('players', $event)"
-      />
-    }
-    @case ('ihbid') {
-      <app-ihbid-catalog
-        [rows]="catalog.ihbidRows()"
-        [editor]="ihbidEditor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('ihbid', $event)"
-      />
-    }
-    @case ('offside') {
-      <app-offside-catalog
-        [rows]="catalog.offsideRows()"
-        [editor]="offsideEditor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('offside', $event)"
-      />
-    }
-    @case ('top10') {
-      <app-top10-catalog
-        [rows]="catalog.top10Rows()"
-        [editor]="top10Editor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('top10', $event)"
-      />
-    }
-    @case ('scoresheet') {
-      <app-scoresheet-catalog
-        [rows]="catalog.scoresheetRows()"
-        [editor]="scoresheetEditor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('scoresheet', $event)"
-      />
-    }
-    @case ('bank') {
-      <app-bank-catalog
-        [rows]="catalog.bankRows()"
-        [editor]="bankEditor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('bank', $event)"
-      />
-    }
-    @case ('risk') {
-      <app-risk-catalog
-        [rows]="catalog.riskRows()"
-        [editor]="riskEditor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('risk', $event)"
-      />
-    }
-    @case ('anameen') {
-      <app-anameen-catalog
-        [rows]="catalog.anameenRows()"
-        [editor]="anameenEditor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('anameen', $event)"
-      />
-    }
-    @case ('whopicture') {
-      <app-whopicture-catalog
-        [rows]="catalog.whopictureRows()"
-        [editor]="whopictureEditor"
-        [adminOn]="admin.adminOn()"
-        [selection]="selection"
-        (remove)="removeFromCatalog('whopicture', $event)"
-      />
-    }
+  @if (pool() === 'players') {
+    <app-players-catalog
+      [rows]="catalog.playerRows()"
+      [editor]="playersEditor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('players', $event)"
+    />
+  } @else if (pool() === 'ihbid') {
+    <app-ihbid-catalog
+      [rows]="catalog.ihbidRows()"
+      [editor]="ihbidEditor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('ihbid', $event)"
+    />
+  } @else if (pool() === 'offside') {
+    <app-offside-catalog
+      [rows]="catalog.offsideRows()"
+      [editor]="offsideEditor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('offside', $event)"
+    />
+  } @else if (pool() === 'top10') {
+    <app-top10-catalog
+      [rows]="catalog.top10Rows()"
+      [editor]="top10Editor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('top10', $event)"
+    />
+  } @else if (pool() === 'scoresheet') {
+    <app-scoresheet-catalog
+      [rows]="catalog.scoresheetRows()"
+      [editor]="scoresheetEditor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('scoresheet', $event)"
+    />
+  } @else if (pool() === 'bank') {
+    <app-bank-catalog
+      [rows]="catalog.bankRows()"
+      [editor]="bankEditor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('bank', $event)"
+    />
+  } @else if (pool() === 'risk') {
+    <app-risk-catalog
+      [rows]="catalog.riskRows()"
+      [editor]="riskEditor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('risk', $event)"
+    />
+  } @else if (pool() === 'anameen') {
+    <app-anameen-catalog
+      [rows]="catalog.anameenRows()"
+      [editor]="anameenEditor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('anameen', $event)"
+    />
+  } @else if (pool() === 'whopicture') {
+    <app-whopicture-catalog
+      [rows]="catalog.whopictureRows()"
+      [editor]="whopictureEditor"
+      [adminOn]="admin.adminOn()"
+      [selection]="selection"
+      (remove)="removeFromCatalog('whopicture', $event)"
+    />
   }
 
   @if (catalog.totalPages() > 1) {

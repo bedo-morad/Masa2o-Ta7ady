@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
@@ -34,7 +35,7 @@ describe('AnameenComponent', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [AnameenComponent],
-      providers: [provideHttpClient(), provideRouter([])],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
   });
 
@@ -191,11 +192,24 @@ describe('AnameenComponent', () => {
     expect(c.scoreA()).toBe(1); // scores survive a redraw; assignments are id-keyed
   });
 
-  it('new game re-arms the draw and clears every tally', () => {
-    const c = setup();
+  it('new game re-arms the draw and clears every tally', async () => {
+    const fixture = TestBed.createComponent(AnameenComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    const newGameButton = fixture.nativeElement.querySelector('button.new-game') as HTMLButtonElement;
+    expect(newGameButton.disabled).toBe(true);
+    http.expectOne('/api/anameen?count=3').flush([subject(1), subject(2), subject(3)]);
+    await fixture.whenStable();
+    fixture.detectChanges();
     c.onAssign(award(c, 'A'));
     c.go(2);
-    c.newGame();
+    fixture.detectChanges();
+    expect(newGameButton).not.toBeNull();
+    expect(newGameButton.disabled).toBe(false);
+    newGameButton.click();
+    fixture.detectChanges();
+    http.expectOne('/api/anameen?count=3').flush([subject(4), subject(5), subject(6)]);
     expect(c.scoreA()).toBe(0);
     expect(c.scoreB()).toBe(0);
     expect(c.audit().length).toBe(0);

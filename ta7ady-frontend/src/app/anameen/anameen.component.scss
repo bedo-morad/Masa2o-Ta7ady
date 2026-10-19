@@ -26,7 +26,43 @@
   gap: 0.9rem;
 }
 
+.draw-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 
+  app-count-selector {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+}
+
+.new-game {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--draw-redraw-gap, 0.35rem);
+  background: var(--draw-redraw-background, var(--pitch-accent-deep));
+  border: 1px solid var(--draw-redraw-border, var(--pitch-accent-deep));
+  color: var(--draw-redraw-color, var(--pitch-on-accent-deep));
+  border-radius: var(--draw-redraw-radius, 999px);
+  padding: var(--draw-redraw-padding, 0.55rem 1.1rem);
+  font-weight: var(--draw-redraw-weight, 800);
+  font-family: var(--draw-redraw-family, inherit);
+  font-size: var(--draw-redraw-size, inherit);
+  min-height: 44px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  i {
+    margin-inline-end: var(--draw-redraw-icon-margin, 0.3rem);
+  }
+}
 
 .notice {
   background: var(--pitch-surface);

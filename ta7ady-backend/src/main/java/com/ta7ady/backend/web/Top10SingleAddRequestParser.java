@@ -1,6 +1,5 @@
 package com.ta7ady.backend.web;
 
-import com.ta7ady.backend.bulk.BulkHelper;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +19,8 @@ public final class Top10SingleAddRequestParser {
         if (body == null) {
             return new Request(null, null);
         }
-        return new Request(BulkHelper.str(body.get("prompt")),
-                BulkHelper.list(body.get("answers")));
+        return new Request(LegacySingleAddRequestValues.text(body.get("prompt")),
+                LegacySingleAddRequestValues.list(body.get("answers")));
     }
 
     public record Request(String prompt, List<?> answers) {

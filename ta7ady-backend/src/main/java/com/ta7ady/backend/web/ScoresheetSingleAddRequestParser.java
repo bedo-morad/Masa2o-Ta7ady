@@ -1,6 +1,5 @@
 package com.ta7ady.backend.web;
 
-import com.ta7ady.backend.bulk.BulkHelper;
 import java.util.List;
 import java.util.Map;
 
@@ -23,17 +22,17 @@ public final class ScoresheetSingleAddRequestParser {
             return new Request(null, null, null, null, null);
         }
         return new Request(firstNonNull(body, "match", "matchLabel", "match_label"),
-                BulkHelper.str(body.get("teamA")),
-                BulkHelper.str(body.get("teamB")),
-                BulkHelper.list(body.get("lineupA")),
-                BulkHelper.list(body.get("lineupB")));
+                LegacySingleAddRequestValues.text(body.get("teamA")),
+                LegacySingleAddRequestValues.text(body.get("teamB")),
+                LegacySingleAddRequestValues.list(body.get("lineupA")),
+                LegacySingleAddRequestValues.list(body.get("lineupB")));
     }
 
     private static String firstNonNull(Map<String, Object> body, String... keys) {
         for (String key : keys) {
             Object raw = body.get(key);
             if (raw != null) {
-                return raw.toString();
+                return LegacySingleAddRequestValues.text(raw);
             }
         }
         return null;

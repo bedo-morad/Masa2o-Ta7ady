@@ -67,12 +67,4 @@ public final class BulkHelper {
         return results;
     }
 
-    // Shared request-body readers for the Map-based single-add endpoints.
-    public static String str(Object raw) {
-        return raw == null ? null : raw.toString();
-    }
-
-    public static List<?> list(Object raw) {
-        return raw instanceof List ? (List<?>) raw : null;
-    }
 }

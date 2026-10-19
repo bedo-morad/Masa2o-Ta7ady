@@ -5,15 +5,20 @@
 
   <app-timer timerKey="anameen" [defaultSeconds]="60" label="مؤقت التلميح" />
 
-  <app-count-selector
-    controlId="am-count"
-    label="عدد المجهولين"
-    [count]="count()"
-    [options]="counts"
-    [loading]="loading()"
-    (countChanged)="setCount($event)"
-    (redraw)="reload()"
-  />
+  <div class="draw-controls">
+    <app-count-selector
+      controlId="am-count"
+      label="عدد المجهولين"
+      [count]="count()"
+      [options]="counts"
+      [loading]="loading()"
+      (countChanged)="setCount($event)"
+      (redraw)="reload()"
+    />
+    <button type="button" class="new-game" (click)="newGame()" [disabled]="loading()">
+      <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> لعبة جديدة
+    </button>
+  </div>
 
   @if (msg()) {
     <div class="notice">{{ msg() }}</div>

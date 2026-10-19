@@ -39,6 +39,7 @@
   font-family: var(--draw-redraw-family);
   font-size: var(--draw-redraw-size);
   min-height: 44px;
+  white-space: var(--draw-redraw-white-space, normal);
   cursor: pointer;
 
   &:disabled {

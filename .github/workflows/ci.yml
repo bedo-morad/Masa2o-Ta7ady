@@ -77,9 +77,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
+      - shell: bash
+        run: |
           TAG="${GITHUB_REF_NAME}"
-          REPO="ghcr.io/${{ github.repository }}"
+          REPO="ghcr.io/${GITHUB_REPOSITORY,,}"
           docker build -f ta7ady-backend/Dockerfile -t "$REPO-backend:$TAG" -t "$REPO-backend:latest" ta7ady-backend
           docker build -f ta7ady-frontend/Dockerfile -t "$REPO-frontend:$TAG" -t "$REPO-frontend:latest" ta7ady-frontend
           docker push "$REPO-backend:$TAG"

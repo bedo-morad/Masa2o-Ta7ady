@@ -1,20 +1,22 @@
 @use '../shared/reroll-button';
 .challenge {
-  --draw-row-gap: 0.5rem;
+  --draw-row-gap: 0.25rem;
   --draw-label-color: var(--pitch-ink-dim);
   --draw-label-weight: 800;
-  --draw-label-size: 0.9rem;
-  --draw-select-padding: 0 0.6rem;
+  --draw-label-size: 0.8rem;
+  --draw-select-padding: 0 0.2rem;
   --draw-select-weight: 800;
   --draw-select-family: inherit;
   --draw-redraw-display: inline-flex;
-  --draw-redraw-gap: 0.35rem;
+  --draw-redraw-gap: 0.1rem;
+  --draw-redraw-icon-margin: 0;
   --draw-redraw-background: var(--pitch-surface);
   --draw-redraw-border: var(--pitch-line);
   --draw-redraw-color: var(--pitch-ink);
-  --draw-redraw-padding: 0.4rem 0.8rem;
+  --draw-redraw-padding: 0.4rem 0.2rem;
   --draw-redraw-family: inherit;
-  --draw-redraw-size: 0.85rem;
+  --draw-redraw-size: 0.8rem;
+  --draw-redraw-white-space: nowrap;
   --item-navigation-dot-radius: 12px;
   --item-navigation-dot-font-family: inherit;
   --item-navigation-dot-font-weight: 900;
@@ -29,11 +31,11 @@
 .draw-controls {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
 
   app-count-selector {
-    flex: 1 1 16rem;
+    flex: 1 1 0;
     min-width: 0;
   }
 }
@@ -52,6 +54,8 @@
   font-family: var(--draw-redraw-family, inherit);
   font-size: var(--draw-redraw-size, inherit);
   min-height: 44px;
+  flex: none;
+  white-space: nowrap;
   cursor: pointer;
 
   &:disabled {
@@ -158,14 +162,6 @@ a:focus-visible {
 
   &.asked {
     background: color-mix(in srgb, var(--pitch-surface-2) 88%, var(--pitch-gold));
-  }
-
-  .no {
-    flex: none;
-    font-weight: 900;
-    color: var(--pitch-gold);
-    border-inline-end: 2px solid var(--pitch-line);
-    padding-inline-end: 0.55rem;
   }
 
   .text {

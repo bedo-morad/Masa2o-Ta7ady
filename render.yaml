@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: masa2o-ta7ady-frontend-static
+    runtime: static
+    repo: https://github.com/bedo-morad/Masa2o-Ta7ady
+    branch: master
+    buildCommand: cd ta7ady-frontend && npm ci && npm run build
+    staticPublishPath: ta7ady-frontend/dist/ta7ady-frontend/browser
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://masa2o-ta7ady-api-free.onrender.com/api/*
+      - type: rewrite
+        source: /*
+        destination: /index.html

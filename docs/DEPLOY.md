@@ -68,11 +68,16 @@ Rules:
 - Local connection defaults are `${ADMIN_PASSWORD:admin}` and `localhost:5432`.
   An approved/provisioned `ta7ady` schema is still required; Hibernate never
   creates or updates it. See the migration guide before using an existing database.
-- On an empty Compose PostgreSQL data directory, the mounted init script creates
+- On an empty Compose PostgreSQL data directory, the init script creates
   `ta7ady` owned by `POSTGRES_USER` before backend startup. Keep it equal to
   `SPRING_DATASOURCE_USERNAME`. Local dev can use `docker compose up -d --wait`
   before starting the backend. Init scripts run only on first initialization;
   they are skipped for existing data directories and do not repair older volumes.
+- Production builds the official Postgres image with that initializer included;
+  only local development uses an init-script host bind. Keep the production
+  `build` configuration when deploying through Coolify, and rebuild on updates.
+  Do not add an initializer bind in Coolify or change an existing `PGDATA` to
+  trigger initialization. See the [storage and rollout guide](DATABASE_MIGRATIONS.md).
 
 ## 2. Deploy / update
 

@@ -57,7 +57,7 @@ for mode in dev prod; do
     project="ta7ady-schema-check-$(date +%s)-$$-$mode"
     case "$mode" in
         dev) compose_file="$root/docker-compose.yaml"; data_path=/data/postgres ;;
-        prod) compose_file="$root/docker-compose.prod.yml"; data_path=/var/lib/postgresql/data ;;
+        prod) compose_file="$root/docker-compose.prod.yml"; data_path=/var/lib/postgresql/data/pgdata ;;
     esac
     if [ "$mode" = prod ]; then
         cat >> "$temp/override.yaml" <<'YAML'
@@ -66,7 +66,13 @@ for mode in dev prod; do
 YAML
     fi
     echo "Checking $mode initialization in disposable project $project on port $port"
-    compose up -d --wait --wait-timeout 180 postgres
+    compose up -d --build --wait --wait-timeout 180 postgres
+    if [ "$mode" = prod ]; then
+        # Production must carry a real script, not depend on any host bind source.
+        compose exec -T postgres sh -ec 'test -f /docker-entrypoint-initdb.d/10-create-ta7ady-schema.sh && test -x /docker-entrypoint-initdb.d/10-create-ta7ady-schema.sh'
+        test "$(compose exec -T postgres sh -ec 'cksum < /docker-entrypoint-initdb.d/10-create-ta7ady-schema.sh')" = "$(cksum < "$root/docker/postgres/init/10-create-ta7ady-schema.sh")"
+        test -z "$(docker inspect --format '{{range .Mounts}}{{if eq .Type "bind"}}{{println .Destination}}{{end}}{{end}}' "$(compose ps -q postgres)")"
+    fi
     test "$(query "SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname='ta7ady'")" = schema-owner
     test "$(query "SELECT count(*) FROM information_schema.tables WHERE table_schema='ta7ady'")" = 0
 

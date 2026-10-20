@@ -24,8 +24,13 @@ Only use this path for a confirmed new database with no existing application tab
 
 ### Compose: empty data directories only
 
-Both Compose configurations mount the same read-only initializer,
-`docker/postgres/init/10-create-ta7ady-schema.sh`. The official Postgres entrypoint
+Production builds `docker/postgres/Dockerfile` from the official `postgres:18`
+image and copies `docker/postgres/init/10-create-ta7ady-schema.sh` into
+`/docker-entrypoint-initdb.d/` at build time. There is no production initializer
+bind mount: Coolify and other deployment hosts do not need a separate script file
+on disk, and a missing build source fails the build instead of becoming an empty
+directory mount. Local development still mounts the same script read-only.
+The official Postgres entrypoint
 runs it **only on first initialization of an empty PostgreSQL data directory**.
 It creates schema `ta7ady` in `POSTGRES_DB`, owned by `POSTGRES_USER`, before the
 final server accepts TCP connections. Keep `SPRING_DATASOURCE_USERNAME` equal to
@@ -59,6 +64,15 @@ does not repair, alter ownership, or baseline an existing database. **Never dele
 an existing volume to trigger initialization, and never run the initializer
 manually against an existing database.** The existing-database gate above still
 applies, including the prohibition on concealing legacy `public` tables.
+
+For an existing Coolify deployment, keep the configured database volume and its
+verified `PGDATA` unchanged (for the current deployment,
+`/var/lib/postgresql/data/pgdata`). Rebuild the production Compose stack from the
+repository so the Postgres image includes the script; do not override this service
+back to the stock image or re-add the old initializer bind in Coolify. This image
+change does not initialize or repair an existing database, import seeds, or require
+deleting any volume. Never substitute the fresh-production path above for an
+already verified nested data directory.
 
 ### Non-Compose provisioning
 
@@ -165,7 +179,10 @@ Run `./docker/postgres/verify-init.sh` from the repository root with Docker and
 Compose 2.24.4 or later. It tests both Compose configurations in uniquely named
 disposable projects, using new volumes and loopback port `55447` (override with
 `SCHEMA_TEST_PORT`). No real `.env` is loaded. It checks schema ownership using a
-hyphenated role that requires SQL identifier quoting, then recreates the container and proves persisted data
+hyphenated role that requires SQL identifier quoting. Production builds its image,
+checks that the initializer is an executable file and there are no host bind
+mounts, and uses a nested `PGDATA` inside the persistent volume. The check then
+recreates the container and proves persisted data
 survives and initialization is not rerun even when the schema is absent. Only
 the test's own resources are removed, including on failure; CI runs this check.
 

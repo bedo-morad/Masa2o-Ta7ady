@@ -2,7 +2,8 @@
 # Run: docker compose -f docker-compose.prod.yml up -d --build
 services:
   postgres:
-    image: postgres:18
+    build:
+      context: ./docker/postgres
     env_file:
       - .env
     environment:
@@ -12,7 +13,6 @@ services:
       PGDATA: ${PGDATA:?Set PGDATA only after confirming a fresh database or inspecting existing data/mounts; see docs/DATABASE_MIGRATIONS.md}
     volumes:
       - postgres-prod:/var/lib/postgresql/data
-      - ./docker/postgres/init/10-create-ta7ady-schema.sh:/docker-entrypoint-initdb.d/10-create-ta7ady-schema.sh:ro
     networks:
       - ta7ady-network
     healthcheck:

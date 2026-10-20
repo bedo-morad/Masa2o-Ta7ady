@@ -64,6 +64,15 @@ describe('IhbidComponent asked marks (rendered screen)', () => {
     expect(fixture.nativeElement.textContent).not.toContain('تم السؤال');
   });
 
+  it('highlights the whole asked card and restores its normal appearance on undo', async () => {
+    await setup();
+    expect(rows().map((row) => row.classList.contains('asked'))).toEqual([false, false, false]);
+    click(marks()[0]);
+    expect(rows().map((row) => row.classList.contains('asked'))).toEqual([true, false, false]);
+    click(marks()[0]);
+    expect(rows().map((row) => row.classList.contains('asked'))).toEqual([false, false, false]);
+  });
+
   it('marks, undoes, repeatedly toggles, and keeps marks independent through visible badges', async () => {
     await setup();
     click(marks()[0]);

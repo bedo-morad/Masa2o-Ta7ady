@@ -21,7 +21,7 @@
 
   <ol class="rlist">
     @for (r of rows(); track r.id; let i = $index) {
-      <li class="ritem">
+      <li class="ritem" [class.asked]="asked().has(i)">
         <button
           appAskedMarker
           class="rnum"

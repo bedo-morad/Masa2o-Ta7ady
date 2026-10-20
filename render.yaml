@@ -3,7 +3,7 @@ services:
     name: masa2o-ta7ady-frontend-static
     runtime: static
     repo: https://github.com/bedo-morad/Masa2o-Ta7ady
-    branch: master
+    branch: chore/render-static-site-blueprint
     buildCommand: cd ta7ady-frontend && npm ci && npm run build
     staticPublishPath: ta7ady-frontend/dist/ta7ady-frontend/browser
     routes:

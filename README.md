@@ -63,7 +63,7 @@ You can choose and test the timer alarm, change its volume, toggle vibration whe
 
 - **Git** to clone the repository.
 - **JDK 17 or newer**; CI uses Java 17. The backend includes a Maven wrapper, so a separate Maven installation is not needed.
-- **Node.js and npm**: use Node **24.15.0+ within the 24.x line** and npm **11.17.0** (the version declared in `package.json`). The locked Angular dependencies also accept Node `^22.22.3` or `>=26.0.0`.
+- **Node.js and npm**: use a lockfile-supported Node version: `^22.22.3`, `^24.15.0`, or `>=26.0.0`. CI currently uses Node 22. The project declares npm **11.17.0** in `package.json`.
 - **Docker Engine and Compose v2** for the supplied PostgreSQL service. Alternatively, provide a PostgreSQL instance yourself; the local Compose file uses PostgreSQL **18.6**, and CI uses PostgreSQL 18.
 - Free local ports **5432** (database), **8080** (backend), and **4200** (frontend). Internet access is needed for the initial dependency/image downloads and externally hosted game photos.
 
@@ -83,11 +83,11 @@ cd Masa2o-Ta7ady
 From the repository root:
 
 ```bash
-docker compose up -d postgres
+PGDATA=/data/postgres docker compose up -d postgres
 docker compose exec postgres pg_isready -U username -d ta7ady
 ```
 
-Wait until PostgreSQL reports that it is accepting connections. The local [`docker-compose.yaml`](docker-compose.yaml) starts **only the database**; the backend and frontend run separately below.
+Wait until PostgreSQL reports that it is accepting connections. `PGDATA` is required by the Compose file; `/data/postgres` is the value for a confirmed fresh local database. For an existing database, inspect its data directory and follow [Database migrations](docs/DATABASE_MIGRATIONS.md) before starting anything. The local [`docker-compose.yaml`](docker-compose.yaml) starts **only the database**; the backend and frontend run separately below.
 
 The local database defaults are:
 
@@ -109,7 +109,7 @@ cd ta7ady-backend
 ./mvnw spring-boot:run
 ```
 
-The wrapper downloads Maven and dependencies on the first run. The backend connects to PostgreSQL at `localhost:5432` by default and uses Hibernate's `ddl-auto: update` to create/update its tables. No separate migration command is configured.
+The wrapper downloads Maven and dependencies on the first run. The backend connects to PostgreSQL at `localhost:5432` by default. On startup, Flyway applies the versioned SQL in `ta7ady-backend/src/main/resources/db/migration`; Hibernate is validation-only and does not create or update tables. The `ta7ady` schema must already be provisioned (the fresh local Compose initializer does this). For an existing database, read [Database migrations](docs/DATABASE_MIGRATIONS.md) first; do not baseline or reset it from this README.
 
 Verify the API at <http://localhost:8080/api/players?count=1>. A new database returns `[]` until content is imported. Interactive API documentation is available at <http://localhost:8080/swagger-ui/index.html>.
 
@@ -125,7 +125,7 @@ npm start
 
 Open **<http://localhost:4200/>**. Angular's development server reloads the page when frontend source files change.
 
-Use `localhost`, not a LAN address or `127.0.0.1`, for this default setup: the frontend currently targets `http://localhost:8080/api`, and the backend permits browser API requests from `http://localhost:4200`. Phone/LAN access or different frontend/backend ports need additional API URL/CORS configuration in code; they are not enabled by an environment variable in the current app. See [`ApiService`](ta7ady-frontend/src/app/api.service.ts) and [`WebConfig`](ta7ady-backend/src/main/java/com/ta7ady/backend/web/WebConfig.java).
+The Angular dev server uses [`proxy.conf.json`](ta7ady-frontend/proxy.conf.json) automatically, forwarding `/api` to `http://localhost:8080` while the browser stays same-origin. Use `http://localhost:4200/` (and `/manage`) for the default setup. Direct cross-origin clients or other origins need an explicit `CORS_ALLOWED_ORIGINS` value and a backend restart; see [Deployment](docs/DEPLOY.md).
 
 ### 5. Add game content
 
@@ -156,7 +156,7 @@ cd ta7ady-backend
 
 `ADMIN_PASSWORD` defaults to `admin` and unlocks editing/deletion in `/manage`; it is not a player login. Do not expose the development defaults publicly. PostgreSQL is the only required external service for this local setup; no third-party API key is required.
 
-The root [`.env.example`](.env.example) is a reference for the container deployment setup, **not a drop-in local configuration**: it uses database hostname `postgres` and placeholder passwords, whereas a backend running on your machine uses `localhost`. If you already have a root `.env`, check it for conflicting values; the backend is configured to import it when present. Exported environment variables take precedence. The local `docker-compose.yaml` has fixed database credentials and does not read `POSTGRES_*` overrides from that example. For the production Compose configuration and `.env` workflow, see [Deployment](docs/DEPLOY.md).
+The root [`.env.example`](.env.example) is primarily a reference for container deployment: it uses database hostname `postgres`, placeholder passwords, and leaves `PGDATA` unset until storage is inspected. A backend running directly on your machine uses `localhost`. A root `.env` is optional for local development; when present, the backend imports it and exported environment variables take precedence. The local `docker-compose.yaml` uses its fixed development credentials and does not read `POSTGRES_*` overrides from that example. For the production Compose configuration and `.env` workflow, see [Deployment](docs/DEPLOY.md).
 
 To stop the local database without deleting its stored questions, run this from the repository root:
 
@@ -181,11 +181,25 @@ Frontend build and tests (after `npm ci`):
 ```bash
 # From the repository root
 cd ta7ady-frontend
-npm run build
-npm test -- --watch=false
+npx ng build
+npx ng test --watch=false
 ```
 
 These correspond to the backend/frontend checks in [CI](.github/workflows/ci.yml). The frontend production build is written under `ta7ady-frontend/dist/`.
+
+## Deployment
+
+Production is container-only and uses [`docker-compose.prod.yml`](docker-compose.prod.yml). Coolify follows the `master` branch; deployment commit `5347ae9` (including the fresh-database PostgreSQL initializer) is merged there. This README does not make any claim about live deployment health or availability.
+
+Before deploying, review [Deployment](docs/DEPLOY.md) and [Database migrations](docs/DATABASE_MIGRATIONS.md), especially the existing-database and `PGDATA` storage gates. A production checkout needs a root `.env`; keep the database credentials synchronized and never commit that file. The standard Compose commands are:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f backend frontend
+```
+
+The production frontend container listens on port 80, proxies same-origin `/api/*` to the backend, and does not publish PostgreSQL.
 
 ## More documentation
 

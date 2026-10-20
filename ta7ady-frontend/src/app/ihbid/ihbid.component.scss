@@ -1,4 +1,5 @@
 @use '../shared/reroll-button';
+@use '../shared/asked-card';
 
 .challenge {
   max-width: 640px;
@@ -27,6 +28,7 @@
 }
 
 .qitem {
+  @include asked-card.highlight;
   background: var(--pitch-surface);
   border: 1px solid var(--pitch-line);
   border-radius: var(--radius-card);

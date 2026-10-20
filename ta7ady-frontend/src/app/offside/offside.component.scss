@@ -1,4 +1,5 @@
 @use '../shared/reroll-button';
+@use '../shared/asked-card';
 
 .challenge {
   max-width: 640px;
@@ -27,6 +28,7 @@
 }
 
 .ritem {
+  @include asked-card.highlight;
   display: flex;
   align-items: center;
   gap: 0.7rem;

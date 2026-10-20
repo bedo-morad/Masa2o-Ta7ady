@@ -56,6 +56,15 @@ describe('OffsideComponent asked marks (rendered screen)', () => {
     expect(fixture.nativeElement.querySelectorAll('.asked-mark').length).toBe(3);
   });
 
+  it('highlights the whole asked card and restores its normal appearance on undo', async () => {
+    await setup();
+    expect(rows().map((row) => row.classList.contains('asked'))).toEqual([false, false, false]);
+    click(marks()[0]);
+    expect(rows().map((row) => row.classList.contains('asked'))).toEqual([true, false, false]);
+    click(marks()[0]);
+    expect(rows().map((row) => row.classList.contains('asked'))).toEqual([false, false, false]);
+  });
+
   it('supports mark, undo, repeated toggle, and independent visible controls without extra text', async () => {
     await setup();
     click(marks()[0]);

@@ -1,0 +1,7 @@
+// Whole-card companion to the existing asked badge; game state stays with the screen.
+@mixin highlight {
+  &.asked {
+    background: color-mix(in srgb, var(--pitch-surface-2) 88%, var(--pitch-gold));
+    border-color: var(--pitch-gold);
+  }
+}

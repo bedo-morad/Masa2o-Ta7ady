@@ -21,7 +21,7 @@
 
   <ol class="qlist">
     @for (q of rows(); track q.id; let i = $index) {
-      <li class="qitem">
+      <li class="qitem" [class.asked]="asked().has(i)">
         <div class="qtext">
           <button
             appAskedMarker

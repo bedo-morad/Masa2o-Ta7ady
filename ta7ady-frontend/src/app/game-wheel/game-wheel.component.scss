@@ -203,20 +203,7 @@
   cursor: pointer;
 }
 
-.winner-confirm {
-  min-height: 2.75rem;
-  padding: 0.65rem 1.2rem;
-  border: 1px solid var(--pitch-accent);
-  border-radius: 999px;
-  background: var(--pitch-accent);
-  color: var(--pitch-shadow-ink);
-  font-size: 1rem;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.spin-button,
-.winner-confirm {
+.spin-button {
   &:focus-visible {
     outline: 3px solid var(--pitch-ink);
     outline-offset: 3px;

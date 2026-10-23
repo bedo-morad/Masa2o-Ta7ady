@@ -111,6 +111,7 @@ describe('GameWheelComponent', () => {
 
     const firstPopup = page.querySelector('[role="dialog"]');
     expect(firstPopup).toBeTruthy();
+    expect(firstPopup?.querySelectorAll('button')).toHaveLength(1);
     const firstPick = firstPopup?.querySelector('.winner-name')?.textContent?.trim();
     expect(firstPick).toBeTruthy();
     expect(availableGames?.textContent).toContain(firstPick);

@@ -11,7 +11,7 @@
 .intro {
   color: var(--pitch-ink-dim);
   font-size: 1.05rem;
-  margin: 1.1rem 0 1.5rem;
+  margin: 1.8rem 0 1.75rem;
 }
 
 .wheel-layout {
@@ -140,24 +140,87 @@
     filter: brightness(1.08);
   }
 
-  &:focus-visible {
-    outline: 3px solid var(--pitch-ink);
-    outline-offset: 3px;
-  }
-
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
   }
 }
 
-.spin-result {
-  min-height: 1.6rem;
-  margin: 0.7rem 0 0;
-  color: var(--pitch-gold);
-  font-size: 1.05rem;
-  font-weight: 800;
+.winner-dialog {
+  width: min(calc(100% - 2rem), 28rem);
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--pitch-line);
+  border-radius: var(--radius-card);
+  background: var(--pitch-surface);
+  color: var(--pitch-ink);
+  box-shadow: 0 1.5rem 4rem var(--pitch-shadow-ink);
+
+  &::backdrop {
+    background: color-mix(in srgb, var(--pitch-shadow-ink) 78%, transparent);
+    backdrop-filter: blur(3px);
+  }
+}
+
+.winner-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 2.4rem 1.5rem 1.5rem;
   text-align: center;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 900;
+  }
+}
+
+.winner-name {
+  max-width: 100%;
+  margin: 0;
+  color: var(--pitch-gold);
+  font-size: clamp(1.7rem, 7vw, 2.4rem);
+  font-weight: 900;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.winner-close {
+  position: absolute;
+  inset-block-start: 0.65rem;
+  inset-inline-start: 0.65rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--pitch-line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pitch-ink-dim);
+  cursor: pointer;
+}
+
+.winner-confirm {
+  min-height: 2.75rem;
+  padding: 0.65rem 1.2rem;
+  border: 1px solid var(--pitch-accent);
+  border-radius: 999px;
+  background: var(--pitch-accent);
+  color: var(--pitch-shadow-ink);
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.spin-button,
+.winner-confirm {
+  &:focus-visible {
+    outline: 3px solid var(--pitch-ink);
+    outline-offset: 3px;
+  }
 }
 
 .game-state {
@@ -195,6 +258,7 @@ h3 {
 }
 
 .remaining-list,
+.removed-list,
 .picked-list {
   margin: 0.8rem 0 0;
   padding-inline-start: 1.5rem;
@@ -202,6 +266,7 @@ h3 {
 }
 
 .remaining-list li,
+.removed-list li,
 .picked-list li {
   padding-block: 0.25rem;
   line-height: 1.5;
@@ -232,10 +297,34 @@ h3 {
     border-color: var(--pitch-danger);
     color: var(--pitch-danger);
   }
+}
 
+.removed-section {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--pitch-line);
+}
+
+.removed-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.restore-game {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--pitch-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pitch-ink);
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover,
   &:focus-visible {
-    outline: 3px solid var(--pitch-accent);
-    outline-offset: 2px;
+    border-color: var(--pitch-accent);
   }
 }
 
@@ -256,7 +345,12 @@ h3 {
     border-color: var(--pitch-accent);
     color: var(--pitch-ink);
   }
+}
 
+.remove-game,
+.restore-game,
+.reset-button,
+.winner-close {
   &:focus-visible {
     outline: 3px solid var(--pitch-accent);
     outline-offset: 2px;
@@ -264,6 +358,7 @@ h3 {
 }
 
 .empty-available,
+.empty-removed,
 .empty-picked {
   color: var(--pitch-ink-dim);
   list-style: none;

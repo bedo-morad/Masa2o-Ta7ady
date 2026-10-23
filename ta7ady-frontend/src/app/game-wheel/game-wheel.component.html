@@ -11,20 +11,28 @@
           viewBox="0 0 360 360"
           role="img"
           [attr.aria-label]="wheelDescription()"
-          (transitionend)="finishWheelSpin()"
         >
-          <g class="wheel-rotor" [style.transform]="'rotate(' + wheelRotation() + 'deg)'">
+          <g
+            class="wheel-rotor"
+            [style.transform]="'rotate(' + wheelRotation() + 'deg)'"
+            (transitionend)="finishWheelSpin()"
+          >
             @for (segment of wheelSegments(); track segment.game.id) {
               <path [attr.d]="segment.path" [class]="segment.colorClass" />
-              <text
-                class="segment-label"
-                [class]="segment.labelClass"
-                [attr.transform]="segment.labelTransform"
-                text-anchor="middle"
-                direction="rtl"
-              >
-                {{ segment.game.name }}
-              </text>
+              <g [attr.transform]="segment.labelTransform">
+                <text
+                  class="segment-label"
+                  [class]="segment.labelClass"
+                  aria-hidden="true"
+                  [attr.transform]="'rotate(' + labelCounterRotation() + ')'"
+                  text-anchor="middle"
+                  direction="rtl"
+                >
+                  @for (line of segment.labelLines; track $index) {
+                    <tspan x="0" [attr.dy]="line.dy">{{ line.text }}</tspan>
+                  }
+                </text>
+              </g>
             } @empty {
               <circle class="empty-disc" cx="180" cy="180" r="168" />
             }
@@ -37,19 +45,12 @@
         type="button"
         class="spin-button"
         aria-label="لف العجلة"
-        [disabled]="state.remainingGames().length === 0"
+        [disabled]="state.remainingGames().length === 0 || pendingWinner() !== null"
         (click)="spin()"
       >
         <i class="fa-solid fa-dharmachakra" aria-hidden="true"></i>
         لف العجلة
       </button>
-      <p class="spin-result" aria-live="polite">
-        @if (lastWinner(); as winner) {
-          اختارت العجلة: {{ winner.name }}
-        } @else {
-          اختار لعبة عشوائيًا
-        }
-      </p>
     </section>
 
     <div class="game-state">
@@ -85,6 +86,27 @@
         </button>
       </section>
 
+      <section class="removed-section" aria-label="الألعاب المستبعدة">
+        <h3>الألعاب المستبعدة</h3>
+        <ul class="removed-list">
+          @for (game of state.removedGames(); track game.id) {
+            <li>
+              <span>{{ game.name }}</span>
+              <button
+                type="button"
+                class="restore-game"
+                (click)="restoreGame(game.id)"
+                [attr.aria-label]="'إعادة ' + game.name + ' إلى العجلة'"
+              >
+                إعادة
+              </button>
+            </li>
+          } @empty {
+            <li class="empty-removed">مفيش ألعاب مستبعدة</li>
+          }
+        </ul>
+      </section>
+
       <section class="picked-section" aria-label="الألعاب المختارة">
         <h3>الألعاب المختارة</h3>
         <ol class="picked-list">
@@ -97,4 +119,32 @@
       </section>
     </div>
   </div>
+
+  @if (pendingWinner(); as winner) {
+    <dialog
+      #winnerDialog
+      class="winner-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="winner-dialog-title"
+      (click)="handleWinnerDialogClick($event)"
+      (cancel)="handleWinnerDialogCancel($event)"
+    >
+      <div class="winner-card">
+        <button
+          type="button"
+          class="winner-close"
+          aria-label="إغلاق نافذة الاختيار"
+          (click)="closeWinnerPopup()"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+        <h2 id="winner-dialog-title">اختارت العجلة</h2>
+        <p class="winner-name">{{ winner.name }}</p>
+        <button type="button" class="winner-confirm" (click)="closeWinnerPopup()">
+          إضافة إلى الألعاب المختارة
+        </button>
+      </div>
+    </dialog>
+  }
 </main>

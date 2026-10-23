@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import type { GameId, GameOption } from '../shared/game-catalog';
 import { GameWheelStateService } from './game-wheel-state.service';
@@ -7,8 +7,14 @@ interface WheelSegment {
   readonly game: GameOption;
   readonly path: string;
   readonly labelTransform: string;
+  readonly labelLines: readonly WheelLabelLine[];
   readonly colorClass: string;
   readonly labelClass: string;
+}
+
+interface WheelLabelLine {
+  readonly text: string;
+  readonly dy: string;
 }
 
 function pointOnWheel(angle: number, radius: number): readonly [number, number] {
@@ -27,9 +33,13 @@ function segmentPath(startAngle: number, endAngle: number): string {
   return `M 180 180 L ${startX} ${startY} A 168 168 0 ${largeArc} 1 ${endX} ${endY} Z`;
 }
 
-function readableRotation(angle: number): number {
-  const normalized = ((angle % 360) + 360) % 360;
-  return normalized > 90 && normalized < 270 ? (normalized + 180) % 360 : normalized;
+function createLabelLines(name: string): readonly WheelLabelLine[] {
+  const words = name.split(/\s+/);
+  const firstLineOffset = -((words.length - 1) / 2);
+  return words.map((text, index) => ({
+    text,
+    dy: index === 0 ? `${firstLineOffset}em` : '1em',
+  }));
 }
 
 function createWheelSegments(games: readonly GameOption[]): readonly WheelSegment[] {
@@ -41,12 +51,12 @@ function createWheelSegments(games: readonly GameOption[]): readonly WheelSegmen
     const endAngle = startAngle + sliceAngle;
     const middleAngle = (startAngle + endAngle) / 2;
     const [labelX, labelY] = pointOnWheel(middleAngle, 112);
-    const labelAngle = readableRotation(middleAngle + 90);
 
     return {
       game,
       path: segmentPath(startAngle, endAngle),
-      labelTransform: `translate(${labelX} ${labelY}) rotate(${labelAngle})`,
+      labelTransform: `translate(${labelX} ${labelY})`,
+      labelLines: createLabelLines(game.name),
       colorClass: `sector-${index % 4}`,
       labelClass: `label-${index % 4}`,
     };
@@ -71,23 +81,54 @@ function prefersReducedMotion(): boolean {
 export class GameWheelComponent {
   readonly state = inject(GameWheelStateService);
   readonly wheelRotation = signal(0);
-  readonly lastWinner = signal<GameOption | null>(null);
-  // Keep a winner's sector visible until the spin settles; persisted round state remains service-owned.
+  readonly isSpinning = signal(false);
+  readonly pendingWinner = signal<GameOption | null>(null);
+  readonly labelCounterRotation = computed(() => (this.isSpinning() ? 0 : -this.wheelRotation()));
   private readonly displayGames = signal<readonly GameOption[]>(this.state.remainingGames());
+  private activeWinnerDialog: HTMLDialogElement | null = null;
   readonly wheelSegments = computed(() => createWheelSegments(this.displayGames()));
   readonly wheelDescription = computed(
     () => `عجلة الألعاب، ${this.displayGames().length} ألعاب متاحة`,
   );
 
+  @ViewChild('winnerDialog')
+  set winnerDialog(element: ElementRef<HTMLDialogElement> | undefined) {
+    const dialog = element?.nativeElement ?? null;
+    this.activeWinnerDialog = dialog;
+    if (!dialog || dialog.open) return;
+
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+      return;
+    }
+    dialog.setAttribute('open', '');
+  }
+
   removeGame(gameId: GameId): void {
+    if (this.pendingWinner()) return;
     this.state.removeGame(gameId);
     this.displayGames.set(this.state.remainingGames());
   }
 
+  restoreGame(gameId: GameId): void {
+    if (this.pendingWinner()) return;
+    this.state.restoreRemovedGame(gameId);
+    this.displayGames.set(this.state.remainingGames());
+  }
+
   spin(): void {
+    if (this.pendingWinner()) return;
+
     const gamesBeforeSpin = this.state.remainingGames();
-    const winner = this.state.spin();
+    const winner = this.state.chooseWinner();
     if (!winner) return;
+
+    this.pendingWinner.set(winner);
+    if (prefersReducedMotion()) {
+      this.wheelRotation.set(0);
+      this.isSpinning.set(false);
+      return;
+    }
 
     const winnerIndex = gamesBeforeSpin.findIndex((game) => game.id === winner.id);
     const sliceAngle = 360 / gamesBeforeSpin.length;
@@ -96,24 +137,51 @@ export class GameWheelComponent {
     const currentRemainder = ((currentAngle % 360) + 360) % 360;
     const finalTurn = (targetAngle - currentRemainder + 360) % 360;
 
-    this.displayGames.set(gamesBeforeSpin);
+    this.isSpinning.set(true);
     this.wheelRotation.set(currentAngle + 1440 + finalTurn);
-    this.lastWinner.set(winner);
-
-    if (prefersReducedMotion()) {
-      this.wheelRotation.set(0);
-      this.displayGames.set(this.state.remainingGames());
-    }
   }
 
   finishWheelSpin(): void {
+    this.isSpinning.set(false);
+  }
+
+  closeWinnerPopup(): void {
+    const winner = this.pendingWinner();
+    if (!winner) return;
+
+    this.dismissWinnerDialog();
+    this.state.pickWinner(winner.id);
     this.displayGames.set(this.state.remainingGames());
+    this.pendingWinner.set(null);
+    this.isSpinning.set(false);
+  }
+
+  handleWinnerDialogClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeWinnerPopup();
+  }
+
+  handleWinnerDialogCancel(event: Event): void {
+    event.preventDefault();
+    this.closeWinnerPopup();
   }
 
   resetRound(): void {
+    this.dismissWinnerDialog();
     this.state.resetRound();
     this.displayGames.set(this.state.remainingGames());
-    this.lastWinner.set(null);
+    this.pendingWinner.set(null);
+    this.isSpinning.set(false);
     this.wheelRotation.set(0);
+  }
+
+  private dismissWinnerDialog(): void {
+    const dialog = this.activeWinnerDialog;
+    if (!dialog?.open) return;
+
+    if (typeof dialog.close === 'function') {
+      dialog.close();
+      return;
+    }
+    dialog.removeAttribute('open');
   }
 }

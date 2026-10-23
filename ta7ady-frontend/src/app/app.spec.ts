@@ -72,5 +72,11 @@ describe('App', () => {
 
     expect(gamesOnWheel?.querySelectorAll('li')).toHaveLength(9);
     expect(gamesOnWheel?.textContent).not.toContain('الباسورد');
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="الألعاب المستبعدة"]')?.textContent,
+    ).toContain('الباسورد');
+    expect(
+      fixture.nativeElement.querySelector('button[aria-label="إعادة الباسورد إلى العجلة"]'),
+    ).toBeTruthy();
   });
 });

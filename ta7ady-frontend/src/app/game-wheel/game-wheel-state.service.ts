@@ -3,11 +3,13 @@ import { GAME_CATALOG, type GameId, type GameOption } from '../shared/game-catal
 
 interface GameWheelRound {
   readonly remaining: readonly GameOption[];
+  readonly removed: readonly GameOption[];
   readonly picked: readonly GameOption[];
 }
 
 interface StoredGameWheelRound {
   readonly remainingIds: readonly string[];
+  readonly removedIds?: readonly string[];
   readonly pickedIds: readonly string[];
 }
 
@@ -19,10 +21,13 @@ function isStoredRound(value: unknown): value is StoredGameWheelRound {
 
   const candidate = value as Record<string, unknown>;
   const remainingIds = candidate['remainingIds'];
+  const removedIds = candidate['removedIds'] ?? [];
   const pickedIds = candidate['pickedIds'];
   return (
     Array.isArray(remainingIds) &&
     remainingIds.every((id) => typeof id === 'string') &&
+    Array.isArray(removedIds) &&
+    removedIds.every((id) => typeof id === 'string') &&
     Array.isArray(pickedIds) &&
     pickedIds.every((id) => typeof id === 'string')
   );
@@ -40,53 +45,87 @@ function gamesFromIds(ids: readonly string[]): readonly GameOption[] {
   return games;
 }
 
+function freshRound(): GameWheelRound {
+  return { remaining: GAME_CATALOG, removed: [], picked: [] };
+}
+
 @Injectable({ providedIn: 'root' })
 export class GameWheelStateService {
   private readonly round = signal<GameWheelRound>(this.restoreRound());
 
   readonly remainingGames = computed(() => this.round().remaining);
+  readonly removedGames = computed(() => this.round().removed);
   readonly pickedGames = computed(() => this.round().picked);
 
   removeGame(gameId: GameId): void {
     const current = this.round();
-    const remaining = current.remaining.filter((game) => game.id !== gameId);
-    if (remaining.length === current.remaining.length) return;
-    this.saveRound({ ...current, remaining });
+    const game = current.remaining.find((item) => item.id === gameId);
+    if (!game) return;
+
+    this.saveRound({
+      ...current,
+      remaining: current.remaining.filter((item) => item.id !== gameId),
+      removed: [...current.removed, game],
+    });
   }
 
-  spin(): GameOption | null {
+  restoreRemovedGame(gameId: GameId): void {
+    const current = this.round();
+    const game = current.removed.find((item) => item.id === gameId);
+    if (!game) return;
+
+    this.saveRound({
+      ...current,
+      remaining: [...current.remaining, game],
+      removed: current.removed.filter((item) => item.id !== gameId),
+    });
+  }
+
+  chooseWinner(): GameOption | null {
     const current = this.round();
     if (current.remaining.length === 0) return null;
 
     const winnerIndex = Math.floor(Math.random() * current.remaining.length);
     const winner = current.remaining[winnerIndex];
-    if (!winner) return null;
+    return winner ?? null;
+  }
+
+  pickWinner(gameId: GameId): void {
+    const current = this.round();
+    const winner = current.remaining.find((game) => game.id === gameId);
+    if (!winner) return;
 
     this.saveRound({
+      ...current,
       remaining: current.remaining.filter((game) => game.id !== winner.id),
       picked: [...current.picked, winner],
     });
-    return winner;
   }
 
   resetRound(): void {
-    this.saveRound({ remaining: GAME_CATALOG, picked: [] });
+    this.saveRound(freshRound());
   }
 
   private restoreRound(): GameWheelRound {
     try {
       const storedValue = localStorage.getItem(STORAGE_KEY);
-      if (!storedValue) return { remaining: GAME_CATALOG, picked: [] };
+      if (!storedValue) return freshRound();
 
       const parsed: unknown = JSON.parse(storedValue);
-      if (!isStoredRound(parsed)) return { remaining: GAME_CATALOG, picked: [] };
+      if (!isStoredRound(parsed)) return freshRound();
 
       const picked = gamesFromIds(parsed.pickedIds);
       const pickedIds = new Set(picked.map((game) => game.id));
-      const remaining = gamesFromIds(parsed.remainingIds).filter((game) => !pickedIds.has(game.id));
-      return { remaining, picked };
+      const removed = gamesFromIds(parsed.removedIds ?? []).filter(
+        (game) => !pickedIds.has(game.id),
+      );
+      const unavailableIds = new Set([...pickedIds, ...removed.map((game) => game.id)]);
+      const remaining = gamesFromIds(parsed.remainingIds).filter(
+        (game) => !unavailableIds.has(game.id),
+      );
+      return { remaining, removed, picked };
     } catch {
-      return { remaining: GAME_CATALOG, picked: [] };
+      return freshRound();
     }
   }
 
@@ -97,6 +136,7 @@ export class GameWheelStateService {
         STORAGE_KEY,
         JSON.stringify({
           remainingIds: round.remaining.map((game) => game.id),
+          removedIds: round.removed.map((game) => game.id),
           pickedIds: round.picked.map((game) => game.id),
         }),
       );

@@ -72,15 +72,16 @@ export class GameWheelComponent {
   readonly state = inject(GameWheelStateService);
   readonly wheelRotation = signal(0);
   readonly lastWinner = signal<GameOption | null>(null);
-  private readonly wheelGames = signal<readonly GameOption[]>(this.state.remainingGames());
-  readonly wheelSegments = computed(() => createWheelSegments(this.wheelGames()));
+  // Keep a winner's sector visible until the spin settles; persisted round state remains service-owned.
+  private readonly displayGames = signal<readonly GameOption[]>(this.state.remainingGames());
+  readonly wheelSegments = computed(() => createWheelSegments(this.displayGames()));
   readonly wheelDescription = computed(
-    () => `عجلة الألعاب، ${this.wheelGames().length} ألعاب متاحة`,
+    () => `عجلة الألعاب، ${this.displayGames().length} ألعاب متاحة`,
   );
 
   removeGame(gameId: GameId): void {
     this.state.removeGame(gameId);
-    this.wheelGames.set(this.state.remainingGames());
+    this.displayGames.set(this.state.remainingGames());
   }
 
   spin(): void {
@@ -95,23 +96,23 @@ export class GameWheelComponent {
     const currentRemainder = ((currentAngle % 360) + 360) % 360;
     const finalTurn = (targetAngle - currentRemainder + 360) % 360;
 
-    this.wheelGames.set(gamesBeforeSpin);
+    this.displayGames.set(gamesBeforeSpin);
     this.wheelRotation.set(currentAngle + 1440 + finalTurn);
     this.lastWinner.set(winner);
 
     if (prefersReducedMotion()) {
       this.wheelRotation.set(0);
-      this.wheelGames.set(this.state.remainingGames());
+      this.displayGames.set(this.state.remainingGames());
     }
   }
 
   finishWheelSpin(): void {
-    this.wheelGames.set(this.state.remainingGames());
+    this.displayGames.set(this.state.remainingGames());
   }
 
   resetRound(): void {
     this.state.resetRound();
-    this.wheelGames.set(this.state.remainingGames());
+    this.displayGames.set(this.state.remainingGames());
     this.lastWinner.set(null);
     this.wheelRotation.set(0);
   }

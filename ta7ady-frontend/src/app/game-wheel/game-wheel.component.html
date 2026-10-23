@@ -1,0 +1,100 @@
+<main class="wheel-page" dir="rtl">
+  <app-game-header title="عجلة الألعاب" />
+  <p class="intro">خلّي العجلة تختار اللعبة الجاية</p>
+
+  <div class="wheel-layout">
+    <section class="wheel-stage" aria-label="عجلة اختيار اللعبة">
+      <div class="wheel-frame">
+        <span class="wheel-pointer" aria-hidden="true"></span>
+        <svg
+          class="wheel-disc"
+          viewBox="0 0 360 360"
+          role="img"
+          [attr.aria-label]="wheelDescription()"
+          (transitionend)="finishWheelSpin()"
+        >
+          <g class="wheel-rotor" [style.transform]="'rotate(' + wheelRotation() + 'deg)'">
+            @for (segment of wheelSegments(); track segment.game.id) {
+              <path [attr.d]="segment.path" [class]="segment.colorClass" />
+              <text
+                class="segment-label"
+                [class]="segment.labelClass"
+                [attr.transform]="segment.labelTransform"
+                text-anchor="middle"
+                direction="rtl"
+              >
+                {{ segment.game.name }}
+              </text>
+            } @empty {
+              <circle class="empty-disc" cx="180" cy="180" r="168" />
+            }
+            <circle class="wheel-hub" cx="180" cy="180" r="39" />
+            <text class="hub-label" x="180" y="188" text-anchor="middle">لف</text>
+          </g>
+        </svg>
+      </div>
+      <button
+        type="button"
+        class="spin-button"
+        aria-label="لف العجلة"
+        [disabled]="state.remainingGames().length === 0"
+        (click)="spin()"
+      >
+        <i class="fa-solid fa-dharmachakra" aria-hidden="true"></i>
+        لف العجلة
+      </button>
+      <p class="spin-result" aria-live="polite">
+        @if (lastWinner(); as winner) {
+          اختارت العجلة: {{ winner.name }}
+        } @else {
+          اختار لعبة عشوائيًا
+        }
+      </p>
+    </section>
+
+    <div class="game-state">
+      <section class="remaining-section" aria-label="الألعاب على العجلة">
+        <div class="section-heading">
+          <h3>الألعاب المتاحة</h3>
+          <span class="game-count">{{ state.remainingGames().length }}</span>
+        </div>
+        <ul class="remaining-list">
+          @for (game of state.remainingGames(); track game.id) {
+            <li>
+              <span>{{ game.name }}</span>
+              <button
+                type="button"
+                class="remove-game"
+                (click)="removeGame(game.id)"
+                [attr.aria-label]="'إزالة ' + game.name + ' من العجلة'"
+              >
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+            </li>
+          } @empty {
+            <li class="empty-available">مفيش ألعاب على العجلة</li>
+          }
+        </ul>
+        <button
+          type="button"
+          class="reset-button"
+          aria-label="بدء جولة جديدة"
+          (click)="resetRound()"
+        >
+          جولة جديدة
+        </button>
+      </section>
+
+      <section class="picked-section" aria-label="الألعاب المختارة">
+        <h3>الألعاب المختارة</h3>
+        <ol class="picked-list">
+          @for (game of state.pickedGames(); track game.id) {
+            <li>{{ game.name }}</li>
+          } @empty {
+            <li class="empty-picked">لسه ما اختارتش لعبة</li>
+          }
+        </ol>
+      </section>
+    </div>
+  </div>
+</main>

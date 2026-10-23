@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { GAME_CATALOG } from '../shared/game-catalog';
 import { SettingsModalComponent } from '../shared/settings/settings-modal.component';
 
 @Component({
@@ -10,6 +11,7 @@ import { SettingsModalComponent } from '../shared/settings/settings-modal.compon
   styleUrl: './home.component.scss',
 })
 export class HomeComponent {
+  readonly games = GAME_CATALOG;
   readonly settingsOpen = signal(false);
 
   openSettings(): void {

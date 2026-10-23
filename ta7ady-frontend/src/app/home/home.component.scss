@@ -25,7 +25,15 @@
   }
 }
 
-.gear {
+.menu-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.gear,
+.wheel-link {
   flex: none;
   width: 48px;
   height: 48px;
@@ -37,6 +45,22 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--pitch-accent);
+    color: var(--pitch-ink);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--pitch-accent);
+    outline-offset: 2px;
+  }
+}
+
+.wheel-link {
+  text-decoration: none;
+  font-size: 1.2rem;
 }
 
 .play-grid {
@@ -59,7 +83,9 @@
   font-size: 1.4rem;
   font-weight: 900;
   min-height: 110px;
-  transition: transform 0.15s ease-out, border-color 0.15s ease-out;
+  transition:
+    transform 0.15s ease-out,
+    border-color 0.15s ease-out;
 
   &:hover,
   &:focus-visible {
@@ -87,6 +113,10 @@
 }
 
 @media (max-width: 420px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+
   .play-grid {
     grid-template-columns: 1fr;
   }

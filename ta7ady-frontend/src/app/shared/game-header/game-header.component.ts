@@ -11,4 +11,5 @@ import { RouterLink } from '@angular/router';
 })
 export class GameHeaderComponent {
   readonly title = input.required<string>();
+  readonly titleGap = input(false);
 }

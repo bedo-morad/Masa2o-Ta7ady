@@ -1,0 +1,61 @@
+<main class="wheel-page" dir="rtl">
+  <app-game-header title="عجلة الحظ" [titleGap]="true" />
+
+  <div class="wheel-layout">
+    <section class="wheel-stage" aria-label="عجلة اختيار اللعبة">
+      <div class="wheel-frame">
+        <app-wheel-disc
+          [games]="state.remainingGames()"
+          [rotation]="wheelRotation()"
+          [spinning]="isSpinning()"
+          (spinFinished)="finishWheelSpin()"
+        />
+      </div>
+      <button
+        type="button"
+        class="spin-button"
+        aria-label="لف العجلة"
+        [disabled]="state.remainingGames().length === 0 || pendingWinner() !== null"
+        (click)="spin()"
+      >
+        <i class="fa-solid fa-dharmachakra" aria-hidden="true"></i>
+        لف العجلة
+      </button>
+    </section>
+
+    <app-game-state-panel
+      class="game-state"
+      [remainingGames]="state.remainingGames()"
+      [removedGames]="state.removedGames()"
+      [pickedGames]="state.pickedGames()"
+      (removeGame)="removeGame($event)"
+      (restoreGame)="restoreGame($event)"
+      (resetRound)="resetRound()"
+    />
+  </div>
+
+  @if (winnerPopupGame(); as winner) {
+    <dialog
+      #winnerDialog
+      class="winner-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="winner-dialog-title"
+      (click)="handleWinnerDialogClick($event)"
+      (cancel)="handleWinnerDialogCancel($event)"
+    >
+      <div class="winner-card">
+        <button
+          type="button"
+          class="winner-close"
+          aria-label="إغلاق نافذة الاختيار"
+          (click)="closeWinnerPopup()"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+        <h2 id="winner-dialog-title">اختارت العجلة</h2>
+        <p class="winner-name">{{ winner.name }}</p>
+      </div>
+    </dialog>
+  }
+</main>

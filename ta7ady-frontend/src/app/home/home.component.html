@@ -1,22 +1,20 @@
 <div class="home">
   <header class="hero">
-    <button type="button" class="gear" (click)="openSettings()" aria-label="فتح الإعدادات">
-      <i class="fa-solid fa-gear"></i>
-    </button>
+    <div class="menu-actions">
+      <button type="button" class="gear" (click)="openSettings()" aria-label="فتح الإعدادات">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+      <a routerLink="/game-wheel" class="wheel-link" aria-label="عجلة اختيار لعبة">
+        <i class="fa-solid fa-dharmachakra" aria-hidden="true"></i>
+      </a>
+    </div>
     <h1>مسائو تحدي</h1>
   </header>
 
   <nav class="play-grid" aria-label="التحديات">
-    <a routerLink="/password" class="play-btn">الباسورد</a>
-    <a routerLink="/acting" class="play-btn">التمثيل</a>
-    <a routerLink="/ihbid" class="play-btn">اهبد صح</a>
-    <a routerLink="/offside" class="play-btn">أوفسايد</a>
-    <a routerLink="/top10" class="play-btn">توب 10</a>
-    <a routerLink="/scoresheet" class="play-btn">سكور شيت</a>
-    <a routerLink="/risk" class="play-btn">ريسك</a>
-    <a routerLink="/bank" class="play-btn">بنك</a>
-    <a routerLink="/anameen" class="play-btn">أنا مين؟</a>
-    <a routerLink="/whopicture" class="play-btn">مين في الصورة</a>
+    @for (game of games; track game.id) {
+      <a [routerLink]="game.route" class="play-btn">{{ game.name }}</a>
+    }
   </nav>
 
   <a routerLink="/manage" class="manage-link">

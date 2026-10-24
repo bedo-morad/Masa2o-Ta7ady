@@ -1,0 +1,91 @@
+:host {
+  display: block;
+}
+
+.wheel-pointer {
+  position: absolute;
+  z-index: 1;
+  top: 0.15rem;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-inline: 0.8rem solid transparent;
+  border-top: 1.4rem solid var(--pitch-accent);
+  filter: drop-shadow(0 2px 2px var(--pitch-shadow-ink));
+}
+
+.wheel-disc {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.wheel-center-icon {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: min(15%, 3.5rem);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.dark-theme-icon {
+  filter: invert(1);
+}
+
+.wheel-rotor {
+  transform-box: view-box;
+  transform-origin: center;
+  transition: transform 3.6s cubic-bezier(0.12, 0.75, 0.18, 1);
+}
+
+.sector-0 {
+  fill: var(--pitch-surface);
+}
+
+.sector-1 {
+  fill: var(--pitch-accent);
+}
+
+.sector-0,
+.sector-1,
+.empty-disc {
+  stroke: var(--pitch-accent);
+  stroke-width: 2.5;
+}
+
+.empty-disc {
+  fill: var(--pitch-surface);
+}
+
+.segment-label {
+  font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.label-0 {
+  fill: var(--pitch-ink);
+}
+
+.label-1 {
+  fill: var(--pitch-shadow-ink);
+}
+
+.wheel-hub {
+  fill: var(--pitch-surface);
+  stroke: var(--pitch-accent);
+  stroke-width: 4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel-rotor {
+    transition: none;
+  }
+}

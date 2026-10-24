@@ -22,6 +22,11 @@ export const routes: Routes = [
   { path: 'bank', component: BankComponent },
   { path: 'anameen', component: AnameenComponent },
   {
+    path: 'game-wheel',
+    loadComponent: () =>
+      import('./game-wheel/game-wheel.component').then((m) => m.GameWheelComponent),
+  },
+  {
     path: 'whopicture',
     loadComponent: () =>
       import('./whopicture/whopicture.component').then((m) => m.WhopictureComponent),

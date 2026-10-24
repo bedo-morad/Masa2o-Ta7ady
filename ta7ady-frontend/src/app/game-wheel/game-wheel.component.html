@@ -4,46 +4,11 @@
   <div class="wheel-layout">
     <section class="wheel-stage" aria-label="عجلة اختيار اللعبة">
       <div class="wheel-frame">
-        <span class="wheel-pointer" aria-hidden="true"></span>
-        <svg
-          class="wheel-disc"
-          viewBox="0 0 360 360"
-          role="img"
-          [attr.aria-label]="wheelDescription()"
-        >
-          <g
-            class="wheel-rotor"
-            [style.transform]="'rotate(' + wheelRotation() + 'deg)'"
-            (transitionend)="finishWheelSpin()"
-          >
-            @for (segment of wheelSegments(); track segment.game.id) {
-              <path [attr.d]="segment.path" [class]="segment.colorClass" />
-              <g [attr.transform]="segment.labelTransform">
-                <text
-                  class="segment-label"
-                  [class]="segment.labelClass"
-                  aria-hidden="true"
-                  [attr.transform]="'rotate(' + labelCounterRotation() + ')'"
-                  text-anchor="middle"
-                  direction="rtl"
-                >
-                  @for (line of segment.labelLines; track $index) {
-                    <tspan x="0" [attr.dy]="line.dy">{{ line.text }}</tspan>
-                  }
-                </text>
-              </g>
-            } @empty {
-              <circle class="empty-disc" cx="180" cy="180" r="168" />
-            }
-            <circle class="wheel-hub" cx="180" cy="180" r="39" />
-          </g>
-        </svg>
-        <img
-          class="wheel-center-icon"
-          [class.dark-theme-icon]="isDarkTheme()"
-          src="/icon-128.png"
-          alt=""
-          aria-hidden="true"
+        <app-wheel-disc
+          [games]="state.remainingGames()"
+          [rotation]="wheelRotation()"
+          [spinning]="isSpinning()"
+          (spinFinished)="finishWheelSpin()"
         />
       </div>
       <button

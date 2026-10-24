@@ -2,8 +2,8 @@ import { Component, ElementRef, ViewChild, computed, inject, signal } from '@ang
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import type { GameId, GameOption } from '../shared/game-catalog';
 import { GameStatePanelComponent } from './game-state-panel/game-state-panel.component';
-import { GameWheelStateService } from './game-wheel-state.service';
-import { rotationForWinner } from './wheel-geometry';
+import { GameWheelStateService } from './state/game-wheel-state.service';
+import { rotationForWinner } from './geometry/wheel-geometry';
 import { WheelDiscComponent } from './wheel-disc/wheel-disc.component';
 
 function prefersReducedMotion(): boolean {

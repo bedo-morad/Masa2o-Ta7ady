@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import type { GameOption } from '../../shared/game-catalog';
 import { ThemeService } from '../../services/theme.service';
-import { createWheelSegments } from '../wheel-geometry';
+import { createWheelSegments } from '../geometry/wheel-geometry';
 
 @Component({
   selector: 'app-wheel-disc',

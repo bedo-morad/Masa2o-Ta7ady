@@ -1,5 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { GAME_CATALOG, type GameId, type GameOption } from '../shared/game-catalog';
+import { GAME_CATALOG, type GameId, type GameOption } from '../../shared/game-catalog';
 
 interface GameWheelRound {
   readonly remaining: readonly GameOption[];

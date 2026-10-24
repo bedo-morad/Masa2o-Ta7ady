@@ -1,4 +1,4 @@
-import type { GameId, GameOption } from '../shared/game-catalog';
+import type { GameId, GameOption } from '../../shared/game-catalog';
 
 export interface WheelSegment {
   readonly game: GameOption;

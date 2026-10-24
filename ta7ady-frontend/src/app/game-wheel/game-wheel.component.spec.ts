@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { ThemeService } from '../services/theme.service';
 import { GameWheelComponent } from './game-wheel.component';
 
 describe('GameWheelComponent', () => {
@@ -13,12 +14,15 @@ describe('GameWheelComponent', () => {
 
   afterEach(() => localStorage.clear());
 
-  it('shows the Arabic page title and a route back to the main menu', () => {
+  it('shows the approved title with spacing and no helper copy', () => {
     const fixture = TestBed.createComponent(GameWheelComponent);
     fixture.detectChanges();
     const page: HTMLElement = fixture.nativeElement;
+    const title = page.querySelector('app-game-header h2');
 
-    expect(page.querySelector('h2')?.textContent).toContain('عجلة الألعاب');
+    expect(title?.textContent).toContain('عجلة الحظ');
+    expect(title?.classList.contains('title-gap')).toBe(true);
+    expect(page.querySelector('.intro')).toBeNull();
     expect(page.querySelector('a.back')?.getAttribute('href')).toBe('/');
   });
 
@@ -44,6 +48,38 @@ describe('GameWheelComponent', () => {
     ]) {
       expect(gamesOnWheel?.textContent).toContain(gameName);
     }
+  });
+
+  it('uses exactly two alternating colors for the wheel sectors', () => {
+    const fixture = TestBed.createComponent(GameWheelComponent);
+    fixture.detectChanges();
+    const page: HTMLElement = fixture.nativeElement;
+    const sectorColors = new Set(
+      Array.from(page.querySelectorAll('.wheel-disc path')).map((path) =>
+        Array.from(path.classList).find((className) => className.startsWith('sector-')),
+      ),
+    );
+
+    expect(sectorColors).toEqual(new Set(['sector-0', 'sector-1']));
+  });
+
+  it('uses a light or dark app-icon treatment for the active theme', () => {
+    const fixture = TestBed.createComponent(GameWheelComponent);
+    fixture.detectChanges();
+    const page: HTMLElement = fixture.nativeElement;
+    const icon = page.querySelector('.wheel-center-icon');
+    const theme = TestBed.inject(ThemeService);
+
+    expect(icon?.getAttribute('src')).toBe('/icon.png');
+    expect(icon?.classList.contains('dark-theme-icon')).toBe(true);
+
+    theme.setTheme('sand');
+    fixture.detectChanges();
+    expect(icon?.classList.contains('dark-theme-icon')).toBe(false);
+
+    theme.setTheme('night');
+    fixture.detectChanges();
+    expect(icon?.classList.contains('dark-theme-icon')).toBe(true);
   });
 
   it('removes a game from the wheel without adding it to picked games', () => {
@@ -108,6 +144,9 @@ describe('GameWheelComponent', () => {
     expect(spinButton).toBeTruthy();
     spinButton?.click();
     fixture.detectChanges();
+    expect(page.querySelector('[role="dialog"]')).toBeNull();
+    page.querySelector('.wheel-rotor')?.dispatchEvent(new Event('transitionend'));
+    fixture.detectChanges();
 
     const firstPopup = page.querySelector('[role="dialog"]');
     expect(firstPopup).toBeTruthy();
@@ -136,6 +175,9 @@ describe('GameWheelComponent', () => {
     );
 
     spinButton?.click();
+    fixture.detectChanges();
+    expect(page.querySelector('[role="dialog"]')).toBeNull();
+    page.querySelector('.wheel-rotor')?.dispatchEvent(new Event('transitionend'));
     fixture.detectChanges();
     const secondPopup = page.querySelector('[role="dialog"]');
     const secondPick = secondPopup?.querySelector('.winner-name')?.textContent?.trim();
@@ -166,6 +208,8 @@ describe('GameWheelComponent', () => {
     ) as HTMLButtonElement | null;
     spinButton?.click();
     fixture.detectChanges();
+    page.querySelector('.wheel-rotor')?.dispatchEvent(new Event('transitionend'));
+    fixture.detectChanges();
 
     const dialog = page.querySelector('dialog') as HTMLDialogElement | null;
     const winner = dialog?.querySelector('.winner-name')?.textContent?.trim();
@@ -195,6 +239,8 @@ describe('GameWheelComponent', () => {
       'button[aria-label="لف العجلة"]',
     ) as HTMLButtonElement | null;
     spinButton?.click();
+    fixture.detectChanges();
+    page.querySelector('.wheel-rotor')?.dispatchEvent(new Event('transitionend'));
     fixture.detectChanges();
 
     const dialog = page.querySelector('dialog') as HTMLDialogElement | null;

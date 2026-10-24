@@ -1,6 +1,5 @@
 <main class="wheel-page" dir="rtl">
-  <app-game-header title="عجلة الألعاب" />
-  <p class="intro">خلّي العجلة تختار اللعبة الجاية</p>
+  <app-game-header title="عجلة الحظ" [titleGap]="true" />
 
   <div class="wheel-layout">
     <section class="wheel-stage" aria-label="عجلة اختيار اللعبة">
@@ -37,9 +36,15 @@
               <circle class="empty-disc" cx="180" cy="180" r="168" />
             }
             <circle class="wheel-hub" cx="180" cy="180" r="39" />
-            <text class="hub-label" x="180" y="188" text-anchor="middle">لف</text>
           </g>
         </svg>
+        <img
+          class="wheel-center-icon"
+          [class.dark-theme-icon]="isDarkTheme()"
+          src="/icon.png"
+          alt=""
+          aria-hidden="true"
+        />
       </div>
       <button
         type="button"
@@ -120,7 +125,7 @@
     </div>
   </div>
 
-  @if (pendingWinner(); as winner) {
+  @if (winnerPopupGame(); as winner) {
     <dialog
       #winnerDialog
       class="winner-dialog"

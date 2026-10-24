@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import type { GameId, GameOption } from '../shared/game-catalog';
+import { ThemeService } from '../services/theme.service';
 import { GameWheelStateService } from './game-wheel-state.service';
 
 interface WheelSegment {
@@ -57,8 +58,8 @@ function createWheelSegments(games: readonly GameOption[]): readonly WheelSegmen
       path: segmentPath(startAngle, endAngle),
       labelTransform: `translate(${labelX} ${labelY})`,
       labelLines: createLabelLines(game.name),
-      colorClass: `sector-${index % 4}`,
-      labelClass: `label-${index % 4}`,
+      colorClass: `sector-${index % 2}`,
+      labelClass: `label-${index % 2}`,
     };
   });
 }
@@ -80,15 +81,19 @@ function prefersReducedMotion(): boolean {
 })
 export class GameWheelComponent {
   readonly state = inject(GameWheelStateService);
+  private readonly themeService = inject(ThemeService);
+  readonly isDarkTheme = computed(() => this.themeService.theme() !== 'sand');
   readonly wheelRotation = signal(0);
   readonly isSpinning = signal(false);
   readonly pendingWinner = signal<GameOption | null>(null);
+  readonly showWinnerPopup = signal(false);
+  readonly winnerPopupGame = computed(() => (this.showWinnerPopup() ? this.pendingWinner() : null));
   readonly labelCounterRotation = computed(() => (this.isSpinning() ? 0 : -this.wheelRotation()));
   private readonly displayGames = signal<readonly GameOption[]>(this.state.remainingGames());
   private activeWinnerDialog: HTMLDialogElement | null = null;
   readonly wheelSegments = computed(() => createWheelSegments(this.displayGames()));
   readonly wheelDescription = computed(
-    () => `عجلة الألعاب، ${this.displayGames().length} ألعاب متاحة`,
+    () => `عجلة الحظ، ${this.displayGames().length} ألعاب متاحة`,
   );
 
   @ViewChild('winnerDialog')
@@ -124,9 +129,11 @@ export class GameWheelComponent {
     if (!winner) return;
 
     this.pendingWinner.set(winner);
+    this.showWinnerPopup.set(false);
     if (prefersReducedMotion()) {
       this.wheelRotation.set(0);
       this.isSpinning.set(false);
+      this.showWinnerPopup.set(true);
       return;
     }
 
@@ -142,7 +149,10 @@ export class GameWheelComponent {
   }
 
   finishWheelSpin(): void {
+    if (!this.pendingWinner()) return;
+
     this.isSpinning.set(false);
+    this.showWinnerPopup.set(true);
   }
 
   closeWinnerPopup(): void {
@@ -153,6 +163,7 @@ export class GameWheelComponent {
     this.state.pickWinner(winner.id);
     this.displayGames.set(this.state.remainingGames());
     this.pendingWinner.set(null);
+    this.showWinnerPopup.set(false);
     this.isSpinning.set(false);
   }
 
@@ -170,6 +181,7 @@ export class GameWheelComponent {
     this.state.resetRound();
     this.displayGames.set(this.state.remainingGames());
     this.pendingWinner.set(null);
+    this.showWinnerPopup.set(false);
     this.isSpinning.set(false);
     this.wheelRotation.set(0);
   }

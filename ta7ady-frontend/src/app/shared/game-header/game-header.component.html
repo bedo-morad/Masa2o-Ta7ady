@@ -2,4 +2,4 @@
   <a routerLink="/" class="back"><i class="fa-solid fa-arrow-right"></i> رجوع</a>
   <a routerLink="/manage" class="manage"><i class="fa-solid fa-database"></i> إدارة الأسئلة</a>
 </div>
-<h2>{{ title() }}</h2>
+<h2 [class.title-gap]="titleGap()">{{ title() }}</h2>

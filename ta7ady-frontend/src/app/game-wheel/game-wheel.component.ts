@@ -18,6 +18,8 @@ interface WheelLabelLine {
   readonly dy: string;
 }
 
+const POINTER_ANGLE = -90;
+
 function pointOnWheel(angle: number, radius: number): readonly [number, number] {
   const radians = (angle * Math.PI) / 180;
   return [180 + Math.cos(radians) * radius, 180 + Math.sin(radians) * radius];
@@ -48,7 +50,7 @@ function createWheelSegments(games: readonly GameOption[]): readonly WheelSegmen
 
   const sliceAngle = 360 / games.length;
   return games.map((game, index) => {
-    const startAngle = -90 + index * sliceAngle;
+    const startAngle = POINTER_ANGLE + index * sliceAngle;
     const endAngle = startAngle + sliceAngle;
     const middleAngle = (startAngle + endAngle) / 2;
     const [labelX, labelY] = pointOnWheel(middleAngle, 112);
@@ -139,7 +141,8 @@ export class GameWheelComponent {
 
     const winnerIndex = gamesBeforeSpin.findIndex((game) => game.id === winner.id);
     const sliceAngle = 360 / gamesBeforeSpin.length;
-    const targetAngle = (360 - (winnerIndex + 0.5) * sliceAngle + 360) % 360;
+    const winnerCenterAngle = POINTER_ANGLE + (winnerIndex + 0.5) * sliceAngle;
+    const targetAngle = (POINTER_ANGLE - winnerCenterAngle + 360) % 360;
     const currentAngle = this.wheelRotation();
     const currentRemainder = ((currentAngle % 360) + 360) % 360;
     const finalTurn = (targetAngle - currentRemainder + 360) % 360;

@@ -70,7 +70,7 @@ describe('GameWheelComponent', () => {
     const icon = page.querySelector('.wheel-center-icon');
     const theme = TestBed.inject(ThemeService);
 
-    expect(icon?.getAttribute('src')).toBe('/icon.png');
+    expect(icon?.getAttribute('src')).toBe('/icon-128.png');
     expect(icon?.classList.contains('dark-theme-icon')).toBe(true);
 
     theme.setTheme('sand');
@@ -80,6 +80,50 @@ describe('GameWheelComponent', () => {
     theme.setTheme('night');
     fixture.detectChanges();
     expect(icon?.classList.contains('dark-theme-icon')).toBe(true);
+  });
+
+  it('shows the selected game immediately when reduced motion is preferred', () => {
+    const originalMatchMedia = window.matchMedia;
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: () => ({ matches: true }),
+    });
+    const fixture = TestBed.createComponent(GameWheelComponent);
+
+    try {
+      fixture.detectChanges();
+      const page: HTMLElement = fixture.nativeElement;
+      const spinButton = page.querySelector('button[aria-label="لف العجلة"]') as HTMLButtonElement;
+      spinButton.click();
+      fixture.detectChanges();
+
+      const dialog = page.querySelector('[role="dialog"]');
+      const winner = dialog?.querySelector('.winner-name')?.textContent?.trim() ?? '';
+      expect(dialog).toBeTruthy();
+      expect(winner).toBeTruthy();
+      expect(fixture.componentInstance.isSpinning()).toBe(false);
+      expect(page.querySelector('[aria-label="الألعاب على العجلة"]')?.textContent).toContain(
+        winner,
+      );
+      expect(page.querySelector('.picked-list')?.textContent).not.toContain(winner);
+
+      const closeButton = dialog?.querySelector(
+        'button[aria-label="إغلاق نافذة الاختيار"]',
+      ) as HTMLButtonElement | null;
+      closeButton?.click();
+      fixture.detectChanges();
+      expect(page.querySelector('.picked-list')?.textContent).toContain(winner);
+    } finally {
+      if (typeof originalMatchMedia === 'function') {
+        Object.defineProperty(window, 'matchMedia', {
+          configurable: true,
+          value: originalMatchMedia,
+        });
+      } else {
+        Reflect.deleteProperty(window, 'matchMedia');
+      }
+      fixture.destroy();
+    }
   });
 
   it('removes a game from the wheel without adding it to picked games', () => {
@@ -254,6 +298,63 @@ describe('GameWheelComponent', () => {
     expect(page.querySelector('dialog')).toBeNull();
     expect(availableGames?.textContent).not.toContain(winner);
     expect(page.querySelector('.picked-list')?.textContent).toContain(winner);
+  });
+
+  it('rehydrates all round categories after a fresh component instance', async () => {
+    const fixture = TestBed.createComponent(GameWheelComponent);
+    fixture.detectChanges();
+    const page: HTMLElement = fixture.nativeElement;
+    const removePassword = page.querySelector(
+      'button[aria-label="إزالة الباسورد من العجلة"]',
+    ) as HTMLButtonElement | null;
+    removePassword?.click();
+    fixture.detectChanges();
+
+    const spinButton = page.querySelector('button[aria-label="لف العجلة"]') as HTMLButtonElement;
+    for (let pickIndex = 0; pickIndex < 2; pickIndex += 1) {
+      spinButton.click();
+      fixture.detectChanges();
+      page.querySelector('.wheel-rotor')?.dispatchEvent(new Event('transitionend'));
+      fixture.detectChanges();
+
+      const dialog = page.querySelector('[role="dialog"]');
+      const winner = dialog?.querySelector('.winner-name')?.textContent?.trim() ?? '';
+      expect(winner).toBeTruthy();
+      const closeButton = dialog?.querySelector(
+        'button[aria-label="إغلاق نافذة الاختيار"]',
+      ) as HTMLButtonElement | null;
+      closeButton?.click();
+      fixture.detectChanges();
+    }
+
+    const expectedPicks = Array.from(
+      page.querySelectorAll('.picked-list li:not(.empty-picked)'),
+    ).map((game) => game.textContent?.trim());
+    expect(expectedPicks).toHaveLength(2);
+    fixture.destroy();
+
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [GameWheelComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
+    const refreshedFixture = TestBed.createComponent(GameWheelComponent);
+    refreshedFixture.detectChanges();
+    const refreshedPage: HTMLElement = refreshedFixture.nativeElement;
+    const remaining = refreshedPage.querySelector('[aria-label="الألعاب على العجلة"]');
+    const removed = refreshedPage.querySelector('[aria-label="الألعاب المستبعدة"]');
+    const actualPicks = Array.from(
+      refreshedPage.querySelectorAll('.picked-list li:not(.empty-picked)'),
+    ).map((game) => game.textContent?.trim());
+
+    expect(remaining?.querySelectorAll('li')).toHaveLength(7);
+    expect(remaining?.textContent).not.toContain('الباسورد');
+    expect(removed?.textContent).toContain('الباسورد');
+    expect(actualPicks).toEqual(expectedPicks);
+    for (const pickedGame of expectedPicks) {
+      expect(remaining?.textContent).not.toContain(pickedGame);
+      expect(removed?.textContent).not.toContain(pickedGame);
+    }
   });
 
   it('disables spinning when empty and Reset starts a fresh round', () => {

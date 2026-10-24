@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { GameHeaderComponent } from '../shared/game-header/game-header.component';
 import type { GameId, GameOption } from '../shared/game-catalog';
+import { GameStatePanelComponent } from './game-state-panel/game-state-panel.component';
 import { GameWheelStateService } from './game-wheel-state.service';
 import { rotationForWinner } from './wheel-geometry';
 import { WheelDiscComponent } from './wheel-disc/wheel-disc.component';
@@ -16,7 +17,7 @@ function prefersReducedMotion(): boolean {
 @Component({
   selector: 'app-game-wheel',
   standalone: true,
-  imports: [GameHeaderComponent, WheelDiscComponent],
+  imports: [GameHeaderComponent, GameStatePanelComponent, WheelDiscComponent],
   templateUrl: './game-wheel.component.html',
   styleUrl: './game-wheel.component.scss',
 })

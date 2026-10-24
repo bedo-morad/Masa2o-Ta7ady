@@ -1,0 +1,63 @@
+<section class="remaining-section" aria-label="الألعاب على العجلة">
+  <div class="section-heading">
+    <h3>الألعاب المتاحة</h3>
+    <span class="game-count">{{ remainingGames().length }}</span>
+  </div>
+  <ul class="remaining-list">
+    @for (game of remainingGames(); track game.id) {
+      <li>
+        <span>{{ game.name }}</span>
+        <button
+          type="button"
+          class="remove-game"
+          (click)="removeGame.emit(game.id)"
+          [attr.aria-label]="'إزالة ' + game.name + ' من العجلة'"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </li>
+    } @empty {
+      <li class="empty-available">مفيش ألعاب على العجلة</li>
+    }
+  </ul>
+  <button
+    type="button"
+    class="reset-button"
+    aria-label="بدء جولة جديدة"
+    (click)="resetRound.emit()"
+  >
+    جولة جديدة
+  </button>
+</section>
+
+<section class="removed-section" aria-label="الألعاب المستبعدة">
+  <h3>الألعاب المستبعدة</h3>
+  <ul class="removed-list">
+    @for (game of removedGames(); track game.id) {
+      <li>
+        <span>{{ game.name }}</span>
+        <button
+          type="button"
+          class="restore-game"
+          (click)="restoreGame.emit(game.id)"
+          [attr.aria-label]="'إعادة ' + game.name + ' إلى العجلة'"
+        >
+          إعادة
+        </button>
+      </li>
+    } @empty {
+      <li class="empty-removed">مفيش ألعاب مستبعدة</li>
+    }
+  </ul>
+</section>
+
+<section class="picked-section" aria-label="الألعاب المختارة">
+  <h3>الألعاب المختارة</h3>
+  <ol class="picked-list">
+    @for (game of pickedGames(); track game.id) {
+      <li>{{ game.name }}</li>
+    } @empty {
+      <li class="empty-picked">لسه ما اختارتش لعبة</li>
+    }
+  </ol>
+</section>

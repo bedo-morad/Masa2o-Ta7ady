@@ -51,6 +51,11 @@
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  &:focus-visible {
+    outline: 3px solid var(--pitch-ink);
+    outline-offset: 3px;
+  }
 }
 
 .winner-dialog {
@@ -108,160 +113,11 @@
   background: transparent;
   color: var(--pitch-ink-dim);
   cursor: pointer;
-}
 
-.spin-button {
-  &:focus-visible {
-    outline: 3px solid var(--pitch-ink);
-    outline-offset: 3px;
-  }
-}
-
-.game-state {
-  min-width: 0;
-  padding: 1.2rem 1.25rem;
-  background: var(--pitch-surface);
-  border: 1px solid var(--pitch-line);
-  border-radius: var(--radius-card);
-}
-
-.section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 900;
-}
-
-.game-count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 2rem;
-  min-height: 2rem;
-  padding: 0 0.4rem;
-  border-radius: 50%;
-  background: var(--pitch-surface-2);
-  color: var(--pitch-ink);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.remaining-list,
-.removed-list,
-.picked-list {
-  margin: 0.8rem 0 0;
-  padding-inline-start: 1.5rem;
-  color: var(--pitch-ink);
-}
-
-.remaining-list li,
-.removed-list li,
-.picked-list li {
-  padding-block: 0.25rem;
-  line-height: 1.5;
-}
-
-.remaining-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.remove-game {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-  border: 1px solid var(--pitch-line);
-  border-radius: 50%;
-  background: transparent;
-  color: var(--pitch-ink-dim);
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    border-color: var(--pitch-danger);
-    color: var(--pitch-danger);
-  }
-}
-
-.removed-section {
-  margin-top: 1.2rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--pitch-line);
-}
-
-.removed-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.restore-game {
-  min-height: 2.25rem;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid var(--pitch-line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--pitch-ink);
-  font-weight: 800;
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    border-color: var(--pitch-accent);
-  }
-}
-
-.reset-button {
-  width: 100%;
-  min-height: 2.75rem;
-  margin-top: 0.75rem;
-  padding: 0.6rem 0.8rem;
-  border: 1px dashed var(--pitch-line);
-  border-radius: 0.7rem;
-  background: transparent;
-  color: var(--pitch-ink-dim);
-  font-weight: 800;
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    border-color: var(--pitch-accent);
-    color: var(--pitch-ink);
-  }
-}
-
-.remove-game,
-.restore-game,
-.reset-button,
-.winner-close {
   &:focus-visible {
     outline: 3px solid var(--pitch-accent);
     outline-offset: 2px;
   }
-}
-
-.empty-available,
-.empty-removed,
-.empty-picked {
-  color: var(--pitch-ink-dim);
-  list-style: none;
-}
-
-.picked-section {
-  margin-top: 1.3rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--pitch-line);
 }
 
 @media (max-width: 700px) {
@@ -277,9 +133,5 @@ h3 {
 @media (max-width: 360px) {
   .wheel-page {
     width: min(100% - 1.25rem, 960px);
-  }
-
-  .game-state {
-    padding: 1rem;
   }
 }

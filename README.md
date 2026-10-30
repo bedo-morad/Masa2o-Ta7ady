@@ -33,10 +33,6 @@ These are screenshots from the running app in dark mode. They're the referee's v
 
 ![The main menu with all ten games, the Settings gear, the game-wheel shortcut, and Question Management](docs/screenshots/main-menu.png)
 
-### Game wheel: pick the next challenge
-
-![The wheel with all ten games and controls for available, removed, and picked games, plus a new-round button](docs/screenshots/game-wheel.png)
-
 ### Risk: pick your category and your points
 
 ![Risk category board with 5, 10, 20, and 40-point questions and each team's power cards](docs/screenshots/risk.png)
@@ -48,6 +44,10 @@ These are screenshots from the running app in dark mode. They're the referee's v
 ### Who-in-Picture: how many faces do you remember?
 
 ![Who-in-Picture showing Chelsea's 2012 Champions League final team photo and the referee's answer list](docs/screenshots/whopicture.png)
+
+### Game wheel: pick the next challenge
+
+![The wheel with all ten games and controls for available, removed, and picked games, plus a new-round button](docs/screenshots/game-wheel.png)
 
 ## Management
 

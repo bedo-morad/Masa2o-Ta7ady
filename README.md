@@ -19,6 +19,8 @@ There's more here than straight question-and-answer trivia:
 - **Ana Meen (أنا مين؟):** work out the mystery footballer from five clues.
 - **Who-in-Picture (مين في الصورة):** put names to the eleven faces in a team photo.
 
+Not sure what to play next? Tap the wheel shortcut beside Settings on the main menu to choose a game at random. A fresh round starts with all ten games on the wheel. You can remove games and restore them later; a winner stays on the wheel until you close the result, then joins the ordered picked list. The round is saved in this browser, and **New round** starts over.
+
 The referee has the answers, timers, and scores on screen. They decide what counts, award points, and can fix the score whenever needed. The app keeps things moving; the football arguments are still yours to settle.
 
 The screens are in Arabic, work right-to-left, and have light and dark themes. You can also add your own questions and import question packs from the question-management page, so the group doesn't have to keep playing the same material.
@@ -29,7 +31,7 @@ These are screenshots from the running app in dark mode. They're the referee's v
 
 ### Main menu: the whole game night in one place
 
-![The complete main menu, with all ten games, the Settings gear, and Question Management visible](docs/screenshots/main-menu.png)
+![The main menu with all ten games, the Settings gear, the game-wheel shortcut, and Question Management](docs/screenshots/main-menu.png)
 
 ### Risk: pick your category and your points
 
@@ -42,6 +44,10 @@ These are screenshots from the running app in dark mode. They're the referee's v
 ### Who-in-Picture: how many faces do you remember?
 
 ![Who-in-Picture showing Chelsea's 2012 Champions League final team photo and the referee's answer list](docs/screenshots/whopicture.png)
+
+### Game wheel: pick the next challenge
+
+![The wheel with all ten games and controls for available, removed, and picked games, plus a new-round button](docs/screenshots/game-wheel.png)
 
 ## Management
 

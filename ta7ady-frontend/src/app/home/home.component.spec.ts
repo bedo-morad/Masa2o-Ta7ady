@@ -24,6 +24,21 @@ describe('HomeComponent', () => {
     expect(el.querySelector('.themes')).toBeNull();
   });
 
+  it('shows a dismissible Arabic backend wake-up notice', () => {
+    const fixture = TestBed.createComponent(HomeComponent);
+    fixture.detectChanges();
+    const notice = fixture.nativeElement.querySelector('.wake-notice') as HTMLElement | null;
+
+    expect(notice?.querySelector('strong')?.textContent).toBe('أول تحميل بعد فترة ممكن ياخد وقت أطول');
+    expect(notice?.querySelector('p')?.textContent).toBe(
+      'على الخطة المجانية من Render، السيرفر بيتوقف تلقائيًا لو مفيش استخدام لفترة. سيب صفحة اي لعبة مفتوحة لحد ما يشتغل تاني وهتقدر تلعب اللعبة.',
+    );
+    notice?.querySelector('button')?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.wake-notice')).toBeNull();
+  });
+
   it('opens the settings modal from the gear button', () => {
     const fixture = TestBed.createComponent(HomeComponent);
     fixture.detectChanges();

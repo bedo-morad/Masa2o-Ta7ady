@@ -13,6 +13,7 @@ import { SettingsModalComponent } from '../shared/settings/settings-modal.compon
 export class HomeComponent {
   readonly games = GAME_CATALOG;
   readonly settingsOpen = signal(false);
+  readonly wakeNoticeVisible = signal(true);
 
   openSettings(): void {
     this.settingsOpen.set(true);
@@ -20,5 +21,9 @@ export class HomeComponent {
 
   closeSettings(): void {
     this.settingsOpen.set(false);
+  }
+
+  dismissWakeNotice(): void {
+    this.wakeNoticeVisible.set(false);
   }
 }

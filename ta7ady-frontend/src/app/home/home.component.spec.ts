@@ -29,10 +29,10 @@ describe('HomeComponent', () => {
     fixture.detectChanges();
     const notice = fixture.nativeElement.querySelector('.wake-notice') as HTMLElement | null;
 
-    expect(notice?.textContent).toContain('أول تحميل بعد فترة ممكن ياخد وقت أطول');
-    expect(notice?.textContent).toContain('على الخطة المجانية من ريندر');
-    expect(notice?.textContent).toContain('السيرفر بينام لو محدش استخدمه فترة');
-    expect(notice?.textContent).toContain('لحد ما يصحى وتفتح اللعبة');
+    expect(notice?.querySelector('strong')?.textContent).toBe('أول تحميل بعد فترة ممكن ياخد وقت أطول');
+    expect(notice?.querySelector('p')?.textContent).toBe(
+      'على الخطة المجانية من Render، السيرفر بيتوقف تلقائيًا لو مفيش استخدام لفترة. سيب صفحة اي لعبة مفتوحة لحد ما يشتغل تاني وهتقدر تلعب اللعبة.',
+    );
     notice?.querySelector('button')?.click();
     fixture.detectChanges();
 

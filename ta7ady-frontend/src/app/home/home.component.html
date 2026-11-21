@@ -11,6 +11,27 @@
     <h1>مسائو تحدي</h1>
   </header>
 
+  @if (wakeNoticeVisible()) {
+    <aside class="wake-notice" role="note" dir="rtl">
+      <i class="fa-solid fa-circle-info wake-notice-icon" aria-hidden="true"></i>
+      <div class="wake-notice-copy">
+        <strong>أول تحميل بعد فترة ممكن ياخد وقت أطول</strong>
+        <p>
+          على الخطة المجانية من ريندر، السيرفر بينام لو محدش استخدمه فترة. سيب الصفحة مفتوحة لحد ما
+          يصحى وتفتح اللعبة.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="wake-notice-close"
+        aria-label="إغلاق التنبيه"
+        (click)="dismissWakeNotice()"
+      >
+        ×
+      </button>
+    </aside>
+  }
+
   <nav class="play-grid" aria-label="التحديات">
     @for (game of games; track game.id) {
       <a [routerLink]="game.route" class="play-btn">{{ game.name }}</a>

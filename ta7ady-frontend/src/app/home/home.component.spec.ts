@@ -24,6 +24,21 @@ describe('HomeComponent', () => {
     expect(el.querySelector('.themes')).toBeNull();
   });
 
+  it('shows a dismissible Arabic backend wake-up notice', () => {
+    const fixture = TestBed.createComponent(HomeComponent);
+    fixture.detectChanges();
+    const notice = fixture.nativeElement.querySelector('.wake-notice') as HTMLElement | null;
+
+    expect(notice?.textContent).toContain('أول تحميل بعد فترة ممكن ياخد وقت أطول');
+    expect(notice?.textContent).toContain('على الخطة المجانية من ريندر');
+    expect(notice?.textContent).toContain('السيرفر بينام لو محدش استخدمه فترة');
+    expect(notice?.textContent).toContain('لحد ما يصحى وتفتح اللعبة');
+    notice?.querySelector('button')?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.wake-notice')).toBeNull();
+  });
+
   it('opens the settings modal from the gear button', () => {
     const fixture = TestBed.createComponent(HomeComponent);
     fixture.detectChanges();

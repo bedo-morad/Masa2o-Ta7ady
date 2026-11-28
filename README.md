@@ -1,5 +1,7 @@
 # Masa2o Ta7ady
 
+**Play it live: [ta7ady.abdalrahman.tech](https://ta7ady.abdalrahman.tech/)**
+
 Get your friends together, split into two teams, and find out who actually remembers all that football trivia. Masa2o Ta7ady (مسائو تحدي) is an Arabic football game-night app, with Egyptian football in the mix alongside clubs and players from around the world.
 
 One person plays referee and runs the app on their phone. Everyone else plays together in the room, without needing an account. Pick a challenge, give your teams names, and start playing. You can stick with one game or try another whenever the group feels like it.
